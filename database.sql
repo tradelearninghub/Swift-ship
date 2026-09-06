@@ -500,9 +500,9 @@ INSERT INTO `settings` (`id`, `group`, `key`, `value`, `updated_at`) VALUES
   'company_profile',
   'company_profile',
   JSON_OBJECT(
-    'company_name', 'Swift Ship Courier Services Pvt. Ltd.',
+    'company_name', 'SS Courier Services Pvt. Ltd.',
     'tagline', 'Fast, Safe & Multi-Carrier Courier Logistics',
-    'support_email', 'support@swiftship.com',
+    'support_email', 'support@sscourierservice.in',
     'support_phone', '+91 98765 43210',
     'whatsapp', '+91 98765 43210',
     'address', 'Plot 42, Logistics Park, Sitapura Industrial Area',
@@ -513,6 +513,6 @@ INSERT INTO `settings` (`id`, `group`, `key`, `value`, `updated_at`) VALUES
   ),
   NOW(3)
 )
-ON DUPLICATE KEY UPDATE `updated_at` = NOW(3);
+ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `updated_at` = NOW(3);
 
 SET FOREIGN_KEY_CHECKS = 1;
