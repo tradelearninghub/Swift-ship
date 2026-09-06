@@ -660,15 +660,21 @@ export const MOCK_SUPPORT_TICKETS: MockSupportTicket[] = [
 ];
 
 export const MOCK_COMPANY_SETTINGS = {
-  company_name: "Swift Ship Courier Services Pvt. Ltd.",
+  company_name: "SS Courier service Pvt. Ltd.",
   brand_tagline: "Fast, Safe & Multi-Carrier Courier Logistics",
-  support_email: "support@swiftship.com",
-  support_phone: "+91 98765 43210",
-  whatsapp_number: "+91 98765 43210",
-  address: "Plot 42, Logistics Park, Sitapura Industrial Area",
+  support_email: "support@sscourierservice.in",
+  support_phone: "8000151117, 7689987368",
+  support_phones: ["8000151117", "7689987368"],
+  whatsapp_number: "8000151117",
+  address: "Shop No 4, 5th Crossing, Padmavati School, Ghee Walo Ka Rasta, Johri Bazar",
   city: "Jaipur",
   state: "Rajasthan",
-  pincode: "302022",
+  pincode: "302003",
   operating_hours: "Mon - Sat: 08:00 AM - 09:00 PM IST",
+  google_maps_embed_url:
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3557.484920272099!2d75.82412537611685!3d26.921104759799295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db14b1a473b11%3A0xb35a0f5a11c1e5cb!2sJohri%20Bazar%2C%20Jaipur%2C%20Rajasthan%20302003!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin",
+  latitude: 26.9211,
+  longitude: 75.8267,
   max_declared_value_paise: 50000000, // ₹5,00,000 max cap
 };
+

@@ -56,9 +56,9 @@ export default function CustomerProfilePage() {
             </CardHeader>
             <CardContent className="p-6">
               <form onSubmit={handleSaveProfile} className="space-y-4">
-                <Input label="Full Name" defaultValue="Rahul Sharma" required />
-                <Input label="Mobile Number" type="tel" defaultValue="9876543210" required />
-                <Input label="Email Address" type="email" defaultValue="rahul.sharma@example.com" required />
+                <Input label="Full Name" placeholder="Your full name" required />
+                <Input label="Mobile Number" type="tel" maxLength={10} placeholder="10-digit mobile" required />
+                <Input label="Email Address" type="email" placeholder="name@example.com" required />
                 <div className="p-3 bg-surface-subtle border border-border-default rounded-xl space-y-1 text-xs">
                   <span className="font-semibold text-text-muted">Account Type:</span>
                   <div className="font-bold text-brand-primary flex items-center gap-1.5">

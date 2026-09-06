@@ -11,28 +11,43 @@ import { MOCK_BOOKINGS, MockBooking } from "@/lib/mockData";
 import {
   Search,
   Truck,
-  ShieldCheck,
+  Layers,
   MapPin,
   Calendar,
   RefreshCw,
   AlertCircle,
-  Package,
-  Layers,
-  Phone,
   ArrowRight,
   Loader2,
+  FileText,
+  Phone,
+  Barcode,
 } from "lucide-react";
+
+type SearchMode = "AWB" | "ORDER_ID" | "MOBILE_PINCODE";
 
 function TrackingContent() {
   const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("q") || searchParams.get("awb") || "BK-1025";
+  const initialAwb = searchParams.get("awb") || "";
+  const initialBookingId = searchParams.get("booking_id") || searchParams.get("order_id") || "";
+  const initialMobile = searchParams.get("mobile") || "";
+  const initialPincode = searchParams.get("pincode") || "";
+  const initialQuery = searchParams.get("q") || initialAwb || initialBookingId;
 
-  const [activeTab, setActiveTab] = useState<"query" | "phone">("query");
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [activeTab, setActiveTab] = useState<SearchMode>(
+    initialAwb
+      ? "AWB"
+      : initialBookingId
+      ? "ORDER_ID"
+      : initialMobile
+      ? "MOBILE_PINCODE"
+      : "AWB"
+  );
 
-  // Phone + Pincode Form
-  const [mobileInput, setMobileInput] = useState("9876543210");
-  const [pincodeInput, setPincodeInput] = useState("302022");
+  // Search fields
+  const [awbInput, setAwbInput] = useState(initialAwb);
+  const [bookingIdInput, setBookingIdInput] = useState(initialBookingId);
+  const [mobileInput, setMobileInput] = useState(initialMobile);
+  const [pincodeInput, setPincodeInput] = useState(initialPincode);
 
   // Search Results State
   const [matchedBookings, setMatchedBookings] = useState<MockBooking[]>([]);
@@ -41,14 +56,18 @@ function TrackingContent() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Perform initial search on mount
+  // Perform initial search on mount if URL parameters exist
   useEffect(() => {
     if (initialQuery) {
       handleDirectLookup(initialQuery);
+    } else if (initialMobile) {
+      handleMobilePincodeLookup(initialMobile, initialPincode);
     }
-  }, [initialQuery]);
+  }, [initialQuery, initialMobile, initialPincode]);
 
+  // Direct AWB / Booking ID Lookup
   const handleDirectLookup = (query: string) => {
+    if (!query.trim()) return;
     setIsLoading(true);
     setHasSearched(true);
 
@@ -69,24 +88,28 @@ function TrackingContent() {
         setSelectedBooking(null);
       }
       setIsLoading(false);
-    }, 400);
+    }, 350);
   };
 
-  const handlePhoneLookup = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Mobile + Pincode Search (Checks (Sender Mobile + Pincode) OR (Receiver Mobile + Pincode))
+  const handleMobilePincodeLookup = (mobVal: string, pinVal: string) => {
+    if (!mobVal.trim()) return;
     setIsLoading(true);
     setHasSearched(true);
 
     setTimeout(() => {
-      const mob = mobileInput.trim();
-      const pin = pincodeInput.trim();
+      const mob = mobVal.trim();
+      const pin = pinVal.trim();
 
-      // Check (Sender Mobile + Pincode) OR (Receiver Mobile + Pincode) per §25
-      const matches = MOCK_BOOKINGS.filter(
-        (b) =>
-          (b.sender_mobile.includes(mob) && b.sender_pincode === pin) ||
-          (b.receiver_mobile.includes(mob) && b.receiver_pincode === pin)
-      );
+      const matches = MOCK_BOOKINGS.filter((b) => {
+        if (pin) {
+          return (
+            (b.sender_mobile.includes(mob) && b.sender_pincode === pin) ||
+            (b.receiver_mobile.includes(mob) && b.receiver_pincode === pin)
+          );
+        }
+        return b.sender_mobile.includes(mob) || b.receiver_mobile.includes(mob);
+      });
 
       setMatchedBookings(matches);
       if (matches.length === 1) {
@@ -95,20 +118,26 @@ function TrackingContent() {
         setSelectedBooking(null);
       }
       setIsLoading(false);
-    }, 450);
+    }, 400);
   };
 
   const handleLiveRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => {
       setIsRefreshing(false);
-    }, 700);
+    }, 600);
   };
 
-  // Mask sensitive phone numbers and addresses per §27
+  // Mask sensitive data per §27
   const maskPhone = (phone: string) => {
     if (phone.length < 5) return "••••••";
     return phone.slice(0, 2) + "••••••" + phone.slice(-2);
+  };
+
+  const maskAwb = (awb?: string) => {
+    if (!awb) return "Pending";
+    if (awb.length <= 4) return "••••";
+    return awb.slice(0, 3) + "••••" + awb.slice(-3);
   };
 
   return (
@@ -116,59 +145,82 @@ function TrackingContent() {
       {/* Tracking Header */}
       <div className="text-center max-w-2xl mx-auto space-y-3">
         <span className="text-xs font-bold uppercase tracking-wider text-brand-primary bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-          Real-Time Shipment Tracking
+          Real-Time Consignment Tracking
         </span>
-        <h1 className="text-h1">Track Your Consignment</h1>
-        <p className="text-body">
-          Unified multi-carrier status updates across Delhivery, Blue Dart, DTDC, and XpressBees.
+        <h1 className="text-h1">Track Your Shipment</h1>
+        <p className="text-body text-sm">
+          Unified multi-carrier status updates across Delhivery, Blue Dart, DTDC, and XpressBees by SS Courier service.
         </p>
       </div>
 
-      {/* Search Container with Tabs */}
+      {/* 3-Option Search Container */}
       <div className="max-w-2xl mx-auto bg-surface-base border border-border-default rounded-2xl p-6 shadow-md space-y-6">
-        {/* Tab Switcher */}
-        <div className="flex rounded-xl bg-surface-subtle p-1 border border-border-default text-xs font-semibold">
+        {/* 3 Distinct Search Option Tabs */}
+        <div className="grid grid-cols-3 rounded-xl bg-surface-subtle p-1 border border-border-default text-xs font-semibold gap-1">
           <button
-            onClick={() => setActiveTab("query")}
-            className={`flex-1 py-2.5 rounded-lg transition-all ${
-              activeTab === "query"
+            type="button"
+            onClick={() => setActiveTab("AWB")}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg transition-all ${
+              activeTab === "AWB"
                 ? "bg-surface-base text-brand-primary shadow-sm font-bold"
                 : "text-text-secondary hover:text-text-primary"
             }`}
           >
-            Option 1: AWB / Order ID
+            <Barcode className="w-4 h-4 hidden sm:inline" />
+            <span>AWB Number</span>
           </button>
+
           <button
-            onClick={() => setActiveTab("phone")}
-            className={`flex-1 py-2.5 rounded-lg transition-all ${
-              activeTab === "phone"
+            type="button"
+            onClick={() => setActiveTab("ORDER_ID")}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg transition-all ${
+              activeTab === "ORDER_ID"
                 ? "bg-surface-base text-brand-primary shadow-sm font-bold"
                 : "text-text-secondary hover:text-text-primary"
             }`}
           >
-            Option 2: Mobile + Pincode
+            <FileText className="w-4 h-4 hidden sm:inline" />
+            <span>Order / Booking ID</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("MOBILE_PINCODE")}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg transition-all ${
+              activeTab === "MOBILE_PINCODE"
+                ? "bg-surface-base text-brand-primary shadow-sm font-bold"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            <Phone className="w-4 h-4 hidden sm:inline" />
+            <span>Mobile + Pincode</span>
           </button>
         </div>
 
-        {/* Tab 1: Direct AWB/Order Form */}
-        {activeTab === "query" && (
+        {/* Option 1: AWB Number Search */}
+        {activeTab === "AWB" && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleDirectLookup(searchQuery);
+              handleDirectLookup(awbInput);
             }}
             className="space-y-4"
           >
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="e.g. BK-1025 or DEL98234123"
-                className="w-full h-12 pl-4 pr-12 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:outline-none transition-all"
-                required
-              />
-              <Search className="w-5 h-5 text-text-muted absolute right-4 top-3.5" />
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-text-primary">
+                Enter Air Waybill (AWB) Number
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={awbInput}
+                  onChange={(e) => setAwbInput(e.target.value)}
+                  placeholder="e.g. DEL98234123 or BLU77491021"
+                  className="w-full h-12 pl-4 pr-12 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:outline-none transition-all"
+                  required
+                />
+                <Search className="w-5 h-5 text-text-muted absolute right-4 top-3.5" />
+              </div>
             </div>
             <Button
               type="submit"
@@ -177,32 +229,74 @@ function TrackingContent() {
               className="w-full shadow-md"
               isLoading={isLoading}
             >
-              Track Consignment
+              Track by AWB
             </Button>
-            <p className="text-center text-[11px] text-text-muted font-mono">
-              Try demo references: BK-1025, BK-1018, DEL98234123, BLU77491021
-            </p>
           </form>
         )}
 
-        {/* Tab 2: Mobile + Pincode Form (§25-26) */}
-        {activeTab === "phone" && (
-          <form onSubmit={handlePhoneLookup} className="space-y-4">
+        {/* Option 2: Order ID / Booking ID Search */}
+        {activeTab === "ORDER_ID" && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleDirectLookup(bookingIdInput);
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-text-primary">
+                Enter Booking ID / Order Reference
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={bookingIdInput}
+                  onChange={(e) => setBookingIdInput(e.target.value)}
+                  placeholder="e.g. BK-1025 or BK-1018"
+                  className="w-full h-12 pl-4 pr-12 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:outline-none transition-all"
+                  required
+                />
+                <Search className="w-5 h-5 text-text-muted absolute right-4 top-3.5" />
+              </div>
+            </div>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full shadow-md"
+              isLoading={isLoading}
+            >
+              Track by Booking ID
+            </Button>
+          </form>
+        )}
+
+        {/* Option 3: Mobile + Pincode Search */}
+        {activeTab === "MOBILE_PINCODE" && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleMobilePincodeLookup(mobileInput, pincodeInput);
+            }}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input
                 label="Mobile Number"
                 type="tel"
-                placeholder="10-digit mobile"
+                maxLength={10}
                 value={mobileInput}
                 onChange={(e) => setMobileInput(e.target.value)}
+                placeholder="10-digit mobile number"
                 required
               />
               <Input
                 label="Origin or Destination Pincode"
                 type="text"
-                placeholder="6-digit pincode"
+                maxLength={6}
                 value={pincodeInput}
                 onChange={(e) => setPincodeInput(e.target.value)}
+                placeholder="6-digit pincode"
                 required
               />
             </div>
@@ -213,10 +307,10 @@ function TrackingContent() {
               className="w-full shadow-md"
               isLoading={isLoading}
             >
-              Search by Mobile + Pincode
+              Search by Mobile & Pincode
             </Button>
             <p className="text-center text-[11px] text-text-muted">
-              Checks both sender and receiver credentials with automated fraud-protected rate limiting.
+              Checks both (Sender Mobile + Pincode) and (Receiver Mobile + Pincode) with privacy verification.
             </p>
           </form>
         )}
@@ -224,23 +318,28 @@ function TrackingContent() {
 
       {/* Multiple Matches Disambiguation List (§26) */}
       {!selectedBooking && matchedBookings.length > 1 && (
-        <Card className="max-w-3xl mx-auto border-amber-200 bg-amber-50/30">
-          <CardHeader>
-            <CardTitle className="text-base text-amber-900 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-amber-600" />
-              Multiple Shipments Found ({matchedBookings.length})
+        <Card className="max-w-3xl mx-auto border-blue-200 bg-blue-50/20 shadow-md">
+          <CardHeader className="pb-3 border-b border-border-default bg-surface-subtle/50">
+            <CardTitle className="text-base text-text-primary flex items-center justify-between">
+              <span className="flex items-center gap-2 font-bold">
+                <Layers className="w-5 h-5 text-brand-primary" />
+                Multiple Shipments Found ({matchedBookings.length})
+              </span>
+              <span className="text-xs font-normal text-text-muted">
+                Showing all consignments associated with your query
+              </span>
             </CardTitle>
-            <p className="text-xs text-amber-700">
-              Multiple consignments matched your search credentials. Please select the specific shipment to view detailed timeline:
+            <p className="text-xs text-text-secondary mt-1">
+              Select any consignment below to inspect full delivery timeline and courier checkpoints:
             </p>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-border-default">
+            <div className="divide-y divide-border-default max-h-96 overflow-y-auto">
               {matchedBookings.map((b) => (
                 <div
                   key={b.id}
                   onClick={() => setSelectedBooking(b)}
-                  className="p-4 hover:bg-surface-base cursor-pointer transition-colors flex items-center justify-between gap-4"
+                  className="p-4 hover:bg-blue-50/60 cursor-pointer transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
@@ -249,12 +348,18 @@ function TrackingContent() {
                       </span>
                       <StatusBadge status={b.shipment?.status || b.status} />
                     </div>
-                    <div className="text-xs text-text-secondary">
-                      {b.sender_city} → {b.receiver_city} • {b.payment_type}
+                    <div className="text-xs text-text-secondary flex flex-wrap gap-x-3 gap-y-1">
+                      <span>
+                        Route: <strong>{b.sender_city} → {b.receiver_city}</strong>
+                      </span>
+                      <span>•</span>
+                      <span>AWB: {maskAwb(b.shipment?.awb)}</span>
+                      <span>•</span>
+                      <span>{b.payment_type === "COD" ? "Cash on Delivery" : "Prepaid"}</span>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    View Tracking <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  <Button variant="outline" size="sm" className="self-start sm:self-center">
+                    View Timeline <ArrowRight className="w-3.5 h-3.5 ml-1" />
                   </Button>
                 </div>
               ))}
@@ -267,9 +372,9 @@ function TrackingContent() {
       {hasSearched && !isLoading && matchedBookings.length === 0 && (
         <div className="max-w-xl mx-auto text-center p-10 bg-surface-subtle border border-border-default rounded-2xl space-y-3">
           <AlertCircle className="w-10 h-10 text-amber-500 mx-auto" />
-          <h3 className="text-base font-bold text-text-primary">Shipment Not Found</h3>
+          <h3 className="text-base font-bold text-text-primary">No Consignment Found</h3>
           <p className="text-xs text-text-secondary max-w-sm mx-auto">
-            We could not find any active booking or AWB matching your query. Please verify the code or contact support.
+            We could not find any active shipment matching your query. Please double-check your AWB, Booking ID, or Mobile + Pincode.
           </p>
         </div>
       )}
@@ -280,6 +385,7 @@ function TrackingContent() {
           {/* Back button if disambiguated from multiple */}
           {matchedBookings.length > 1 && (
             <button
+              type="button"
               onClick={() => setSelectedBooking(null)}
               className="text-xs font-semibold text-brand-primary hover:underline flex items-center gap-1"
             >
@@ -307,7 +413,7 @@ function TrackingContent() {
                     </strong>
                   </span>
                   <span>
-                    Courier:{" "}
+                    Courier Partner:{" "}
                     <strong className="text-text-primary">
                       {selectedBooking.shipment?.courier_name || "Assigned Partner"}
                     </strong>
@@ -396,7 +502,7 @@ export default function TrackingPage() {
       fallback={
         <div className="py-20 text-center flex flex-col items-center justify-center space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
-          <p className="text-xs text-text-muted">Loading tracking system...</p>
+          <p className="text-xs text-text-muted">Loading tracking portal...</p>
         </div>
       }
     >
@@ -404,4 +510,3 @@ export default function TrackingPage() {
     </Suspense>
   );
 }
-

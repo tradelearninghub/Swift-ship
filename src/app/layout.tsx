@@ -15,9 +15,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SS Courier Services | Fast & Reliable Multi-Courier Tracking & Booking",
+  title: "SS Courier service | Fast & Reliable Multi-Courier Tracking & Booking",
   description:
-    "Fast, reliable multi-courier booking and real-time shipment tracking with verified status updates by SS Courier Services.",
+    "Fast, reliable multi-courier booking and real-time shipment tracking with verified status updates by SS Courier service.",
 };
 
 export default function RootLayout({

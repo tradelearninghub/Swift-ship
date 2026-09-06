@@ -98,31 +98,26 @@ async function initDatabase() {
         console.log("[DB-INIT] ✅ All tables, constraints, and initial seed data created successfully!");
       }
     } else {
-      // Check if superadmin is seeded
+      // Ensure Super Admin and settings are up to date
       try {
-        const superAdmin = await prisma.user.findFirst({
-          where: { email: "admin@swiftship.com" },
-        });
-        if (!superAdmin) {
-          console.log("[DB-INIT] Seeding missing Super Admin and roles...");
-          const sqlFilePath = path.resolve(process.cwd(), "database.sql");
-          if (fs.existsSync(sqlFilePath)) {
-            const sqlContent = fs.readFileSync(sqlFilePath, "utf-8");
-            const statements = sqlContent
-              .split(/;\s*[\r\n]+/)
-              .map((s) => s.trim())
-              .filter((s) => s.startsWith("INSERT"));
+        console.log("[DB-INIT] Ensuring Super Admin accounts and settings are synced...");
+        const sqlFilePath = path.resolve(process.cwd(), "database.sql");
+        if (fs.existsSync(sqlFilePath)) {
+          const sqlContent = fs.readFileSync(sqlFilePath, "utf-8");
+          const statements = sqlContent
+            .split(/;\s*[\r\n]+/)
+            .map((s) => s.trim())
+            .filter((s) => s.startsWith("INSERT"));
 
-            for (const statement of statements) {
-              try {
-                await prisma.$executeRawUnsafe(statement);
-              } catch (e) {
-                // Ignore duplicate insert notices
-              }
+          for (const statement of statements) {
+            try {
+              await prisma.$executeRawUnsafe(statement);
+            } catch (e) {
+              // Ignore harmless duplicate key errors
             }
           }
         }
-        console.log("[DB-INIT] ✅ Database is up to date and verified.");
+        console.log("[DB-INIT] ✅ Database credentials & settings are up to date.");
       } catch (checkErr) {
         console.warn("[DB-INIT] Verification notice:", checkErr.message);
       }

@@ -17,6 +17,7 @@ import {
   LogOut,
   ShieldCheck,
 } from "lucide-react";
+import { SignOutButton } from "@/components/SignOutButton";
 
 export default function AdminLayout({
   children,
@@ -136,12 +137,10 @@ export default function AdminLayout({
             </div>
             <div>
               <div className="font-semibold text-white">Super Admin</div>
-              <div className="text-[10px] text-slate-400">admin@swiftship.com</div>
+              <div className="text-[10px] text-slate-400">admin@sscourierservice.in</div>
             </div>
           </div>
-          <Link href="/login" title="Sign Out" className="text-slate-400 hover:text-rose-400">
-            <LogOut className="w-4 h-4" />
-          </Link>
+          <SignOutButton showText={false} className="text-slate-400 hover:text-rose-400" />
         </div>
       </aside>
 

@@ -4,11 +4,26 @@ import { prisma } from "@/lib/prisma";
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
-    const query = searchParams.get("q")?.trim();
-    const mobile = searchParams.get("mobile")?.trim();
-    const pincode = searchParams.get("pincode")?.trim();
+    const awbParam = searchParams.get("awb")?.trim();
+    const bookingIdParam = (searchParams.get("booking_id") || searchParams.get("order_id"))?.trim();
+    const mobileParam = searchParams.get("mobile")?.trim();
+    const pincodeParam = searchParams.get("pincode")?.trim();
+    const query = searchParams.get("q")?.trim() || awbParam || bookingIdParam;
 
-    // Mode 1: Direct AWB or Booking Number Lookup
+    // Helper to mask AWB for privacy in multi-result list (§27)
+    const maskAwb = (awb?: string | null) => {
+      if (!awb) return "Allocating";
+      if (awb.length <= 4) return "••••";
+      return `${awb.slice(0, 3)}••••${awb.slice(-3)}`;
+    };
+
+    // Helper to mask mobile number (§27)
+    const maskPhone = (phone?: string | null) => {
+      if (!phone || phone.length < 6) return "••••••";
+      return `${phone.slice(0, 2)}••••••${phone.slice(-2)}`;
+    };
+
+    // Option 1 & 2: Search by AWB or Booking Number / Order ID (Direct Lookup)
     if (query) {
       const shipment = await prisma.shipment.findFirst({
         where: {
@@ -29,7 +44,7 @@ export async function GET(req: NextRequest) {
       });
 
       if (!shipment) {
-        // Check if there is an intake booking without a shipment yet
+        // Check if there is an intake booking without a shipment assigned yet
         const bookingOnly = await prisma.booking.findFirst({
           where: { booking_number: query },
           include: { parcels: true },
@@ -47,14 +62,16 @@ export async function GET(req: NextRequest) {
             status: bookingOnly.status,
             sender_city: bookingOnly.sender_city,
             sender_state: bookingOnly.sender_state,
+            sender_mobile_masked: maskPhone(bookingOnly.sender_mobile),
             receiver_city: bookingOnly.receiver_city,
             receiver_state: bookingOnly.receiver_state,
+            receiver_mobile_masked: maskPhone(bookingOnly.receiver_mobile),
             payment_type: bookingOnly.payment_type,
             created_at: bookingOnly.created_at,
             events: [
               {
                 status: "REQUESTED",
-                raw_status: "Booking request placed online",
+                raw_status: "Booking request placed online — awaiting review",
                 location: `${bookingOnly.sender_city}`,
                 occurred_at: bookingOnly.created_at,
               },
@@ -75,10 +92,10 @@ export async function GET(req: NextRequest) {
           status: shipment.status,
           sender_city: b.sender_city,
           sender_state: b.sender_state,
-          sender_mobile_masked: `${b.sender_mobile.slice(0, 2)}••••••${b.sender_mobile.slice(-2)}`,
+          sender_mobile_masked: maskPhone(b.sender_mobile),
           receiver_city: b.receiver_city,
           receiver_state: b.receiver_state,
-          receiver_mobile_masked: `${b.receiver_mobile.slice(0, 2)}••••••${b.receiver_mobile.slice(-2)}`,
+          receiver_mobile_masked: maskPhone(b.receiver_mobile),
           payment_type: b.payment_type,
           created_at: b.created_at,
           events: shipment.tracking_events.map((e) => ({
@@ -92,15 +109,24 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Mode 2: Mobile + Pincode Lookup (§25)
-    if (mobile && pincode) {
+    // Option 3: Search by Mobile Number + Pincode (§25-26)
+    if (mobileParam) {
+      const whereCondition = pincodeParam
+        ? {
+            OR: [
+              { sender_mobile: mobileParam, sender_pincode: pincodeParam },
+              { receiver_mobile: mobileParam, receiver_pincode: pincodeParam },
+            ],
+          }
+        : {
+            OR: [
+              { sender_mobile: mobileParam },
+              { receiver_mobile: mobileParam },
+            ],
+          };
+
       const bookings = await prisma.booking.findMany({
-        where: {
-          OR: [
-            { sender_mobile: mobile, sender_pincode: pincode },
-            { receiver_mobile: mobile, receiver_pincode: pincode },
-          ],
-        },
+        where: whereCondition,
         include: {
           shipment: {
             include: {
@@ -112,20 +138,61 @@ export async function GET(req: NextRequest) {
           },
         },
         orderBy: { created_at: "desc" },
-        take: 10,
+        take: 20,
       });
 
       if (bookings.length === 0) {
         return NextResponse.json({ found: false, results: [] }, { status: 404 });
       }
 
+      // If exactly 1 match, return single shipment detail directly
+      if (bookings.length === 1) {
+        const b = bookings[0];
+        const s = b.shipment;
+        return NextResponse.json({
+          found: true,
+          type: "SINGLE",
+          shipment: {
+            awb: s?.awb || null,
+            booking_number: b.booking_number,
+            courier_name: s?.courier_partner.name || "Assigned Partner",
+            status: s?.status || b.status,
+            sender_city: b.sender_city,
+            sender_state: b.sender_state,
+            sender_mobile_masked: maskPhone(b.sender_mobile),
+            receiver_city: b.receiver_city,
+            receiver_state: b.receiver_state,
+            receiver_mobile_masked: maskPhone(b.receiver_mobile),
+            payment_type: b.payment_type,
+            created_at: b.created_at,
+            events: s?.tracking_events
+              ? s.tracking_events.map((e) => ({
+                  id: e.id,
+                  status: e.status,
+                  raw_status: e.raw_status,
+                  location: e.location,
+                  occurred_at: e.occurred_at,
+                }))
+              : [
+                  {
+                    status: b.status,
+                    raw_status: "Shipment intake in progress",
+                    location: b.sender_city,
+                    occurred_at: b.created_at,
+                  },
+                ],
+          },
+        });
+      }
+
+      // If multiple matches, return privacy-masked list (§26-27)
       return NextResponse.json({
         found: true,
         type: "MULTIPLE",
         results: bookings.map((b) => ({
           booking_number: b.booking_number,
-          awb: b.shipment?.awb || null,
-          courier_name: b.shipment?.courier_partner.name || "Assigned shortly",
+          awb_masked: maskAwb(b.shipment?.awb),
+          courier_name: b.shipment?.courier_partner.name || "Assigned Partner",
           status: b.shipment?.status || b.status,
           sender_city: b.sender_city,
           receiver_city: b.receiver_city,
@@ -137,7 +204,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "Provide either ?q=AWB or ?mobile=98...&pincode=30..." },
+      { error: "Please provide either ?awb=..., ?booking_id=..., or ?mobile=...&pincode=..." },
       { status: 400 }
     );
   } catch (error: any) {

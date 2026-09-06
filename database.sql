@@ -469,21 +469,36 @@ INSERT IGNORE INTO `role_permissions` (`role_id`, `permission_id`)
 SELECT 'role-staff', `id` FROM `permissions`
 WHERE `key` IN ('booking.view', 'booking.create', 'shipment.view', 'customer.view');
 
--- Seed Super Admin User (admin@swiftship.com / Admin@12345)
--- Bcrypt hash: $2a$10$iGgQ5yJkP1b09b5cZ4oUfO0sRqm1n0U9wG8w7WjG9k2l3m4n5o6p7
+-- Seed Super Admin Users (admin@sscourierservice.in & admin@swiftship.com / Admin@12345)
+-- Verified bcrypt hash: $2a$10$3gFAfXHoT/GYzAqOwYTlMeSCCYLyTBnL65BmWSPOLoQH.X88p8Dl.
 INSERT INTO `users` (`id`, `name`, `email`, `mobile`, `password_hash`, `role_id`, `status`, `created_at`, `updated_at`)
-VALUES (
+VALUES 
+(
   'user-super-admin-01',
   'Super Admin',
+  'admin@sscourierservice.in',
+  '8000151117',
+  '$2a$10$3gFAfXHoT/GYzAqOwYTlMeSCCYLyTBnL65BmWSPOLoQH.X88p8Dl.',
+  'role-super-admin',
+  'ACTIVE',
+  NOW(3),
+  NOW(3)
+),
+(
+  'user-super-admin-02',
+  'Super Admin (SwiftShip Alias)',
   'admin@swiftship.com',
   '9876543210',
-  '$2a$10$wE0vL7M3p7Ecm0HfgUqjueJpX4jB0Wk9X3Q9hM5P1b09b5cZ4oUfO',
+  '$2a$10$3gFAfXHoT/GYzAqOwYTlMeSCCYLyTBnL65BmWSPOLoQH.X88p8Dl.',
   'role-super-admin',
   'ACTIVE',
   NOW(3),
   NOW(3)
 )
-ON DUPLICATE KEY UPDATE `status` = 'ACTIVE';
+ON DUPLICATE KEY UPDATE 
+  `password_hash` = VALUES(`password_hash`),
+  `status` = 'ACTIVE',
+  `role_id` = 'role-super-admin';
 
 -- Seed Courier Partners
 INSERT INTO `courier_partners` (`id`, `name`, `code`, `website`, `support_contact`, `status`, `capability_shipment_api`, `capability_tracking_api`, `capability_label_api`, `capability_pickup_api`, `capability_cancellation_api`, `created_at`, `updated_at`) VALUES
@@ -500,16 +515,20 @@ INSERT INTO `settings` (`id`, `group`, `key`, `value`, `updated_at`) VALUES
   'company_profile',
   'company_profile',
   JSON_OBJECT(
-    'company_name', 'SS Courier Services Pvt. Ltd.',
+    'company_name', 'SS Courier service Pvt. Ltd.',
     'tagline', 'Fast, Safe & Multi-Carrier Courier Logistics',
     'support_email', 'support@sscourierservice.in',
-    'support_phone', '+91 98765 43210',
-    'whatsapp', '+91 98765 43210',
-    'address', 'Plot 42, Logistics Park, Sitapura Industrial Area',
+    'support_phones', JSON_ARRAY('8000151117', '7689987368'),
+    'support_phone', '8000151117, 7689987368',
+    'whatsapp', '8000151117',
+    'address', 'Shop No 4, 5th Crossing, Padmavati School, Ghee Walo Ka Rasta, Johri Bazar',
     'city', 'Jaipur',
     'state', 'Rajasthan',
-    'pincode', '302022',
-    'operating_hours', 'Mon - Sat: 08:00 AM - 09:00 PM IST'
+    'pincode', '302003',
+    'operating_hours', 'Mon - Sat: 08:00 AM - 09:00 PM IST',
+    'google_maps_embed_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3557.484920272099!2d75.82412537611685!3d26.921104759799295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db14b1a473b11%3A0xb35a0f5a11c1e5cb!2sJohri%20Bazar%2C%20Jaipur%2C%20Rajasthan%20302003!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin',
+    'latitude', 26.9211,
+    'longitude', 75.8267
   ),
   NOW(3)
 )

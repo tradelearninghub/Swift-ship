@@ -5,47 +5,74 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { MOCK_COURIER_PARTNERS } from "@/lib/mockData";
 import {
-  ArrowLeft,
-  UserPlus,
+  Package,
   User,
   MapPin,
-  Package,
-  CreditCard,
   Truck,
   CheckCircle2,
+  ArrowLeft,
+  UserPlus,
 } from "lucide-react";
 
 export default function AdminNewBookingPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [createdBookingId, setCreatedBookingId] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
-      alert("Direct staff booking created and dispatched!");
-      router.push("/admin/bookings");
+      setCreatedBookingId(`BK-${Math.floor(1000 + Math.random() * 9000)}`);
+      setIsSuccess(true);
     }, 600);
   };
 
-  return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between border-b border-border-default pb-4">
-        <div className="space-y-1">
-          <Link
-            href="/admin/bookings"
-            className="text-xs text-text-secondary hover:text-brand-primary flex items-center gap-1 font-semibold"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Bookings
-          </Link>
-          <h1 className="text-xl font-bold text-text-primary">
-            Create Direct Booking (Staff Intake §12)
-          </h1>
+  if (isSuccess) {
+    return (
+      <div className="max-w-xl mx-auto py-12 text-center space-y-4">
+        <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+          <CheckCircle2 className="w-8 h-8" />
         </div>
+        <h2 className="text-xl font-bold text-text-primary">
+          Booking #{createdBookingId} Created
+        </h2>
+        <p className="text-xs text-text-secondary">
+          Direct staff booking confirmed. The shipment is created and queued for courier pickup.
+        </p>
+        <div className="flex justify-center gap-3 pt-2">
+          <Link href="/admin/bookings">
+            <Button variant="outline" size="sm">
+              All Bookings
+            </Button>
+          </Link>
+          <Button variant="primary" size="sm" onClick={() => setIsSuccess(false)}>
+            Create Another
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-text-primary">Create Direct Booking</h1>
+          <p className="text-xs text-text-secondary">
+            Manual counter / staff intake with instant courier assignment and rate setting
+          </p>
+        </div>
+        <Link href="/admin/bookings">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Bookings
+          </Button>
+        </Link>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -55,8 +82,8 @@ export default function AdminNewBookingPage() {
             <UserPlus className="w-4 h-4" /> Customer Association
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input label="Customer Name" defaultValue="Rahul Sharma" required />
-            <Input label="Customer Mobile" defaultValue="9876543210" required />
+            <Input label="Customer Name" placeholder="Customer full name" required />
+            <Input label="Customer Mobile" type="tel" maxLength={10} placeholder="10-digit mobile number" required />
           </div>
         </Card>
 
@@ -66,12 +93,12 @@ export default function AdminNewBookingPage() {
             <div className="font-bold text-xs uppercase tracking-wider text-text-muted flex items-center gap-1.5">
               <User className="w-4 h-4 text-brand-primary" /> Sender Details
             </div>
-            <Input label="Sender Name" defaultValue="Rahul Sharma" required />
-            <Input label="Sender Mobile" defaultValue="9876543210" required />
-            <Input label="Pickup Address" defaultValue="Flat 402, Royal Palms, Tonk Road" required />
+            <Input label="Sender Name" placeholder="Sender full name" required />
+            <Input label="Sender Mobile" type="tel" maxLength={10} placeholder="10-digit mobile number" required />
+            <Input label="Pickup Address" placeholder="Address line" required />
             <div className="grid grid-cols-2 gap-2">
-              <Input label="City" defaultValue="Jaipur" required />
-              <Input label="Pincode" defaultValue="302022" required />
+              <Input label="City" placeholder="City" required />
+              <Input label="Pincode" placeholder="6-digit pincode" maxLength={6} required />
             </div>
           </Card>
 
@@ -79,12 +106,12 @@ export default function AdminNewBookingPage() {
             <div className="font-bold text-xs uppercase tracking-wider text-text-muted flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-brand-accent" /> Receiver Details
             </div>
-            <Input label="Receiver Name" defaultValue="Anand Gupta" required />
-            <Input label="Receiver Mobile" defaultValue="9812345678" required />
-            <Input label="Delivery Address" defaultValue="Villa 12, Palm Meadows, Whitefield" required />
+            <Input label="Receiver Name" placeholder="Receiver full name" required />
+            <Input label="Receiver Mobile" type="tel" maxLength={10} placeholder="10-digit mobile number" required />
+            <Input label="Delivery Address" placeholder="Address line" required />
             <div className="grid grid-cols-2 gap-2">
-              <Input label="City" defaultValue="Bengaluru" required />
-              <Input label="Pincode" defaultValue="560066" required />
+              <Input label="City" placeholder="City" required />
+              <Input label="Pincode" placeholder="6-digit pincode" maxLength={6} required />
             </div>
           </Card>
         </div>
@@ -95,9 +122,9 @@ export default function AdminNewBookingPage() {
             <Package className="w-4 h-4 text-emerald-600" /> Parcel Details & Physical Weight
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Input label="Weight (kg)" type="number" step="0.1" defaultValue="2.5" required />
-            <Input label="Dimensions (L x W x H cm)" defaultValue="25 x 20 x 15" required />
-            <Input label="Declared Value (₹)" type="number" defaultValue="3500" required />
+            <Input label="Weight (kg)" type="number" step="0.1" placeholder="e.g. 2.5" required />
+            <Input label="Dimensions (L x W x H cm)" placeholder="e.g. 25 x 20 x 15" required />
+            <Input label="Declared Value (₹)" type="number" placeholder="Declared item value" required />
           </div>
         </Card>
 
@@ -120,8 +147,8 @@ export default function AdminNewBookingPage() {
               </select>
             </div>
 
-            <Input label="Customer Shipping Charge (₹)" type="number" defaultValue="200" required />
-            <Input label="COD Amount to Collect (₹, 0 if Prepaid)" type="number" defaultValue="0" />
+            <Input label="Customer Shipping Charge (₹)" type="number" placeholder="₹ charge" required />
+            <Input label="COD Amount to Collect (₹, 0 if Prepaid)" type="number" placeholder="0 if prepaid" />
           </div>
         </Card>
 

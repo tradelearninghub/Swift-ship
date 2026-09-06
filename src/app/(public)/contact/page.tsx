@@ -1,19 +1,48 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { MOCK_COMPANY_SETTINGS } from "@/lib/mockData";
-import { MapPin, Phone, Mail, Clock, MessageSquare, CheckCircle2 } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, MessageSquare, CheckCircle2, Navigation } from "lucide-react";
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [settings, setSettings] = useState(MOCK_COMPANY_SETTINGS);
+
+  useEffect(() => {
+    // Dynamically fetch company profile settings per §7
+    fetch("/api/admin/settings?group=company_profile")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.setting) {
+          const val = typeof data.setting === "string" ? JSON.parse(data.setting) : data.setting;
+          setSettings((prev) => ({
+            ...prev,
+            ...val,
+            support_phones: Array.isArray(val.support_phones)
+              ? val.support_phones
+              : val.support_phone
+              ? [val.support_phone, "7689987368"]
+              : prev.support_phones,
+          }));
+        }
+      })
+      .catch(() => {
+        // Fallback to initial settings
+      });
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
   };
+
+  const phones = settings.support_phones || ["8000151117", "7689987368"];
+  const mapUrl =
+    settings.google_maps_embed_url ||
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3557.484920272099!2d75.82412537611685!3d26.921104759799295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db14b1a473b11%3A0xb35a0f5a11c1e5cb!2sJohri%20Bazar%2C%20Jaipur%2C%20Rajasthan%20302003!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin";
 
   return (
     <div className="max-w-container mx-auto px-4 py-12 space-y-16">
@@ -23,7 +52,7 @@ export default function ContactPage() {
         </span>
         <h1 className="text-display">Contact Our Logistics Support Team</h1>
         <p className="text-body text-lg">
-          Have questions regarding an active shipment, commercial rates, or API integration? We are here to help.
+          Have questions regarding an active shipment, rates, branch pickup, or commercial bookings? We are here to help.
         </p>
       </div>
 
@@ -33,10 +62,10 @@ export default function ContactPage() {
           <Card className="p-6 space-y-6 shadow-md border-brand-primary/20">
             <div>
               <h3 className="text-lg font-bold text-text-primary">
-                {MOCK_COMPANY_SETTINGS.company_name}
+                {settings.company_name}
               </h3>
               <p className="text-xs text-text-secondary mt-1">
-                {MOCK_COMPANY_SETTINGS.brand_tagline}
+                {settings.brand_tagline || "Fast, Safe & Multi-Carrier Courier Logistics"}
               </p>
             </div>
 
@@ -44,19 +73,28 @@ export default function ContactPage() {
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-brand-accent shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-text-primary">Headquarters & Hub:</div>
-                  <p className="mt-0.5 leading-relaxed">
-                    {MOCK_COMPANY_SETTINGS.address}, {MOCK_COMPANY_SETTINGS.city},{" "}
-                    {MOCK_COMPANY_SETTINGS.state} - {MOCK_COMPANY_SETTINGS.pincode}
+                  <div className="font-bold text-text-primary">Branch & Logistics Hub:</div>
+                  <p className="mt-0.5 leading-relaxed text-slate-700 font-medium">
+                    {settings.address}, {settings.city}, {settings.state} - {settings.pincode}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-brand-accent shrink-0" />
+              <div className="flex items-start gap-3">
+                <Phone className="w-5 h-5 text-brand-accent shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-text-primary">Helpline Number:</div>
-                  <p className="font-mono text-text-primary">{MOCK_COMPANY_SETTINGS.support_phone}</p>
+                  <div className="font-bold text-text-primary">Helpline Numbers:</div>
+                  <div className="font-mono text-text-primary flex flex-wrap gap-x-3 gap-y-1 mt-0.5">
+                    {phones.map((phone, idx) => (
+                      <a
+                        key={idx}
+                        href={`tel:${phone}`}
+                        className="hover:text-brand-primary font-semibold transition-colors"
+                      >
+                        +91 {phone}
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -64,7 +102,14 @@ export default function ContactPage() {
                 <MessageSquare className="w-5 h-5 text-emerald-600 shrink-0" />
                 <div>
                   <div className="font-bold text-text-primary">WhatsApp Support:</div>
-                  <p className="font-mono text-text-primary">{MOCK_COMPANY_SETTINGS.whatsapp_number}</p>
+                  <a
+                    href={`https://wa.me/91${settings.whatsapp_number || "8000151117"}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-emerald-700 font-semibold hover:underline"
+                  >
+                    +91 {settings.whatsapp_number || "8000151117"}
+                  </a>
                 </div>
               </div>
 
@@ -72,7 +117,12 @@ export default function ContactPage() {
                 <Mail className="w-5 h-5 text-brand-accent shrink-0" />
                 <div>
                   <div className="font-bold text-text-primary">Support Email:</div>
-                  <p className="text-brand-primary">{MOCK_COMPANY_SETTINGS.support_email}</p>
+                  <a
+                    href={`mailto:${settings.support_email}`}
+                    className="text-brand-primary font-medium hover:underline"
+                  >
+                    {settings.support_email}
+                  </a>
                 </div>
               </div>
 
@@ -80,7 +130,7 @@ export default function ContactPage() {
                 <Clock className="w-5 h-5 text-slate-500 shrink-0" />
                 <div>
                   <div className="font-bold text-text-primary">Operating Hours:</div>
-                  <p>{MOCK_COMPANY_SETTINGS.operating_hours}</p>
+                  <p>{settings.operating_hours}</p>
                 </div>
               </div>
             </div>
@@ -97,7 +147,7 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-lg font-bold text-text-primary">Message Sent Successfully</h3>
                 <p className="text-xs text-text-secondary max-w-sm mx-auto">
-                  Thank you for reaching out. Our support desk will respond to your query within 2 business hours.
+                  Thank you for reaching out. Our customer support desk will respond to your query promptly.
                 </p>
                 <Button variant="outline" size="sm" onClick={() => setSubmitted(false)}>
                   Send Another Message
@@ -108,17 +158,17 @@ export default function ContactPage() {
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-text-primary">Send Us a Message</h3>
                   <p className="text-xs text-text-secondary">
-                    Fill out the form below and an agent will contact you shortly.
+                    Fill out the form below and a representative will get back to you.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input label="Your Name" placeholder="e.g. Rahul Sharma" required />
-                  <Input label="Mobile Number" type="tel" placeholder="10-digit mobile" required />
+                  <Input label="Your Name" placeholder="Full name" required />
+                  <Input label="Mobile Number" type="tel" placeholder="10-digit mobile number" maxLength={10} required />
                 </div>
 
-                <Input label="Email Address" type="email" placeholder="name@company.com" required />
-                <Input label="AWB or Booking ID (if applicable)" placeholder="e.g. BK-1025" />
+                <Input label="Email Address" type="email" placeholder="name@example.com" required />
+                <Input label="AWB or Booking ID (Optional)" placeholder="e.g. AWB number if inquiring about parcel" />
 
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-text-primary">
@@ -138,6 +188,44 @@ export default function ContactPage() {
               </form>
             )}
           </Card>
+        </div>
+      </div>
+
+      {/* Embedded Google Maps Section (§7) */}
+      <div className="max-w-5xl mx-auto space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
+              <Navigation className="w-5 h-5 text-brand-primary" />
+              Visit Our Main Hub / Office Location
+            </h3>
+            <p className="text-xs text-text-secondary">
+              {settings.address}, {settings.city}, {settings.state} - {settings.pincode}
+            </p>
+          </div>
+          <a
+            href="https://maps.google.com/?q=Padmavati+School+Johri+Bazar+Jaipur+Rajasthan+302003"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline" size="sm">
+              Open in Google Maps
+            </Button>
+          </a>
+        </div>
+
+        <div className="w-full h-80 sm:h-96 rounded-2xl overflow-hidden border border-border-default shadow-md bg-slate-100 relative">
+          <iframe
+            title="SS Courier service Location Map"
+            src={mapUrl}
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            allowFullScreen={false}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            className="w-full h-full"
+          />
         </div>
       </div>
     </div>

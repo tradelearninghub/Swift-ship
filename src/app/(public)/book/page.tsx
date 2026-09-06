@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/Card";
+import { Card, CardFooter } from "@/components/ui/Card";
 import {
   Package,
   User,
@@ -14,8 +14,6 @@ import {
   AlertCircle,
   ArrowRight,
   ArrowLeft,
-  Truck,
-  ShieldAlert,
 } from "lucide-react";
 
 export default function BookParcelPage() {
@@ -24,38 +22,38 @@ export default function BookParcelPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [generatedBookingId, setGeneratedBookingId] = useState("");
 
-  // Form State
+  // Form State — Starts clean and empty per user requirements
   const [formData, setFormData] = useState({
     // Sender
-    sender_name: "Rahul Sharma",
-    sender_mobile: "9876543210",
-    sender_email: "rahul@example.com",
-    sender_address: "Flat 402, Royal Palms, Tonk Road",
-    sender_city: "Jaipur",
-    sender_state: "Rajasthan",
-    sender_pincode: "302022",
+    sender_name: "",
+    sender_mobile: "",
+    sender_email: "",
+    sender_address: "",
+    sender_city: "",
+    sender_state: "",
+    sender_pincode: "",
 
     // Receiver
-    receiver_name: "Pooja Verma",
-    receiver_mobile: "9823412345",
-    receiver_email: "pooja@example.com",
-    receiver_address: "12, Civil Lines",
-    receiver_city: "New Delhi",
-    receiver_state: "Delhi",
-    receiver_pincode: "110001",
+    receiver_name: "",
+    receiver_mobile: "",
+    receiver_email: "",
+    receiver_address: "",
+    receiver_city: "",
+    receiver_state: "",
+    receiver_pincode: "",
 
     // Parcel
     parcel_type: "Documents / Legal Files",
-    description: "Property deeds and signed agreements",
-    weight_kg: "1.5",
-    length_cm: "25",
-    width_cm: "20",
-    height_cm: "10",
-    declared_value_rupees: "5000",
+    description: "",
+    weight_kg: "",
+    length_cm: "",
+    width_cm: "",
+    height_cm: "",
+    declared_value_rupees: "",
 
     // Payment
     payment_type: "PREPAID",
-    cod_amount_rupees: "0",
+    cod_amount_rupees: "",
   });
 
   const handleChange = (
@@ -110,7 +108,7 @@ export default function BookParcelPage() {
         </div>
 
         <div className="flex flex-wrap justify-center gap-4 pt-4">
-          <Link href={`/track?q=${generatedBookingId}`}>
+          <Link href={`/track?booking_id=${generatedBookingId}`}>
             <Button variant="primary" size="md">
               Track This Booking
             </Button>
@@ -160,7 +158,7 @@ export default function BookParcelPage() {
             key={s.step}
             className={`py-2 px-1 rounded-lg border transition-all ${
               currentStep === s.step
-                ? "bg-brand-primary text-white border-brand-primary shadow-sm"
+                ? "bg-brand-primary text-white border-brand-primary shadow-sm font-bold"
                 : currentStep > s.step
                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                 : "bg-surface-subtle text-text-muted border-border-default"
@@ -172,13 +170,13 @@ export default function BookParcelPage() {
         ))}
       </div>
 
-      {/* Main Wizard Form */}
+      {/* Main Wizard Form without extra divider lines */}
       <Card className="shadow-md">
         <form onSubmit={handleSubmit}>
           {/* STEP 1: SENDER DETAILS */}
           {currentStep === 1 && (
-            <div className="p-6 space-y-6">
-              <div className="flex items-center gap-2 border-b border-border-default pb-3">
+            <div className="p-6 sm:p-8 space-y-6">
+              <div className="flex items-center gap-2">
                 <User className="w-5 h-5 text-brand-primary" />
                 <h3 className="text-lg font-bold text-text-primary">Sender Information</h3>
               </div>
@@ -189,6 +187,7 @@ export default function BookParcelPage() {
                   name="sender_name"
                   value={formData.sender_name}
                   onChange={handleChange}
+                  placeholder="e.g. Full Name"
                   required
                 />
                 <Input
@@ -198,6 +197,7 @@ export default function BookParcelPage() {
                   maxLength={10}
                   value={formData.sender_mobile}
                   onChange={handleChange}
+                  placeholder="10-digit mobile number"
                   helperText="10-digit Indian mobile number"
                   required
                 />
@@ -208,6 +208,7 @@ export default function BookParcelPage() {
                     type="email"
                     value={formData.sender_email}
                     onChange={handleChange}
+                    placeholder="email@example.com"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -216,6 +217,7 @@ export default function BookParcelPage() {
                     name="sender_address"
                     value={formData.sender_address}
                     onChange={handleChange}
+                    placeholder="Complete pickup street address / flat / building"
                     required
                   />
                 </div>
@@ -224,6 +226,7 @@ export default function BookParcelPage() {
                   name="sender_city"
                   value={formData.sender_city}
                   onChange={handleChange}
+                  placeholder="City"
                   required
                 />
                 <Input
@@ -231,6 +234,7 @@ export default function BookParcelPage() {
                   name="sender_state"
                   value={formData.sender_state}
                   onChange={handleChange}
+                  placeholder="State"
                   required
                 />
                 <Input
@@ -239,6 +243,7 @@ export default function BookParcelPage() {
                   maxLength={6}
                   value={formData.sender_pincode}
                   onChange={handleChange}
+                  placeholder="6-digit pincode"
                   required
                 />
               </div>
@@ -247,8 +252,8 @@ export default function BookParcelPage() {
 
           {/* STEP 2: RECEIVER DETAILS */}
           {currentStep === 2 && (
-            <div className="p-6 space-y-6">
-              <div className="flex items-center gap-2 border-b border-border-default pb-3">
+            <div className="p-6 sm:p-8 space-y-6">
+              <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-brand-accent" />
                 <h3 className="text-lg font-bold text-text-primary">Receiver / Destination Information</h3>
               </div>
@@ -259,6 +264,7 @@ export default function BookParcelPage() {
                   name="receiver_name"
                   value={formData.receiver_name}
                   onChange={handleChange}
+                  placeholder="Recipient full name"
                   required
                 />
                 <Input
@@ -268,6 +274,7 @@ export default function BookParcelPage() {
                   maxLength={10}
                   value={formData.receiver_mobile}
                   onChange={handleChange}
+                  placeholder="10-digit recipient mobile"
                   helperText="Recipient will receive delivery OTP and alerts"
                   required
                 />
@@ -278,6 +285,7 @@ export default function BookParcelPage() {
                     type="email"
                     value={formData.receiver_email}
                     onChange={handleChange}
+                    placeholder="recipient@example.com"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -286,6 +294,7 @@ export default function BookParcelPage() {
                     name="receiver_address"
                     value={formData.receiver_address}
                     onChange={handleChange}
+                    placeholder="Complete delivery address"
                     required
                   />
                 </div>
@@ -294,6 +303,7 @@ export default function BookParcelPage() {
                   name="receiver_city"
                   value={formData.receiver_city}
                   onChange={handleChange}
+                  placeholder="City"
                   required
                 />
                 <Input
@@ -301,6 +311,7 @@ export default function BookParcelPage() {
                   name="receiver_state"
                   value={formData.receiver_state}
                   onChange={handleChange}
+                  placeholder="State"
                   required
                 />
                 <Input
@@ -309,6 +320,7 @@ export default function BookParcelPage() {
                   maxLength={6}
                   value={formData.receiver_pincode}
                   onChange={handleChange}
+                  placeholder="6-digit pincode"
                   required
                 />
               </div>
@@ -317,8 +329,8 @@ export default function BookParcelPage() {
 
           {/* STEP 3: PARCEL DETAILS */}
           {currentStep === 3 && (
-            <div className="p-6 space-y-6">
-              <div className="flex items-center gap-2 border-b border-border-default pb-3">
+            <div className="p-6 sm:p-8 space-y-6">
+              <div className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-brand-primary" />
                 <h3 className="text-lg font-bold text-text-primary">Parcel & Dimension Details</h3>
               </div>
@@ -362,7 +374,8 @@ export default function BookParcelPage() {
                   min="0.1"
                   value={formData.weight_kg}
                   onChange={handleChange}
-                  helperText="e.g. 1.5 kg (will be verified during intake)"
+                  placeholder="e.g. 1.5"
+                  helperText="Weight will be verified during branch intake"
                   required
                 />
 
@@ -373,11 +386,12 @@ export default function BookParcelPage() {
                   min="100"
                   value={formData.declared_value_rupees}
                   onChange={handleChange}
-                  helperText="Required for insurance and transit liability"
+                  placeholder="e.g. 2000"
+                  helperText="Required for transit insurance and valuation"
                   required
                 />
 
-                <div className="sm:col-span-2 space-y-2 pt-2 border-t border-border-default">
+                <div className="sm:col-span-2 space-y-2 pt-2">
                   <label className="block text-xs font-bold uppercase tracking-wider text-text-muted">
                     Dimensions (Length x Width x Height in CM)
                   </label>
@@ -388,6 +402,7 @@ export default function BookParcelPage() {
                       type="number"
                       value={formData.length_cm}
                       onChange={handleChange}
+                      placeholder="L cm"
                       required
                     />
                     <Input
@@ -396,6 +411,7 @@ export default function BookParcelPage() {
                       type="number"
                       value={formData.width_cm}
                       onChange={handleChange}
+                      placeholder="W cm"
                       required
                     />
                     <Input
@@ -404,6 +420,7 @@ export default function BookParcelPage() {
                       type="number"
                       value={formData.height_cm}
                       onChange={handleChange}
+                      placeholder="H cm"
                       required
                     />
                   </div>
@@ -414,8 +431,8 @@ export default function BookParcelPage() {
 
           {/* STEP 4: PAYMENT TYPE & REVIEW */}
           {currentStep === 4 && (
-            <div className="p-6 space-y-6">
-              <div className="flex items-center gap-2 border-b border-border-default pb-3">
+            <div className="p-6 sm:p-8 space-y-6">
+              <div className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-emerald-600" />
                 <h3 className="text-lg font-bold text-text-primary">Payment Type & Summary</h3>
               </div>
@@ -484,6 +501,7 @@ export default function BookParcelPage() {
                     min="50"
                     value={formData.cod_amount_rupees}
                     onChange={handleChange}
+                    placeholder="e.g. 1500"
                     helperText="This amount will be collected in cash by courier and settled back to your account."
                     required
                   />
@@ -492,33 +510,37 @@ export default function BookParcelPage() {
 
               {/* Booking Summary Card */}
               <div className="bg-surface-subtle p-4 rounded-xl border border-border-default space-y-3 text-xs">
-                <div className="font-bold text-sm text-text-primary border-b border-border-default pb-2">
+                <div className="font-bold text-sm text-text-primary">
                   Summary Review
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <span className="text-text-muted">Sender:</span>
                     <div className="font-semibold text-text-primary">
-                      {formData.sender_name} ({formData.sender_city})
+                      {formData.sender_name || "—"} ({formData.sender_city || "—"})
                     </div>
                   </div>
                   <div>
                     <span className="text-text-muted">Receiver:</span>
                     <div className="font-semibold text-text-primary">
-                      {formData.receiver_name} ({formData.receiver_city})
+                      {formData.receiver_name || "—"} ({formData.receiver_city || "—"})
                     </div>
                   </div>
                   <div>
                     <span className="text-text-muted">Parcel Weight / Size:</span>
                     <div className="font-semibold text-text-primary">
-                      {formData.weight_kg} kg ({formData.length_cm}x{formData.width_cm}x{formData.height_cm} cm)
+                      {formData.weight_kg ? `${formData.weight_kg} kg` : "—"} (
+                      {formData.length_cm && formData.width_cm && formData.height_cm
+                        ? `${formData.length_cm}x${formData.width_cm}x${formData.height_cm} cm`
+                        : "—"}
+                      )
                     </div>
                   </div>
                   <div>
                     <span className="text-text-muted">Payment Mode:</span>
                     <div className="font-semibold text-text-primary">
                       {formData.payment_type === "COD"
-                        ? `COD (₹${formData.cod_amount_rupees})`
+                        ? `COD (₹${formData.cod_amount_rupees || 0})`
                         : "Prepaid"}
                     </div>
                   </div>
