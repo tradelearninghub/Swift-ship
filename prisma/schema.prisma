@@ -1,0 +1,687 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Enums
+// -----------------------------------------------------------------------------
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum CustomerAccountType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum CustomerStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum BookingSource {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum BookingStatus {
+  DRAFT
+  REQUESTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PaymentType {
+  PREPAID
+  COD
+}
+
+enum AwbSource {
+  API
+  MANUAL
+}
+
+enum ShipmentStatus {
+  PROCESSING
+  COURIER_ASSIGNED
+  AWB_GENERATED
+  PICKUP_SCHEDULED
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  RTO
+  EXCEPTION
+  CANCELLED
+}
+
+enum ExceptionReason {
+  ADDRESS_ISSUE
+  RECEIVER_UNAVAILABLE
+  DAMAGED
+  LOST
+  OTHER
+}
+
+enum TrackingEventSource {
+  POLL
+  WEBHOOK
+  MANUAL
+}
+
+enum ApiLogDirection {
+  OUTBOUND
+  INBOUND_WEBHOOK
+}
+
+enum ApiLogOutcome {
+  SUCCESS
+  FAILURE
+}
+
+enum CourierStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  MANUAL
+  GATEWAY
+}
+
+enum CodStatus {
+  NOT_APPLICABLE
+  TO_COLLECT
+  COLLECTED
+  SETTLEMENT_PENDING
+  SETTLED
+  FAILED
+}
+
+enum CodSettlementStatus {
+  PENDING
+  RECONCILED
+  DISCREPANCY
+}
+
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+  SMS
+}
+
+enum NotificationStatus {
+  SENT
+  FAILED
+  RETRYING
+}
+
+enum SupportTicketType {
+  WEIGHT_DISPUTE
+  DELAY
+  DAMAGE
+  OTHER
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+// -----------------------------------------------------------------------------
+// Auth & Access Control
+// -----------------------------------------------------------------------------
+
+model User {
+  id                 String     @id @default(uuid())
+  name               String
+  email              String     @unique
+  mobile             String     @unique
+  password_hash      String
+  role_id            String
+  status             UserStatus @default(ACTIVE)
+  two_factor_enabled Boolean    @default(false)
+  last_login_at      DateTime?
+  created_at         DateTime   @default(now())
+  updated_at         DateTime   @updatedAt
+  deleted_at         DateTime?
+
+  role                     Role                      @relation(fields: [role_id], references: [id])
+  customer_profile         Customer?
+  permission_overrides     StaffPermissionOverride[]
+  created_bookings         Booking[]                 @relation("CreatedByUser")
+  reviewed_bookings        Booking[]                 @relation("ReviewedByUser")
+  verified_parcels         BookingParcel[]           @relation("VerifiedByUser")
+  set_charges              BookingCharge[]           @relation("ChargeSetByUser")
+  activity_logs            ActivityLog[]
+  raised_tickets           SupportTicket[]           @relation("TicketRaisedByUser")
+  assigned_tickets         SupportTicket[]           @relation("TicketAssignedToUser")
+  ticket_notes             SupportTicketNote[]
+  updated_settings         Setting[]
+
+  @@index([role_id])
+  @@map("users")
+}
+
+model Role {
+  id             String   @id @default(uuid())
+  name           String   @unique
+  is_system_role Boolean  @default(false)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  description String
+  group       String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  roles     RolePermission[]
+  overrides StaffPermissionOverride[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  role_id       String
+  permission_id String
+
+  role       Role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@id([role_id, permission_id])
+  @@map("role_permissions")
+}
+
+model StaffPermissionOverride {
+  id            String   @id @default(uuid())
+  user_id       String
+  permission_id String
+  granted       Boolean
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, permission_id])
+  @@map("staff_permission_overrides")
+}
+
+// -----------------------------------------------------------------------------
+// Customers & Addresses
+// -----------------------------------------------------------------------------
+
+model Customer {
+  id           String              @id @default(uuid())
+  user_id      String?             @unique
+  name         String
+  email        String?
+  mobile       String
+  account_type CustomerAccountType @default(INDIVIDUAL)
+  gstin        String?
+  status       CustomerStatus      @default(ACTIVE)
+  created_at   DateTime            @default(now())
+  updated_at   DateTime            @updatedAt
+  deleted_at   DateTime?
+
+  user      User?             @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  addresses CustomerAddress[]
+  bookings  Booking[]
+
+  @@index([mobile])
+  @@map("customers")
+}
+
+model CustomerAddress {
+  id          String   @id @default(uuid())
+  customer_id String
+  label       String
+  address     String   @db.Text
+  city        String
+  state       String
+  pincode     String
+  is_default  Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  customer Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+
+  @@index([customer_id])
+  @@map("customer_addresses")
+}
+
+// -----------------------------------------------------------------------------
+// Bookings
+// -----------------------------------------------------------------------------
+
+model Booking {
+  id               String        @id @default(uuid())
+  booking_number   String        @unique
+  customer_id      String
+  source           BookingSource @default(CUSTOMER)
+  created_by       String
+  status           BookingStatus @default(REQUESTED)
+  payment_type     PaymentType   @default(PREPAID)
+  cod_amount       Int           @default(0) // paise
+
+  // Sender Snapshot
+  sender_name      String
+  sender_mobile    String
+  sender_email     String?
+  sender_address   String        @db.Text
+  sender_city      String
+  sender_state     String
+  sender_pincode   String
+
+  // Receiver Snapshot
+  receiver_name    String
+  receiver_mobile  String
+  receiver_email   String?
+  receiver_address String        @db.Text
+  receiver_city    String
+  receiver_state   String
+  receiver_pincode String
+
+  rejection_reason String?       @db.Text
+  reviewed_by      String?
+  reviewed_at      DateTime?
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+  deleted_at       DateTime?
+
+  customer    Customer        @relation(fields: [customer_id], references: [id])
+  creator     User            @relation("CreatedByUser", fields: [created_by], references: [id])
+  reviewer    User?           @relation("ReviewedByUser", fields: [reviewed_by], references: [id])
+  parcels     BookingParcel[]
+  charges     BookingCharge?
+  shipment    Shipment?
+  payments    Payment[]
+
+  @@index([customer_id, status])
+  @@index([sender_mobile, sender_pincode])
+  @@index([receiver_mobile, receiver_pincode])
+  @@map("bookings")
+}
+
+model BookingParcel {
+  id                     String    @id @default(uuid())
+  booking_id             String
+  parcel_type            String
+  description            String    @db.Text
+  
+  // Customer Submitted
+  submitted_weight_grams Int
+  submitted_length_cm    Int
+  submitted_width_cm     Int
+  submitted_height_cm    Int
+  declared_value         Int       @default(0) // paise
+
+  // Admin Verified
+  verified_weight_grams  Int?
+  verified_length_cm     Int?
+  verified_width_cm      Int?
+  verified_height_cm     Int?
+  verified_by            String?
+  verified_at            DateTime?
+  created_at             DateTime  @default(now())
+  updated_at             DateTime  @updatedAt
+
+  booking  Booking @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  verifier User?   @relation("VerifiedByUser", fields: [verified_by], references: [id])
+
+  @@index([booking_id])
+  @@map("booking_parcels")
+}
+
+model BookingCharge {
+  id                String   @id @default(uuid())
+  booking_id        String   @unique
+  shipping_charge   Int      @default(0) // paise
+  additional_charge Int      @default(0) // paise
+  discount          Int      @default(0) // paise
+  tax               Int      @default(0) // paise
+  total             Int      @default(0) // paise
+  set_by            String
+  set_at            DateTime @default(now())
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  booking Booking @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  setter  User    @relation("ChargeSetByUser", fields: [set_by], references: [id])
+
+  @@map("booking_charges")
+}
+
+// -----------------------------------------------------------------------------
+// Shipments & Tracking
+// -----------------------------------------------------------------------------
+
+model Shipment {
+  id                 String           @id @default(uuid())
+  booking_id         String           @unique
+  courier_partner_id String
+  awb                String?
+  awb_source         AwbSource        @default(API)
+  status             ShipmentStatus   @default(PROCESSING)
+  exception_reason   ExceptionReason?
+  tracking_token     String           @unique
+  idempotency_key    String           @unique
+  label_url          String?
+  next_poll_at       DateTime?
+  last_synced_at     DateTime?
+  created_at         DateTime         @default(now())
+  updated_at         DateTime         @updatedAt
+  deleted_at         DateTime?
+
+  booking         Booking                 @relation(fields: [booking_id], references: [id])
+  courier_partner CourierPartner          @relation(fields: [courier_partner_id], references: [id])
+  tracking_events ShipmentTrackingEvent[]
+  api_logs        CourierApiLog[]
+  cod_transaction CodTransaction?
+
+  @@index([awb])
+  @@index([status, next_poll_at])
+  @@map("shipments")
+}
+
+model ShipmentTrackingEvent {
+  id          String              @id @default(uuid())
+  shipment_id String
+  status      String
+  raw_status  String
+  location    String?
+  occurred_at DateTime
+  received_at DateTime            @default(now())
+  source      TrackingEventSource @default(POLL)
+  created_at  DateTime            @default(now())
+
+  shipment Shipment @relation(fields: [shipment_id], references: [id], onDelete: Cascade)
+
+  @@index([shipment_id])
+  @@map("shipment_tracking_events")
+}
+
+model CourierApiLog {
+  id                 String          @id @default(uuid())
+  courier_partner_id String
+  shipment_id        String?
+  direction          ApiLogDirection
+  endpoint           String
+  request_summary    Json
+  response_status    Int
+  response_summary   Json
+  response_time_ms   Int
+  outcome            ApiLogOutcome
+  created_at         DateTime        @default(now())
+
+  courier_partner CourierPartner @relation(fields: [courier_partner_id], references: [id])
+  shipment        Shipment?      @relation(fields: [shipment_id], references: [id], onDelete: SetNull)
+
+  @@index([courier_partner_id])
+  @@index([shipment_id])
+  @@map("courier_api_logs")
+}
+
+// -----------------------------------------------------------------------------
+// Courier Partners
+// -----------------------------------------------------------------------------
+
+model CourierPartner {
+  id                           String        @id @default(uuid())
+  name                         String
+  code                         String        @unique
+  logo_url                     String?
+  website                      String?
+  support_contact              String?
+  status                       CourierStatus @default(ACTIVE)
+  capability_shipment_api      Boolean       @default(false)
+  capability_tracking_api      Boolean       @default(false)
+  capability_label_api         Boolean       @default(false)
+  capability_pickup_api        Boolean       @default(false)
+  capability_cancellation_api  Boolean       @default(false)
+  created_at                   DateTime      @default(now())
+  updated_at                   DateTime      @updatedAt
+
+  credentials     CourierCredential[]
+  configurations  CourierConfiguration[]
+  shipments       Shipment[]
+  api_logs        CourierApiLog[]
+  cod_settlements CodSettlement[]
+
+  @@map("courier_partners")
+}
+
+model CourierCredential {
+  id                         String   @id @default(uuid())
+  courier_partner_id         String
+  credential_key             String
+  credential_value_encrypted String   @db.Text
+  created_at                 DateTime @default(now())
+  updated_at                 DateTime @updatedAt
+
+  courier_partner CourierPartner @relation(fields: [courier_partner_id], references: [id], onDelete: Cascade)
+
+  @@unique([courier_partner_id, credential_key])
+  @@map("courier_credentials")
+}
+
+model CourierConfiguration {
+  id                 String   @id @default(uuid())
+  courier_partner_id String
+  config_key         String
+  config_value       Json
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  courier_partner CourierPartner @relation(fields: [courier_partner_id], references: [id], onDelete: Cascade)
+
+  @@unique([courier_partner_id, config_key])
+  @@map("courier_configurations")
+}
+
+// -----------------------------------------------------------------------------
+// Payments & COD
+// -----------------------------------------------------------------------------
+
+model Payment {
+  id                String        @id @default(uuid())
+  booking_id        String
+  amount            Int // paise
+  status            PaymentStatus @default(PENDING)
+  method            PaymentMethod @default(MANUAL)
+  gateway_reference String?
+  paid_at           DateTime?
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+
+  booking Booking @relation(fields: [booking_id], references: [id])
+
+  @@index([booking_id])
+  @@map("payments")
+}
+
+model CodTransaction {
+  id                  String    @id @default(uuid())
+  shipment_id         String    @unique
+  cod_amount          Int // paise
+  status              CodStatus @default(TO_COLLECT)
+  collected_at        DateTime?
+  settlement_batch_id String?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+  deleted_at          DateTime?
+
+  shipment         Shipment       @relation(fields: [shipment_id], references: [id])
+  settlement_batch CodSettlement? @relation(fields: [settlement_batch_id], references: [id], onDelete: SetNull)
+
+  @@index([settlement_batch_id])
+  @@map("cod_transactions")
+}
+
+model CodSettlement {
+  id                 String              @id @default(uuid())
+  courier_partner_id String
+  reference_utr      String              @unique
+  total_amount       Int // paise
+  reconciled_amount  Int // paise
+  status             CodSettlementStatus @default(PENDING)
+  settled_at         DateTime
+  created_at         DateTime            @default(now())
+  updated_at         DateTime            @updatedAt
+
+  courier_partner  CourierPartner   @relation(fields: [courier_partner_id], references: [id])
+  cod_transactions CodTransaction[]
+
+  @@index([courier_partner_id])
+  @@map("cod_settlements")
+}
+
+// -----------------------------------------------------------------------------
+// Notifications
+// -----------------------------------------------------------------------------
+
+model NotificationTemplate {
+  id         String              @id @default(uuid())
+  event_key  String
+  channel    NotificationChannel
+  subject    String?
+  body       String              @db.Text
+  is_active  Boolean             @default(true)
+  created_at DateTime            @default(now())
+  updated_at DateTime            @updatedAt
+
+  @@unique([event_key, channel])
+  @@map("notification_templates")
+}
+
+model NotificationRule {
+  id         String              @id @default(uuid())
+  event_key  String
+  channel    NotificationChannel
+  enabled    Boolean             @default(true)
+  created_at DateTime            @default(now())
+  updated_at DateTime            @updatedAt
+
+  @@unique([event_key, channel])
+  @@map("notification_rules")
+}
+
+model NotificationLog {
+  id                String              @id @default(uuid())
+  event_key         String
+  channel           NotificationChannel
+  recipient         String
+  booking_id        String?
+  shipment_id       String?
+  status            NotificationStatus  @default(SENT)
+  provider_response String?             @db.Text
+  attempt_count     Int                 @default(1)
+  created_at        DateTime            @default(now())
+
+  @@index([booking_id])
+  @@index([shipment_id])
+  @@map("notification_logs")
+}
+
+// -----------------------------------------------------------------------------
+// Support Tickets
+// -----------------------------------------------------------------------------
+
+model SupportTicket {
+  id          String              @id @default(uuid())
+  booking_id  String?
+  shipment_id String?
+  raised_by   String
+  type        SupportTicketType   @default(OTHER)
+  status      SupportTicketStatus @default(OPEN)
+  assigned_to String?
+  subject     String
+  description String              @db.Text
+  created_at  DateTime            @default(now())
+  updated_at  DateTime            @updatedAt
+
+  raiser   User                @relation("TicketRaisedByUser", fields: [raised_by], references: [id])
+  assignee User?               @relation("TicketAssignedToUser", fields: [assigned_to], references: [id])
+  notes    SupportTicketNote[]
+
+  @@index([raised_by])
+  @@index([assigned_to])
+  @@map("support_tickets")
+}
+
+model SupportTicketNote {
+  id         String   @id @default(uuid())
+  ticket_id  String
+  author_id  String
+  note       String   @db.Text
+  created_at DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+  author User          @relation(fields: [author_id], references: [id])
+
+  @@index([ticket_id])
+  @@map("support_ticket_notes")
+}
+
+// -----------------------------------------------------------------------------
+// Settings & Audit Logs
+// -----------------------------------------------------------------------------
+
+model Setting {
+  id         String   @id @default(uuid())
+  group      String
+  key        String   @unique
+  value      Json
+  updated_by String?
+  updated_at DateTime @updatedAt
+
+  updater User? @relation(fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@index([group])
+  @@map("settings")
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  actor_id    String?
+  action      String
+  entity_type String
+  entity_id   String
+  before      Json?
+  after       Json?
+  created_at  DateTime @default(now())
+
+  actor User? @relation(fields: [actor_id], references: [id], onDelete: SetNull)
+
+  @@index([actor_id])
+  @@index([entity_type, entity_id])
+  @@map("activity_logs")
+}
