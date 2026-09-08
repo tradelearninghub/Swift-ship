@@ -26,12 +26,14 @@ interface MobileNavProps {
   phones?: string[];
   email?: string;
   address?: string;
+  customTrigger?: React.ReactNode;
 }
 
 export function MobileNav({
   phones = ["8000151117", "7689987368"],
   email = "support@sscourierservice.in",
   address = "Shop No 4, 5th Crossing, Padmavati School, Ghee Walo Ka Rasta, Johri Bazar, Jaipur 302003",
+  customTrigger,
 }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -64,15 +66,21 @@ export function MobileNav({
 
   return (
     <>
-      {/* Mobile Hamburger toggle button */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="lg:hidden p-2 rounded-xl text-text-primary hover:bg-slate-100 transition-colors focus:outline-none border border-border-default shadow-sm"
-        aria-label="Open mobile navigation menu"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
+      {/* Trigger: Either customTrigger or default hamburger button */}
+      {customTrigger ? (
+        <div onClick={() => setIsOpen(true)} role="button" tabIndex={0}>
+          {customTrigger}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="lg:hidden p-2 rounded-xl text-text-primary hover:bg-slate-100 transition-colors focus:outline-none border border-border-default shadow-sm"
+          aria-label="Open mobile navigation menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      )}
 
       {/* Drawer overlay & slide-out panel */}
       {isOpen && (

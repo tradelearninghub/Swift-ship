@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Truck, Phone, Mail, MapPin, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { MobileNav } from "@/components/MobileNav";
+import { BottomNav } from "@/components/BottomNav";
 import { getCompanyProfile } from "@/lib/settings";
 
 export default async function PublicLayout({
@@ -120,10 +121,50 @@ export default async function PublicLayout({
             />
           </div>
         </div>
+
+        {/* Mobile Horizontal Navigation Bar (Visible on mobile & tablet) */}
+        <div className="lg:hidden bg-surface-subtle border-t border-border-default px-4 py-2.5 overflow-x-auto scrollbar-none flex items-center gap-2 text-xs font-semibold whitespace-nowrap">
+          <Link
+            href="/"
+            className="px-3 py-1.5 rounded-lg bg-surface-base border border-border-default text-text-primary hover:border-brand-primary"
+          >
+            Home
+          </Link>
+          <Link
+            href="/track"
+            className="px-3 py-1.5 rounded-lg bg-surface-base border border-border-default text-text-primary hover:border-brand-primary"
+          >
+            Track Shipment
+          </Link>
+          <Link
+            href="/book"
+            className="px-3 py-1.5 rounded-lg bg-brand-primary text-white shadow-xs"
+          >
+            Book Parcel
+          </Link>
+          <Link
+            href="/calculator"
+            className="px-3 py-1.5 rounded-lg bg-surface-base border border-border-default text-text-primary hover:border-brand-primary"
+          >
+            Rate Calculator
+          </Link>
+          <Link
+            href="/services"
+            className="px-3 py-1.5 rounded-lg bg-surface-base border border-border-default text-text-primary hover:border-brand-primary"
+          >
+            Services
+          </Link>
+          <Link
+            href="/contact"
+            className="px-3 py-1.5 rounded-lg bg-surface-base border border-border-default text-text-primary hover:border-brand-primary"
+          >
+            Contact
+          </Link>
+        </div>
       </header>
 
       {/* 3. Main Page Content */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 pb-20 lg:pb-0">{children}</main>
 
       {/* 4. Unified Footer */}
       <footer className="bg-slate-900 text-slate-300 pt-16 pb-10 border-t border-slate-800">
@@ -264,6 +305,13 @@ export default async function PublicLayout({
           </div>
         </div>
       </footer>
+
+      {/* 5. Mobile Fixed Bottom Navigation */}
+      <BottomNav
+        phones={[phone1, phone2]}
+        email={profile.support_email}
+        address={`${profile.address}, ${profile.city}, ${profile.state} ${profile.pincode}`}
+      />
     </div>
   );
 }

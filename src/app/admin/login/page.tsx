@@ -120,7 +120,7 @@ function AdminLoginForm() {
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="admin@sscourierservice.in or 8000151117"
+                placeholder="Enter administrator email or mobile"
                 required
                 className="bg-slate-950/80 border-slate-800 text-white placeholder:text-slate-500 focus:border-brand-primary"
               />

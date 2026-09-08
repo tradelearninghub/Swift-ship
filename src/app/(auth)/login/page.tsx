@@ -76,7 +76,7 @@ function LoginForm() {
           type="text"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
-          placeholder="e.g. admin@sscourierservice.in or 8000151117"
+          placeholder="Enter registered email or mobile number"
           required
         />
 

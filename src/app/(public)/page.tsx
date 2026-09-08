@@ -27,9 +27,9 @@ type TrackMode = "awb" | "order" | "mobile_pincode";
 export default function HomePage() {
   const router = useRouter();
   const [trackMode, setTrackMode] = useState<TrackMode>("awb");
-  const [searchValue, setSearchValue] = useState("BK-1025");
-  const [mobileValue, setMobileValue] = useState("8000151117");
-  const [pincodeValue, setPincodeValue] = useState("302003");
+  const [searchValue, setSearchValue] = useState("");
+  const [mobileValue, setMobileValue] = useState("");
+  const [pincodeValue, setPincodeValue] = useState("");
 
   const handleTrackSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +119,7 @@ export default function HomePage() {
                   type="button"
                   onClick={() => {
                     setTrackMode("awb");
-                    setSearchValue("DEL98234123");
+                    setSearchValue("");
                   }}
                   className={`flex items-center justify-center gap-1.5 py-2 px-1 text-xs font-bold rounded-lg transition-all ${
                     trackMode === "awb"
@@ -135,7 +135,7 @@ export default function HomePage() {
                   type="button"
                   onClick={() => {
                     setTrackMode("order");
-                    setSearchValue("BK-1025");
+                    setSearchValue("");
                   }}
                   className={`flex items-center justify-center gap-1.5 py-2 px-1 text-xs font-bold rounded-lg transition-all ${
                     trackMode === "order"
@@ -149,7 +149,11 @@ export default function HomePage() {
 
                 <button
                   type="button"
-                  onClick={() => setTrackMode("mobile_pincode")}
+                  onClick={() => {
+                    setTrackMode("mobile_pincode");
+                    setMobileValue("");
+                    setPincodeValue("");
+                  }}
                   className={`flex items-center justify-center gap-1.5 py-2 px-1 text-xs font-bold rounded-lg transition-all ${
                     trackMode === "mobile_pincode"
                       ? "bg-surface-base text-brand-primary shadow-xs border border-border-default"
@@ -174,7 +178,7 @@ export default function HomePage() {
                         maxLength={10}
                         value={mobileValue}
                         onChange={(e) => setMobileValue(e.target.value.replace(/\D/g, ""))}
-                        placeholder="e.g. 8000151117"
+                        placeholder="Enter 10-digit mobile number"
                         required
                         className="w-full h-11 px-3.5 text-sm bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 focus:outline-none transition-all"
                       />
@@ -188,7 +192,7 @@ export default function HomePage() {
                         maxLength={6}
                         value={pincodeValue}
                         onChange={(e) => setPincodeValue(e.target.value.replace(/\D/g, ""))}
-                        placeholder="e.g. 302003"
+                        placeholder="Enter 6-digit delivery pincode"
                         required
                         className="w-full h-11 px-3.5 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 focus:outline-none transition-all"
                       />
@@ -206,8 +210,8 @@ export default function HomePage() {
                         onChange={(e) => setSearchValue(e.target.value)}
                         placeholder={
                           trackMode === "awb"
-                            ? "e.g. DEL98234123 or BLU489201"
-                            : "e.g. BK-1025 or BK-1031"
+                            ? "Enter AWB or consignment number"
+                            : "Enter booking or order ID"
                         }
                         required
                         className="w-full h-11 pl-3.5 pr-10 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 focus:outline-none transition-all"
