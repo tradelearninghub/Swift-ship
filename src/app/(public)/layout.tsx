@@ -204,7 +204,7 @@ export default async function PublicLayout({
           <div className="flex gap-4">
             <Link href="/privacy-policy" className="hover:text-slate-400">Privacy</Link>
             <Link href="/terms" className="hover:text-slate-400">Terms</Link>
-            <Link href="/admin" className="hover:text-slate-400">Admin Staff Portal</Link>
+            <Link href="/admin/login" className="hover:text-slate-400">Admin Staff Portal</Link>
           </div>
         </div>
       </footer>

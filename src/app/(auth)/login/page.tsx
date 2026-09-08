@@ -107,11 +107,19 @@ function LoginForm() {
         </Button>
       </form>
 
-      <div className="pt-4 border-t border-border-default text-center text-xs text-text-secondary">
-        Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-brand-primary font-semibold hover:underline">
-          Register here
-        </Link>
+      <div className="pt-4 border-t border-border-default text-center text-xs text-text-secondary space-y-2">
+        <div>
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-brand-primary font-semibold hover:underline">
+            Register here
+          </Link>
+        </div>
+        <div className="text-[11px] text-text-muted">
+          Staff or Admin?{" "}
+          <Link href="/admin/login" className="text-text-secondary hover:text-brand-primary font-medium">
+            Log in to Admin Operations →
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -1,42 +1,14 @@
 /**
- * Swift Ship Courier - Automated Database Initializer
+ * SS Courier service - Automated Database Initializer
  * This script runs automatically on 'npm run build' and on 'server.js' startup.
  * It is completely idempotent (safe to run multiple times without duplicating data).
  */
 const fs = require("fs");
 const path = require("path");
+const { seedAdmin, ensureEnvFile } = require("./seed-admin");
 
-// Load .env if not loaded
-function loadEnv() {
-  const envPath = path.resolve(process.cwd(), ".env");
-  if (fs.existsSync(envPath)) {
-    const content = fs.readFileSync(envPath, "utf-8");
-    content.split(/\r?\n/).forEach((line) => {
-      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
-      if (match) {
-        let key = match[1];
-        let value = match[2] || "";
-        if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
-        if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1);
-        if (!process.env[key]) {
-          process.env[key] = value.trim();
-        }
-      }
-    });
-  }
-}
-
-loadEnv();
-
-// Auto-construct DATABASE_URL with proper URL encoding if individual DB variables are provided
-if (!process.env.DATABASE_URL && process.env.DB_USER && process.env.DB_PASSWORD && process.env.DB_NAME) {
-  const user = encodeURIComponent(process.env.DB_USER);
-  const pass = encodeURIComponent(process.env.DB_PASSWORD);
-  const host = process.env.DB_HOST || "127.0.0.1";
-  const port = process.env.DB_PORT || "3306";
-  const name = process.env.DB_NAME;
-  process.env.DATABASE_URL = `mysql://${user}:${pass}@${host}:${port}/${name}?connection_limit=5`;
-}
+// Ensure environment variables and .env exist
+ensureEnvFile();
 
 async function initDatabase() {
   const dbUrl = process.env.DATABASE_URL;
@@ -56,6 +28,11 @@ async function initDatabase() {
   }
 
   const prisma = new PrismaClient({
+    datasources: {
+      db: {
+        url: dbUrl,
+      },
+    },
     log: ["error"],
   });
 
@@ -64,14 +41,13 @@ async function initDatabase() {
     await prisma.$connect();
     console.log("[DB-INIT] Connected to database successfully.");
 
-    // 2. Check if tables exist by querying information_schema or count
+    // 2. Check if tables exist
     let tablesExist = false;
     try {
       const userCount = await prisma.user.count();
       tablesExist = true;
       console.log(`[DB-INIT] Found existing tables. Total users in DB: ${userCount}`);
     } catch (err) {
-      // Table doesn't exist yet
       tablesExist = false;
     }
 
@@ -80,16 +56,20 @@ async function initDatabase() {
       const sqlFilePath = path.resolve(process.cwd(), "database.sql");
       if (fs.existsSync(sqlFilePath)) {
         const sqlContent = fs.readFileSync(sqlFilePath, "utf-8");
-        // Split by statement delimiters
-        const statements = sqlContent
-          .split(/;\s*[\r\n]+/)
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0 && !s.startsWith("--"));
+        // Split by semicolon followed by newline
+        const rawStatements = sqlContent.split(/;\s*[\r\n]+/);
 
-        for (const statement of statements) {
-          if (statement.trim()) {
+        for (const raw of rawStatements) {
+          // Remove SQL comments before executing
+          const cleaned = raw
+            .split(/\r?\n/)
+            .filter((line) => !line.trim().startsWith("--"))
+            .join("\n")
+            .trim();
+
+          if (cleaned.length > 0) {
             try {
-              await prisma.$executeRawUnsafe(statement);
+              await prisma.$executeRawUnsafe(cleaned);
             } catch (stmtErr) {
               console.warn(`[DB-INIT] Statement notice: ${stmtErr.message.split("\n")[0]}`);
             }
@@ -97,34 +77,13 @@ async function initDatabase() {
         }
         console.log("[DB-INIT] ✅ All tables, constraints, and initial seed data created successfully!");
       }
-    } else {
-      // Ensure Super Admin and settings are up to date
-      try {
-        console.log("[DB-INIT] Ensuring Super Admin accounts and settings are synced...");
-        const sqlFilePath = path.resolve(process.cwd(), "database.sql");
-        if (fs.existsSync(sqlFilePath)) {
-          const sqlContent = fs.readFileSync(sqlFilePath, "utf-8");
-          const statements = sqlContent
-            .split(/;\s*[\r\n]+/)
-            .map((s) => s.trim())
-            .filter((s) => s.startsWith("INSERT"));
-
-          for (const statement of statements) {
-            try {
-              await prisma.$executeRawUnsafe(statement);
-            } catch (e) {
-              // Ignore harmless duplicate key errors
-            }
-          }
-        }
-        console.log("[DB-INIT] ✅ Database credentials & settings are up to date.");
-      } catch (checkErr) {
-        console.warn("[DB-INIT] Verification notice:", checkErr.message);
-      }
     }
+
+    // 3. Ensure Super Admin, roles, and settings are explicitly synced
+    await seedAdmin();
   } catch (connectionErr) {
     console.log(`[DB-INIT] ℹ️  Database not reachable during this step (${connectionErr.message.split("\n")[0]}).`);
-    console.log("[DB-INIT] ℹ️  If deploying on Hostinger, the database will initialize automatically once server.js starts.");
+    console.log("[DB-INIT] ℹ️  The application auto-healer will initialize the admin account upon server startup or login.");
   } finally {
     try {
       await prisma.$disconnect();
@@ -137,7 +96,7 @@ if (require.main === module) {
     .then(() => process.exit(0))
     .catch((err) => {
       console.warn("[DB-INIT] Notice:", err.message);
-      process.exit(0); // Exit with 0 so build doesn't fail if DB is offline at build time
+      process.exit(0); // Exit with 0 so build does not fail if DB is offline during build
     });
 }
 

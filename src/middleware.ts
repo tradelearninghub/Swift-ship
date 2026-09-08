@@ -9,8 +9,16 @@ export function middleware(request: NextRequest) {
 
   // Protect Admin Routes
   if (pathname.startsWith("/admin")) {
+    if (pathname === "/admin/login") {
+      // If already authenticated, redirect straight to admin panel
+      if (token) {
+        return NextResponse.redirect(new URL("/admin", request.url));
+      }
+      return NextResponse.next();
+    }
+
     if (!token) {
-      const url = new URL("/login", request.url);
+      const url = new URL("/admin/login", request.url);
       url.searchParams.set("redirect", pathname);
       return NextResponse.redirect(url);
     }

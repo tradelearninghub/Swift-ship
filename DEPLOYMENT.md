@@ -104,9 +104,12 @@ The build command will automatically run `node scripts/init-db.js` and `next bui
 
 ## Default Login Credentials
 
-- **Superadmin Email**: `admin@swiftship.com`
+- **Primary Super Admin Email**: `admin@sscourierservice.in`
+- **Mobile Identifier**: `8000151117`
+- **Fallback Email**: `admin@swiftship.com`
 - **Default Password**: `Admin@12345`
-- **Admin Portal**: `https://yourdomain.com/admin/login`
+- **Admin Portal URL**: `https://sscourierservice.in/admin/login`
+- **Customer Portal URL**: `https://sscourierservice.in/login`
 
 *(Please change the default password after your first login via the Admin Settings)*
 

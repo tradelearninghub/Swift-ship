@@ -1,5 +1,10 @@
 const { createServer } = require("http");
 const { parse } = require("url");
+const { ensureEnvFile } = require("./scripts/seed-admin");
+
+// Load or initialize environment credentials
+ensureEnvFile();
+
 const next = require("next");
 const { initDatabase } = require("./scripts/init-db");
 

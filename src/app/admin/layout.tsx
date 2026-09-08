@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Truck,
   LayoutDashboard,
@@ -24,6 +27,13 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  // Bypass admin operational sidebar and chrome for admin login
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-surface-admin-base flex flex-col md:flex-row text-sm">
       {/* Admin Sidebar (240px desktop) */}
