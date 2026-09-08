@@ -77,7 +77,12 @@ app.prepare().then(async () => {
       // 1. Bulletproof static file serving for Next.js assets (_next/static/...)
       // Prevents reverse proxies from returning 404 HTML error pages for CSS/JS
       if (pathname.startsWith("/_next/static/")) {
-        const relativeAsset = pathname.substring("/_next/static/".length);
+        let relativeAsset = pathname.substring("/_next/static/".length);
+        try {
+          relativeAsset = decodeURIComponent(relativeAsset);
+        } catch {
+          // ignore decode error
+        }
         const diskPath = path.join(__dirname, ".next", "static", relativeAsset);
         const ext = path.extname(diskPath).toLowerCase();
         const mime = MIME_MAP[ext] || "application/octet-stream";
@@ -85,11 +90,28 @@ app.prepare().then(async () => {
         if (tryServeStatic(req, res, diskPath, mime)) {
           return;
         }
+
+        // Fail-safe: If a static asset is missing from a prior build,
+        // NEVER return an HTML 404 page (which triggers syntax errors '<' in JS or MIME warnings in CSS)
+        if (ext === ".js" || ext === ".mjs") {
+          res.writeHead(404, { "Content-Type": "application/javascript; charset=utf-8" });
+          res.end("/* Chunk expired or updated */");
+          return;
+        }
+        if (ext === ".css") {
+          res.writeHead(404, { "Content-Type": "text/css; charset=utf-8" });
+          res.end("/* CSS expired or updated */");
+          return;
+        }
       }
 
       // 2. Direct static delivery for /public files (logos, icons, images)
       if (pathname !== "/" && !pathname.startsWith("/api/") && !pathname.startsWith("/_next/")) {
-        const publicDiskPath = path.join(__dirname, "public", pathname);
+        let cleanPath = pathname;
+        try {
+          cleanPath = decodeURIComponent(cleanPath);
+        } catch {}
+        const publicDiskPath = path.join(__dirname, "public", cleanPath);
         const ext = path.extname(publicDiskPath).toLowerCase();
         if (ext && MIME_MAP[ext]) {
           if (tryServeStatic(req, res, publicDiskPath, MIME_MAP[ext])) {
@@ -98,7 +120,12 @@ app.prepare().then(async () => {
         }
       }
 
-      // 3. Forward all standard pages, SSR routes, and API endpoints to Next.js
+      // 3. Ensure HTML pages are not aggressively cached by Hostinger CDN / LiteSpeed
+      if (pathname === "/" || !pathname.startsWith("/_next/")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate");
+      }
+
+      // 4. Forward all standard pages, SSR routes, and API endpoints to Next.js
       await handle(req, res, parsedUrl);
     } catch (err) {
       console.error("Error occurred handling", req.url, err);
