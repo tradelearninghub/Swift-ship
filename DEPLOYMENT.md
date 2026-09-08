@@ -122,3 +122,30 @@ If you prefer to import the database manually via phpMyAdmin:
 2. Click **Import** tab.
 3. Select the file [`database.sql`](file:///c:/Users/aloks/Work/LMS/Delivery_web/database.sql) from this project root.
 4. Click **Go / Import**.
+
+---
+
+## 🛠️ Hostinger Troubleshooting: "Client-Side Exception" or Unstyled HTML
+
+If you ever see:
+- `Application error: a client-side exception has occurred (see the browser console for more information).`
+- The website loads only as raw HTML with no CSS applied
+
+### Why This Occurs on Hostinger:
+1. **MIME Type Mismatch on Static Chunks**: Hostinger's LiteSpeed/Apache web server sits in front of Node.js. If requests for `/_next/static/...` are intercepted by the web server or return HTML 404 pages instead of the compiled CSS/JS, the browser throws `Refused to apply style... MIME type text/html` and `SyntaxError: Unexpected token '<'`.
+2. **`output: "standalone"` Mismatch**: Next.js standalone mode expects assets in `.next/standalone`, which prevents the root `server.js` from finding compiled CSS/JS.
+3. **Missing `dir: __dirname`**: When Hostinger's process manager launches `server.js`, its working directory (`cwd`) can differ from the app folder, causing Next.js to fail finding `.next`.
+
+### How We Fixed It:
+- **`server.js` Static File Stream**: Added a direct static handler in `server.js` that maps `/_next/static/*` and `/public/*` directly to disk files with strict MIME headers (`text/css`, `application/javascript`, `image/*`, fonts) and `Cache-Control: immutable`.
+- **Removed `output: "standalone"`**: Cleaned `next.config.mjs` so standard production bundles are preserved.
+- **Set `dir: __dirname` & `NODE_ENV="production"`**: Guarantees Next.js always resolves the `.next` folder in production mode.
+- **ESLint JSX Quotes**: Escaped unescaped quotes in JSX that were halting the `next build` command during automated deployments.
+
+### Redeployment Steps on Hostinger:
+1. Run `git push origin main` locally.
+2. In Hostinger hPanel → **Git** → click **Deploy**.
+3. In hPanel → **Node.js**:
+   - Run **Build** (or click **npm run build**)
+   - Click **Restart Application**
+
