@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Truck, Phone, Mail, MapPin, Clock, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Phone, Mail, Clock, MapPin, Truck } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
 import { BottomNav } from "@/components/BottomNav";
 import { getCompanyProfile } from "@/lib/settings";
@@ -16,104 +15,103 @@ export default async function PublicLayout({
   const phone2 = profile.support_phones[1] || "7689987368";
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-base text-text-primary antialiased selection:bg-brand-primary selection:text-white">
-      {/* 1. Top Announcement / Quick Contact Bar */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-2 px-4 border-b border-slate-800">
-        <div className="max-w-container mx-auto flex flex-wrap justify-between items-center gap-2">
-          <div className="flex items-center gap-4 sm:gap-6">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Phone className="w-3.5 h-3.5 text-brand-accent" />
-              <a href={`tel:${phone1}`} className="hover:text-white transition-colors">
+    <div className="flex flex-col min-h-screen bg-white text-[#222] font-sans antialiased">
+      {/* 1. TOP BAR (Matches ai_studio_code (14).html) */}
+      <div className="bg-[#002B49] text-white text-[13px] py-2 px-4 border-b border-white/10">
+        <div className="w-[90%] max-w-[1200px] mx-auto flex flex-wrap justify-between items-center gap-3">
+          <div className="flex items-center gap-5 flex-wrap">
+            <span className="flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-[#FF6B00]" />
+              <a href={`tel:${phone1}`} className="hover:text-[#FF6B00] transition-colors">
                 +91 {phone1}
               </a>
-              <span className="text-slate-600 hidden sm:inline">/</span>
-              <a href={`tel:${phone2}`} className="hover:text-white transition-colors hidden sm:inline">
+              <span className="text-white/40">/</span>
+              <a href={`tel:${phone2}`} className="hover:text-[#FF6B00] transition-colors">
                 {phone2}
               </a>
             </span>
-            <span className="hidden md:flex items-center gap-1.5 text-slate-400">
-              <Mail className="w-3.5 h-3.5 text-brand-accent" />
-              <a href={`mailto:${profile.support_email}`} className="hover:text-white transition-colors">
+            <span className="hidden sm:flex items-center gap-1.5 text-slate-300">
+              <Mail className="w-3.5 h-3.5 text-[#FF6B00]" />
+              <a href={`mailto:${profile.support_email}`} className="hover:text-[#FF6B00] transition-colors">
                 {profile.support_email}
               </a>
             </span>
-            <span className="hidden lg:flex items-center gap-1.5 text-slate-400">
-              <Clock className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Mon - Sat: 8 AM - 9 PM</span>
-            </span>
           </div>
 
-          <div className="flex items-center gap-3 font-medium">
-            <Link href="/track" className="hover:text-white transition-colors text-slate-300">
+          <div className="flex items-center gap-4 text-xs font-medium">
+            <span className="hidden md:flex items-center gap-1.5 text-slate-300">
+              <Clock className="w-3.5 h-3.5 text-[#FF6B00]" /> 24/7 Support
+            </span>
+            <Link href="/track" className="hover:text-[#FF6B00] transition-colors">
               Quick Track
             </Link>
-            <span className="text-slate-600">•</span>
-            <Link href="/login" className="hover:text-white transition-colors text-slate-300">
+            <span className="text-white/30">•</span>
+            <Link href="/login" className="hover:text-[#FF6B00] transition-colors">
               Customer Sign In
             </Link>
           </div>
         </div>
       </div>
 
-      {/* 2. Main Sticky Navigation Header */}
-      <header className="sticky top-0 z-40 bg-surface-base/95 backdrop-blur border-b border-border-default transition-all">
-        <div className="max-w-container mx-auto px-4 h-16 sm:h-20 flex items-center justify-between">
-          {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 font-bold text-xl sm:text-2xl text-text-primary group">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-brand-primary flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-              <Truck className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-            <div className="leading-tight">
-              <span className="font-extrabold tracking-tight">
-                SS Courier <span className="text-brand-primary">service</span>
-              </span>
-              <span className="hidden sm:block text-[10px] uppercase font-semibold text-text-muted tracking-wider">
-                Fast & Reliable Logistics
-              </span>
-            </div>
+      {/* 2. NAVBAR (Sticky with shadow, matches ai_studio_code (14).html) */}
+      <nav className="bg-white sticky top-0 z-50 shadow-[0_4px_15px_rgba(0,0,0,0.05)]">
+        <div className="w-[90%] max-w-[1200px] mx-auto py-3.5 sm:py-4 flex justify-between items-center">
+          {/* Logo */}
+          <Link href="/" className="text-2xl sm:text-[26px] font-bold text-[#002B49] tracking-tight">
+            SS Courier<span className="text-[#FF6B00]"> service</span>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-text-secondary">
-            <Link href="/" className="hover:text-brand-primary transition-colors">
-              Home
-            </Link>
-            <Link href="/services" className="hover:text-brand-primary transition-colors">
-              Services
-            </Link>
-            <Link href="/track" className="hover:text-brand-primary transition-colors">
-              Track Shipment
-            </Link>
-            <Link href="/book" className="hover:text-brand-primary transition-colors">
-              Book Parcel
-            </Link>
-            <Link href="/calculator" className="hover:text-brand-primary transition-colors">
-              Rate Calculator
-            </Link>
-            <Link href="/contact" className="hover:text-brand-primary transition-colors">
-              Contact
-            </Link>
-          </nav>
+          {/* Desktop Nav Links */}
+          <ul className="hidden lg:flex items-center gap-7 text-[15px] font-medium text-[#002B49]">
+            <li>
+              <Link href="/" className="hover:text-[#FF6B00] transition-colors">
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link href="/services" className="hover:text-[#FF6B00] transition-colors">
+                Services
+              </Link>
+            </li>
+            <li>
+              <Link href="/track" className="hover:text-[#FF6B00] transition-colors">
+                Tracking
+              </Link>
+            </li>
+            <li>
+              <Link href="/calculator" className="hover:text-[#FF6B00] transition-colors">
+                Rate Calculator
+              </Link>
+            </li>
+            <li>
+              <Link href="/about" className="hover:text-[#FF6B00] transition-colors">
+                About
+              </Link>
+            </li>
+            <li>
+              <Link href="/contact" className="hover:text-[#FF6B00] transition-colors">
+                Contact
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/book"
+                className="inline-block bg-[#FF6B00] hover:bg-[#e05e00] text-white px-6 py-2.5 rounded-md font-semibold text-sm shadow-sm transition-all duration-200"
+              >
+                Book Pickup
+              </Link>
+            </li>
+          </ul>
 
-          {/* Action CTAs + Mobile Drawer Toggle */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/track" className="hidden sm:inline-flex">
-              <Button variant="outline" size="sm" className="font-semibold text-xs sm:text-sm">
-                Track
-              </Button>
-            </Link>
-            <Link href="/book" className="hidden xs:inline-flex">
-              <Button variant="accent" size="sm" className="font-semibold text-xs sm:text-sm shadow-sm">
-                Book Parcel
-              </Button>
-            </Link>
-            <Link href="/login" className="hidden md:inline-flex">
-              <Button variant="primary" size="sm" className="font-semibold text-xs sm:text-sm shadow-sm">
-                Sign In
-              </Button>
+          {/* Mobile Actions + Drawer Toggle */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <Link
+              href="/book"
+              className="inline-block bg-[#FF6B00] hover:bg-[#e05e00] text-white px-3.5 py-2 rounded-md font-semibold text-xs shadow-xs"
+            >
+              Book Pickup
             </Link>
 
-            {/* Slide-out Mobile Navigation Drawer */}
             <MobileNav
               phones={[phone1, phone2]}
               email={profile.support_email}
@@ -122,186 +120,146 @@ export default async function PublicLayout({
           </div>
         </div>
 
-        {/* Mobile Horizontal Navigation Bar (Visible on mobile & tablet) */}
-        <div className="lg:hidden bg-surface-subtle border-t border-border-default px-4 py-2.5 overflow-x-auto scrollbar-none flex items-center gap-2 text-xs font-semibold whitespace-nowrap">
+        {/* Mobile Horizontal Quick Navigation Strip */}
+        <div className="lg:hidden bg-slate-50 border-t border-slate-200 px-3 py-2 overflow-x-auto scrollbar-none flex items-center gap-2 text-xs font-semibold whitespace-nowrap">
           <Link
             href="/"
-            className="px-3 py-1.5 rounded-lg bg-surface-base border border-border-default text-text-primary hover:border-brand-primary"
+            className="px-3 py-1.5 rounded-md bg-white border border-slate-200 text-[#002B49] hover:border-[#FF6B00]"
           >
             Home
           </Link>
           <Link
             href="/track"
-            className="px-3 py-1.5 rounded-lg bg-surface-base border border-border-default text-text-primary hover:border-brand-primary"
+            className="px-3 py-1.5 rounded-md bg-white border border-slate-200 text-[#002B49] hover:border-[#FF6B00]"
           >
             Track Shipment
           </Link>
           <Link
-            href="/book"
-            className="px-3 py-1.5 rounded-lg bg-brand-primary text-white shadow-xs"
-          >
-            Book Parcel
-          </Link>
-          <Link
             href="/calculator"
-            className="px-3 py-1.5 rounded-lg bg-surface-base border border-border-default text-text-primary hover:border-brand-primary"
+            className="px-3 py-1.5 rounded-md bg-white border border-slate-200 text-[#002B49] hover:border-[#FF6B00]"
           >
             Rate Calculator
           </Link>
           <Link
             href="/services"
-            className="px-3 py-1.5 rounded-lg bg-surface-base border border-border-default text-text-primary hover:border-brand-primary"
+            className="px-3 py-1.5 rounded-md bg-white border border-slate-200 text-[#002B49] hover:border-[#FF6B00]"
           >
             Services
           </Link>
           <Link
+            href="/about"
+            className="px-3 py-1.5 rounded-md bg-white border border-slate-200 text-[#002B49] hover:border-[#FF6B00]"
+          >
+            About Us
+          </Link>
+          <Link
             href="/contact"
-            className="px-3 py-1.5 rounded-lg bg-surface-base border border-border-default text-text-primary hover:border-brand-primary"
+            className="px-3 py-1.5 rounded-md bg-white border border-slate-200 text-[#002B49] hover:border-[#FF6B00]"
           >
             Contact
           </Link>
         </div>
-      </header>
+      </nav>
 
-      {/* 3. Main Page Content */}
-      <main className="flex-1 pb-20 lg:pb-0">{children}</main>
+      {/* 3. MAIN PAGE CONTENT */}
+      <main className="flex-1 pb-16 lg:pb-0">{children}</main>
 
-      {/* 4. Unified Footer */}
-      <footer className="bg-slate-900 text-slate-300 pt-16 pb-10 border-t border-slate-800">
-        <div className="max-w-container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-          {/* Column 1: Company Profile */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2.5 font-bold text-xl text-white">
-              <div className="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center text-white">
-                <Truck className="w-4 h-4" />
+      {/* 4. FOOTER (Matches ai_studio_code (14).html) */}
+      <footer id="contact" className="bg-[#001b2e] text-[#ccc] pt-14 pb-6 text-sm">
+        <div className="w-[90%] max-w-[1200px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+            {/* Col 1: Brand & Tagline */}
+            <div>
+              <h3 className="text-white text-xl font-bold mb-3.5">
+                SS Courier<span className="text-[#FF6B00]"> service</span>
+              </h3>
+              <p className="text-slate-300 leading-relaxed text-sm max-w-sm mb-4">
+                Your reliable logistics and multi-carrier cargo delivery partner across Jaipur, Rajasthan, and nationwide across India.
+              </p>
+              <div className="text-xs text-slate-400">
+                Hub: {profile.address}, {profile.city}, {profile.state} {profile.pincode}
               </div>
-              <span>
-                SS Courier <span className="text-brand-accent">service</span>
-              </span>
             </div>
-            <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
-              Your trusted multi-carrier logistics and express cargo delivery partner. Door-to-door domestic parcel pickup, real-time GPS tracking, and verified Cash on Delivery (COD) services across India.
-            </p>
-            <div className="pt-1 flex items-center gap-2 text-xs text-slate-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Multi-Carrier Live Dispatch Network</span>
+
+            {/* Col 2: Quick Links */}
+            <div>
+              <h4 className="text-white text-lg font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-2.5 text-sm">
+                <li>
+                  <Link href="/" className="hover:text-[#FF6B00] transition-colors">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/about" className="hover:text-[#FF6B00] transition-colors">
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/track" className="hover:text-[#FF6B00] transition-colors">
+                    Tracking Portal
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/calculator" className="hover:text-[#FF6B00] transition-colors">
+                    Shipping Calculator
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/services" className="hover:text-[#FF6B00] transition-colors">
+                    Services
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/book" className="hover:text-[#FF6B00] transition-colors">
+                    Book a Parcel
+                  </Link>
+                </li>
+              </ul>
             </div>
-          </div>
 
-          {/* Column 2: Quick Links */}
-          <div className="space-y-3">
-            <h4 className="text-white font-bold text-sm uppercase tracking-wider">Quick Links</h4>
-            <ul className="space-y-2.5 text-sm text-slate-400">
-              <li>
-                <Link href="/" className="hover:text-white transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/book" className="hover:text-white transition-colors">
-                  Book a Parcel
-                </Link>
-              </li>
-              <li>
-                <Link href="/track" className="hover:text-white transition-colors">
-                  Track Shipment
-                </Link>
-              </li>
-              <li>
-                <Link href="/calculator" className="hover:text-white transition-colors">
-                  Shipping Rate Calculator
-                </Link>
-              </li>
-              <li>
-                <Link href="/services" className="hover:text-white transition-colors">
-                  Logistics Services
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 3: Portals & Policies */}
-          <div className="space-y-3">
-            <h4 className="text-white font-bold text-sm uppercase tracking-wider">Portals & Policies</h4>
-            <ul className="space-y-2.5 text-sm text-slate-400">
-              <li>
-                <Link href="/login" className="hover:text-white transition-colors">
-                  Customer Self-Service
-                </Link>
-              </li>
-              <li>
-                <Link href="/register" className="hover:text-white transition-colors">
-                  Create Business Account
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-white transition-colors">
-                  Customer Support
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy-policy" className="hover:text-white transition-colors">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="hover:text-white transition-colors">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="/shipping-policy" className="hover:text-white transition-colors">
-                  Shipping & Return Policy
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4: Head Office & Direct Contact */}
-          <div className="space-y-3">
-            <h4 className="text-white font-bold text-sm uppercase tracking-wider">Head Office Contact</h4>
-            <div className="space-y-3 text-sm text-slate-400">
-              <div className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-brand-accent shrink-0 mt-1" />
-                <span className="leading-snug">
-                  {profile.address}, {profile.city}, {profile.state} {profile.pincode}
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-brand-accent shrink-0" />
-                <div className="space-x-1">
-                  <a href={`tel:${phone1}`} className="hover:text-white font-medium">
+            {/* Col 3: Contact Info */}
+            <div>
+              <h4 className="text-white text-lg font-semibold mb-4">Contact Us</h4>
+              <div className="space-y-3 text-sm">
+                <p className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-[#FF6B00] shrink-0" />
+                  <a href={`tel:${phone1}`} className="hover:text-white">
                     +91 {phone1}
                   </a>
                   <span>/</span>
-                  <a href={`tel:${phone2}`} className="hover:text-white font-medium">
+                  <a href={`tel:${phone2}`} className="hover:text-white">
                     {phone2}
                   </a>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-brand-accent shrink-0" />
-                <a href={`mailto:${profile.support_email}`} className="hover:text-white">
-                  {profile.support_email}
-                </a>
+                </p>
+                <p className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-[#FF6B00] shrink-0" />
+                  <a href={`mailto:${profile.support_email}`} className="hover:text-white">
+                    {profile.support_email}
+                  </a>
+                </p>
+                <p className="flex items-start gap-2 text-xs text-slate-400 pt-1">
+                  <MapPin className="w-4 h-4 text-[#FF6B00] shrink-0 mt-0.5" />
+                  <span>Johri Bazar, Jaipur, Rajasthan 302003</span>
+                </p>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Bottom Legal Bar */}
-        <div className="max-w-container mx-auto px-4 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© {new Date().getFullYear()} SS Courier service Pvt. Ltd. All rights reserved.</p>
-          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-            <Link href="/privacy-policy" className="hover:text-slate-400 transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="hover:text-slate-400 transition-colors">
-              Terms
-            </Link>
-            <Link href="/admin/login" className="hover:text-slate-400 transition-colors font-medium">
-              Admin Staff Portal
-            </Link>
+          {/* Copyright & Legal Bar */}
+          <div className="border-t border-white/10 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 text-center sm:text-left">
+            <p>&copy; {new Date().getFullYear()} SS Courier service Pvt Ltd. All Rights Reserved.</p>
+            <div className="flex items-center gap-4">
+              <Link href="/privacy-policy" className="hover:text-slate-200 transition-colors">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="hover:text-slate-200 transition-colors">
+                Terms
+              </Link>
+              <Link href="/admin/login" className="hover:text-[#FF6B00] transition-colors font-medium">
+                Admin Operations
+              </Link>
+            </div>
           </div>
         </div>
       </footer>

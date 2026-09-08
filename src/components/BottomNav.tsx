@@ -33,7 +33,7 @@ export function BottomNav({ phones, email, address }: BottomNavProps) {
       {/* Fixed Bottom Mobile Navigation Bar */}
       <nav
         aria-label="Mobile Navigation"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-base/95 backdrop-blur-md border-t border-border-default shadow-lg pb-safe"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg pb-safe"
       >
         <div className="grid grid-cols-5 h-16 max-w-lg mx-auto items-center px-1">
           {items.map((item) => {
@@ -47,10 +47,10 @@ export function BottomNav({ phones, email, address }: BottomNavProps) {
                   href={item.href}
                   className="flex flex-col items-center justify-center relative -top-3"
                 >
-                  <div className="w-12 h-12 rounded-full bg-brand-primary text-white shadow-lg shadow-brand-primary/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
+                  <div className="w-12 h-12 rounded-full bg-[#FF6B00] hover:bg-[#e05e00] text-white shadow-lg shadow-[#FF6B00]/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <span className="text-[11px] font-bold text-brand-primary mt-1">
+                  <span className="text-[11px] font-bold text-[#FF6B00] mt-1">
                     {item.label}
                   </span>
                 </Link>
@@ -63,11 +63,11 @@ export function BottomNav({ phones, email, address }: BottomNavProps) {
                 href={item.href}
                 className={`flex flex-col items-center justify-center h-full py-1 transition-colors ${
                   isActive
-                    ? "text-brand-primary font-bold"
-                    : "text-text-muted hover:text-text-primary"
+                    ? "text-[#FF6B00] font-bold"
+                    : "text-slate-500 hover:text-[#002B49]"
                 }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? "text-brand-primary" : "text-text-muted"}`} />
+                <Icon className={`w-5 h-5 ${isActive ? "text-[#FF6B00]" : "text-slate-500"}`} />
                 <span className="text-[11px] font-medium mt-1">{item.label}</span>
               </Link>
             );
@@ -82,7 +82,7 @@ export function BottomNav({ phones, email, address }: BottomNavProps) {
               customTrigger={
                 <button
                   type="button"
-                  className="flex flex-col items-center justify-center text-text-muted hover:text-text-primary"
+                  className="flex flex-col items-center justify-center text-slate-500 hover:text-[#002B49]"
                   aria-label="Open full menu"
                 >
                   <Menu className="w-5 h-5" />

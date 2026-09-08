@@ -3,41 +3,38 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
 import {
-  Truck,
-  ShieldCheck,
-  Clock,
-  Search,
-  ArrowRight,
-  Package,
-  Layers,
-  CheckCircle2,
-  DollarSign,
-  Zap,
   Barcode,
   Receipt,
   Smartphone,
+  Search,
+  Calculator,
+  Truck,
   MapPin,
-  Sparkles,
+  FileText,
+  Package,
+  Navigation,
+  CheckCircle2,
+  Clock,
+  ShieldCheck,
 } from "lucide-react";
 
-type TrackMode = "awb" | "order" | "mobile_pincode";
+type TrackType = "awb" | "order" | "mobile";
 
 export default function HomePage() {
   const router = useRouter();
-  const [trackMode, setTrackMode] = useState<TrackMode>("awb");
+  const [trackType, setTrackType] = useState<TrackType>("awb");
   const [searchValue, setSearchValue] = useState("");
   const [mobileValue, setMobileValue] = useState("");
   const [pincodeValue, setPincodeValue] = useState("");
 
   const handleTrackSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (trackMode === "awb") {
+    if (trackType === "awb") {
       const q = searchValue.trim();
       if (!q) return;
       router.push(`/track?awb=${encodeURIComponent(q)}`);
-    } else if (trackMode === "order") {
+    } else if (trackType === "order") {
       const q = searchValue.trim();
       if (!q) return;
       router.push(`/track?order_id=${encodeURIComponent(q)}`);
@@ -50,397 +47,374 @@ export default function HomePage() {
   };
 
   return (
-    <div className="space-y-16 sm:space-y-24 py-6 sm:py-10">
-      {/* 1. HERO SECTION WITH LIVE TRACKING */}
-      <section className="max-w-container mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Hero Left Content */}
-          <div className="lg:col-span-7 space-y-5 sm:space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-brand-primary text-xs font-bold uppercase tracking-wider border border-blue-200 shadow-xs">
-              <Zap className="w-3.5 h-3.5 text-brand-accent" />
-              <span>Multi-Carrier Logistics Platform</span>
+    <div className="font-sans">
+      {/* ========================================================================= */}
+      {/* 2. HERO SECTION & LIVE TRACKING WITH 3 OPTIONS (From ai_studio_code (14).html) */}
+      {/* ========================================================================= */}
+      <section
+        className="relative text-white py-24 sm:py-28 md:py-32 px-4 text-center bg-cover bg-center"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,43,73,0.88), rgba(0,43,73,0.88)), url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1500&q=80')`,
+        }}
+        id="track"
+      >
+        <div className="w-[90%] max-w-[1200px] mx-auto">
+          <h1 className="text-3xl sm:text-4xl md:text-[42px] font-bold mb-3 tracking-tight">
+            Fast, Safe & Reliable Courier Services
+          </h1>
+          <p className="text-slate-200 text-base sm:text-[17px] mb-8 max-w-xl mx-auto">
+            Track your package live anywhere across the globe
+          </p>
+
+          {/* Tracking Container */}
+          <div className="max-w-[750px] mx-auto text-left">
+            {/* 3 Tabs */}
+            <div className="flex justify-start gap-2 -mb-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setTrackType("awb");
+                  setSearchValue("");
+                }}
+                className={`px-4 sm:px-5 py-2.5 text-sm font-semibold rounded-t-lg transition-all flex items-center gap-2 ${
+                  trackType === "awb"
+                    ? "bg-white text-[#002B49] shadow-sm"
+                    : "bg-white/20 hover:bg-white/30 text-white"
+                }`}
+              >
+                <Barcode className="w-4 h-4" />
+                <span>AWB No.</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setTrackType("order");
+                  setSearchValue("");
+                }}
+                className={`px-4 sm:px-5 py-2.5 text-sm font-semibold rounded-t-lg transition-all flex items-center gap-2 ${
+                  trackType === "order"
+                    ? "bg-white text-[#002B49] shadow-sm"
+                    : "bg-white/20 hover:bg-white/30 text-white"
+                }`}
+              >
+                <Receipt className="w-4 h-4" />
+                <span>Order ID</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setTrackType("mobile");
+                  setMobileValue("");
+                  setPincodeValue("");
+                }}
+                className={`px-4 sm:px-5 py-2.5 text-sm font-semibold rounded-t-lg transition-all flex items-center gap-2 ${
+                  trackType === "mobile"
+                    ? "bg-white text-[#002B49] shadow-sm"
+                    : "bg-white/20 hover:bg-white/30 text-white"
+                }`}
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>Mobile No.</span>
+              </button>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-display font-extrabold text-text-primary tracking-tight leading-tight">
-              Send Your Parcel —{" "}
-              <span className="text-brand-primary">Fast, Safe & Reliable</span>
-            </h1>
+            {/* Input Form Box */}
+            <form
+              onSubmit={handleTrackSubmit}
+              className="bg-white rounded-r-lg rounded-bl-lg p-2 sm:p-2.5 flex flex-col sm:flex-row shadow-[0_12px_35px_rgba(0,0,0,0.3)] gap-2"
+            >
+              {trackType === "mobile" ? (
+                <div className="flex-1 flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="tel"
+                    maxLength={10}
+                    value={mobileValue}
+                    onChange={(e) => setMobileValue(e.target.value.replace(/\D/g, ""))}
+                    placeholder="Enter 10-digit mobile number"
+                    required
+                    className="flex-1 px-4 py-3 text-[#333] text-sm sm:text-base border border-slate-200 sm:border-none rounded-md sm:rounded-none outline-none focus:ring-0 placeholder-slate-400"
+                  />
+                  <div className="hidden sm:block w-px bg-slate-200 my-2" />
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={pincodeValue}
+                    onChange={(e) => setPincodeValue(e.target.value.replace(/\D/g, ""))}
+                    placeholder="Delivery Pincode (6 digits)"
+                    required
+                    className="w-full sm:w-48 px-4 py-3 text-[#333] text-sm sm:text-base border border-slate-200 sm:border-none rounded-md sm:rounded-none outline-none focus:ring-0 placeholder-slate-400 font-mono"
+                  />
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  placeholder={
+                    trackType === "awb"
+                      ? "Enter AWB / Consignment Number (e.g. DEL123456)"
+                      : "Enter Order / Reference ID (e.g. BK-1025)"
+                  }
+                  required
+                  className="flex-1 px-4 py-3 text-[#333] text-sm sm:text-base border-none outline-none focus:ring-0 placeholder-slate-400 font-mono"
+                />
+              )}
 
-            <p className="text-text-secondary text-base sm:text-lg max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Book domestic and commercial shipments with India&apos;s leading courier partners. Live GPS updates, verified Cash on Delivery (COD), and door-to-door pickup across 19,000+ pincodes.
-            </p>
+              <button
+                type="submit"
+                className="bg-[#FF6B00] hover:bg-[#e05e00] text-white px-7 py-3.5 rounded-md font-semibold text-base transition-colors duration-200 flex items-center justify-center gap-2 whitespace-nowrap shadow-sm cursor-pointer"
+              >
+                <Search className="w-5 h-5" />
+                <span>Track Parcel</span>
+              </button>
+            </form>
 
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-1">
-              <Link href="/book" className="w-full sm:w-auto">
-                <Button variant="accent" size="lg" className="w-full sm:w-auto shadow-md font-bold flex items-center justify-center gap-2">
-                  <span>Book a Parcel</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Link href="/calculator" className="w-full sm:w-auto">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto font-semibold">
-                  Calculate Shipping Rate
-                </Button>
-              </Link>
-            </div>
-
-            {/* Quick Badges */}
-            <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs text-text-secondary">
-              <span className="flex items-center gap-1.5 font-medium">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Free Doorstep Pickup
+            <div className="mt-3 flex items-center justify-center sm:justify-start gap-5 text-xs text-slate-300">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Multi-Courier Sync
               </span>
-              <span className="flex items-center gap-1.5 font-medium">
-                <ShieldCheck className="w-4 h-4 text-brand-primary" /> Guaranteed COD Settlements
-              </span>
-              <span className="flex items-center gap-1.5 font-medium">
-                <Clock className="w-4 h-4 text-brand-accent" /> Live WhatsApp Alerts
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-[#FF6B00]" /> Live GPS Tracking
               </span>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Hero Right: Live Dispatch Tracking Widget */}
-          <div className="lg:col-span-5 w-full">
-            <div className="bg-surface-base p-5 sm:p-7 rounded-2xl border border-border-default shadow-xl space-y-5">
-              <div className="space-y-1">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-brand-primary">
-                  Live Dispatch Lookup
-                </div>
-                <h3 className="text-lg sm:text-xl font-bold text-text-primary">
-                  Track Your Shipment
+      {/* ========================================================================= */}
+      {/* 3. QUICK FEATURES (FLOATING CARDS) (From ai_studio_code (14).html) */}
+      {/* ========================================================================= */}
+      <section className="-mt-14 sm:-mt-16 relative z-10 px-4">
+        <div className="w-[90%] max-w-[1200px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Card 1 */}
+            <Link
+              href="/calculator"
+              className="bg-white p-6 sm:p-7 rounded-lg shadow-[0_5px_20px_rgba(0,0,0,0.08)] text-center border-b-4 border-[#FF6B00] hover:-translate-y-1 transition-transform duration-300 block group"
+            >
+              <Calculator className="w-9 h-9 text-[#FF6B00] mx-auto mb-3.5 group-hover:scale-110 transition-transform" />
+              <h3 className="text-lg font-bold text-[#002B49] mb-2 group-hover:text-[#FF6B00] transition-colors">
+                Rate Calculator
+              </h3>
+              <p className="text-sm text-[#666] leading-relaxed">
+                Calculate shipping cost instantly by weight & distance.
+              </p>
+            </Link>
+
+            {/* Card 2 */}
+            <Link
+              href="/book"
+              className="bg-white p-6 sm:p-7 rounded-lg shadow-[0_5px_20px_rgba(0,0,0,0.08)] text-center border-b-4 border-[#FF6B00] hover:-translate-y-1 transition-transform duration-300 block group"
+            >
+              <Truck className="w-9 h-9 text-[#FF6B00] mx-auto mb-3.5 group-hover:scale-110 transition-transform" />
+              <h3 className="text-lg font-bold text-[#002B49] mb-2 group-hover:text-[#FF6B00] transition-colors">
+                Schedule Pickup
+              </h3>
+              <p className="text-sm text-[#666] leading-relaxed">
+                Get doorstep parcel pickup from your home or warehouse.
+              </p>
+            </Link>
+
+            {/* Card 3 */}
+            <Link
+              href="/contact"
+              className="bg-white p-6 sm:p-7 rounded-lg shadow-[0_5px_20px_rgba(0,0,0,0.08)] text-center border-b-4 border-[#FF6B00] hover:-translate-y-1 transition-transform duration-300 block group"
+            >
+              <MapPin className="w-9 h-9 text-[#FF6B00] mx-auto mb-3.5 group-hover:scale-110 transition-transform" />
+              <h3 className="text-lg font-bold text-[#002B49] mb-2 group-hover:text-[#FF6B00] transition-colors">
+                Locate Hub
+              </h3>
+              <p className="text-sm text-[#666] leading-relaxed">
+                Find the nearest delivery hub and service branches in Jaipur.
+              </p>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 4. SERVICES SECTION (From ai_studio_code (14).html) */}
+      {/* ========================================================================= */}
+      <section className="py-20 sm:py-24 bg-[#F4F7FA] px-4 mt-8 sm:mt-12" id="services">
+        <div className="w-[90%] max-w-[1200px] mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-[32px] font-bold text-[#002B49] mb-2.5">
+              Our Shipping Services
+            </h2>
+            <p className="text-[#666] text-sm sm:text-base max-w-xl mx-auto">
+              Tailored logistics solutions for individuals and enterprises.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
+            {/* Service 1 */}
+            <div className="bg-white rounded-lg overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-transform duration-300">
+              <div className="h-44 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=500&q=60"
+                  alt="Domestic Courier"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg font-bold text-[#002B49] mb-2">
+                  Domestic Delivery
                 </h3>
-                <p className="text-xs text-text-muted">
-                  Instant status checkpoints across all carrier networks
+                <p className="text-sm text-[#666] leading-relaxed">
+                  Fast delivery across all pincodes with cash on delivery (COD).
                 </p>
               </div>
+            </div>
 
-              {/* 3-Tab Search Selector */}
-              <div className="grid grid-cols-3 gap-1 bg-surface-subtle p-1 rounded-xl border border-border-default">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTrackMode("awb");
-                    setSearchValue("");
-                  }}
-                  className={`flex items-center justify-center gap-1.5 py-2 px-1 text-xs font-bold rounded-lg transition-all ${
-                    trackMode === "awb"
-                      ? "bg-surface-base text-brand-primary shadow-xs border border-border-default"
-                      : "text-text-secondary hover:text-text-primary"
-                  }`}
-                >
-                  <Barcode className="w-3.5 h-3.5" />
-                  <span>AWB No.</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTrackMode("order");
-                    setSearchValue("");
-                  }}
-                  className={`flex items-center justify-center gap-1.5 py-2 px-1 text-xs font-bold rounded-lg transition-all ${
-                    trackMode === "order"
-                      ? "bg-surface-base text-brand-primary shadow-xs border border-border-default"
-                      : "text-text-secondary hover:text-text-primary"
-                  }`}
-                >
-                  <Receipt className="w-3.5 h-3.5" />
-                  <span>Order ID</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTrackMode("mobile_pincode");
-                    setMobileValue("");
-                    setPincodeValue("");
-                  }}
-                  className={`flex items-center justify-center gap-1.5 py-2 px-1 text-xs font-bold rounded-lg transition-all ${
-                    trackMode === "mobile_pincode"
-                      ? "bg-surface-base text-brand-primary shadow-xs border border-border-default"
-                      : "text-text-secondary hover:text-text-primary"
-                  }`}
-                >
-                  <Smartphone className="w-3.5 h-3.5" />
-                  <span className="truncate">Mobile</span>
-                </button>
+            {/* Service 2 */}
+            <div className="bg-white rounded-lg overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-transform duration-300">
+              <div className="h-44 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://images.unsplash.com/photo-1524522173746-f628baad3644?auto=format&fit=crop&w=500&q=60"
+                  alt="International Shipping"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                />
               </div>
+              <div className="p-5">
+                <h3 className="text-lg font-bold text-[#002B49] mb-2">
+                  International Cargo
+                </h3>
+                <p className="text-sm text-[#666] leading-relaxed">
+                  Worldwide parcel delivery with complete customs clearance support.
+                </p>
+              </div>
+            </div>
 
-              {/* Tracking Form */}
-              <form onSubmit={handleTrackSubmit} className="space-y-3">
-                {trackMode === "mobile_pincode" ? (
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-[11px] font-bold text-text-secondary mb-1">
-                        10-Digit Mobile Number
-                      </label>
-                      <input
-                        type="tel"
-                        maxLength={10}
-                        value={mobileValue}
-                        onChange={(e) => setMobileValue(e.target.value.replace(/\D/g, ""))}
-                        placeholder="Enter 10-digit mobile number"
-                        required
-                        className="w-full h-11 px-3.5 text-sm bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 focus:outline-none transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-text-secondary mb-1">
-                        6-Digit Delivery Pincode
-                      </label>
-                      <input
-                        type="text"
-                        maxLength={6}
-                        value={pincodeValue}
-                        onChange={(e) => setPincodeValue(e.target.value.replace(/\D/g, ""))}
-                        placeholder="Enter 6-digit delivery pincode"
-                        required
-                        className="w-full h-11 px-3.5 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 focus:outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-[11px] font-bold text-text-secondary mb-1">
-                      {trackMode === "awb" ? "Consignment / AWB Number" : "Booking / Order ID"}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        placeholder={
-                          trackMode === "awb"
-                            ? "Enter AWB or consignment number"
-                            : "Enter booking or order ID"
-                        }
-                        required
-                        className="w-full h-11 pl-3.5 pr-10 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 focus:outline-none transition-all"
-                      />
-                      <Search className="w-4 h-4 text-text-muted absolute right-3 top-3.5" />
-                    </div>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  className="w-full shadow-md font-bold text-sm h-11 flex items-center justify-center gap-2 mt-1"
-                >
-                  <Search className="w-4 h-4" />
-                  <span>Track Parcel Now</span>
-                </Button>
-              </form>
-
-              {/* Widget Footer */}
-              <div className="pt-3 border-t border-border-default flex items-center justify-between text-[11px] text-text-secondary">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Multi-Courier Sync
-                </span>
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Clock className="w-3.5 h-3.5 text-brand-primary" /> Live Checkpoints
-                </span>
+            {/* Service 3 */}
+            <div className="bg-white rounded-lg overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-transform duration-300">
+              <div className="h-44 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=500&q=60"
+                  alt="Same Day Delivery"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg font-bold text-[#002B49] mb-2">
+                  Same Day / Express
+                </h3>
+                <p className="text-sm text-[#666] leading-relaxed">
+                  Urgent documents and high-priority parcels delivered within hours.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 2. TRUST & STATS COUNTER (§3 in Feature Spec) */}
-      <section className="bg-surface-subtle border-y border-border-default py-10 sm:py-12">
-        <div className="max-w-container mx-auto px-4 sm:px-6 grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 text-center">
-          <div className="space-y-1">
-            <div className="text-3xl sm:text-4xl font-extrabold text-brand-primary tracking-tight">
-              50,000+
-            </div>
-            <div className="text-xs sm:text-sm text-text-secondary font-medium">
-              Parcels Delivered
-            </div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-3xl sm:text-4xl font-extrabold text-brand-primary tracking-tight">
-              19,000+
-            </div>
-            <div className="text-xs sm:text-sm text-text-secondary font-medium">
-              Pincodes Covered
-            </div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-3xl sm:text-4xl font-extrabold text-brand-primary tracking-tight">
-              99.4%
-            </div>
-            <div className="text-xs sm:text-sm text-text-secondary font-medium">
-              On-Time Dispatch Rate
-            </div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-3xl sm:text-4xl font-extrabold text-brand-primary tracking-tight">
-              24/7
-            </div>
-            <div className="text-xs sm:text-sm text-text-secondary font-medium">
-              Dedicated Support Desk
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. LOGISTICS SERVICES SHOWCASE */}
-      <section className="max-w-container mx-auto px-4 sm:px-6 space-y-10">
-        <div className="text-center max-w-2xl mx-auto space-y-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-brand-primary bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-            Logistics Solutions
-          </span>
-          <h2 className="text-2xl sm:text-3xl md:text-h2 font-extrabold text-text-primary tracking-tight">
-            Tailored Shipping Services For Every Need
-          </h2>
-          <p className="text-text-secondary text-sm sm:text-base leading-relaxed">
-            Whether sending personal parcels across India or fulfilling continuous business e-commerce orders.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Service 1 */}
-          <div className="bg-surface-base p-6 sm:p-7 rounded-2xl border border-border-default shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between group">
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Package className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-text-primary group-hover:text-brand-primary transition-colors">
-                Domestic Parcel Delivery
-              </h3>
-              <p className="text-sm text-text-secondary leading-relaxed">
-                Doorstep pickup and reliable surface & express air cargo covering 19,000+ Indian pincodes with live GPS tracking checkpoints.
-              </p>
-            </div>
-            <div className="pt-2">
-              <Link href="/book" className="text-xs font-bold text-brand-primary hover:underline inline-flex items-center gap-1">
-                Book Domestic Pickup →
-              </Link>
-            </div>
-          </div>
-
-          {/* Service 2 */}
-          <div className="bg-surface-base p-6 sm:p-7 rounded-2xl border border-border-default shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between group">
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <DollarSign className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-text-primary group-hover:text-brand-primary transition-colors">
-                Cash on Delivery (COD)
-              </h3>
-              <p className="text-sm text-text-secondary leading-relaxed">
-                Secure cash collection upon doorstep delivery with automated UTR reconciliation, weekly batch payouts, and transparent reporting.
-              </p>
-            </div>
-            <div className="pt-2">
-              <Link href="/services" className="text-xs font-bold text-amber-700 hover:underline inline-flex items-center gap-1">
-                Explore COD Features →
-              </Link>
-            </div>
-          </div>
-
-          {/* Service 3 */}
-          <div className="bg-surface-base p-6 sm:p-7 rounded-2xl border border-border-default shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between group">
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Layers className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-text-primary group-hover:text-brand-primary transition-colors">
-                Multi-Carrier Optimization
-              </h3>
-              <p className="text-sm text-text-secondary leading-relaxed">
-                Seamlessly integrated with Delhivery, Blue Dart, DTDC, and XpressBees. Each consignment is routed via the most efficient carrier.
-              </p>
-            </div>
-            <div className="pt-2">
-              <Link href="/services" className="text-xs font-bold text-emerald-700 hover:underline inline-flex items-center gap-1">
-                View Carrier Integrations →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. 6-STEP WORKFLOW (§6 in Feature Spec) */}
-      <section className="bg-surface-subtle border-y border-border-default py-14 sm:py-16">
-        <div className="max-w-container mx-auto px-4 sm:px-6 space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-brand-primary bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-              Simple 6-Step Process
-            </span>
-            <h2 className="text-2xl sm:text-3xl md:text-h2 font-extrabold text-text-primary tracking-tight">
-              How SS Courier service Works
+      {/* ========================================================================= */}
+      {/* 5. HOW IT WORKS (From ai_studio_code (14).html) */}
+      {/* ========================================================================= */}
+      <section className="py-20 sm:py-24 bg-white px-4">
+        <div className="w-[90%] max-w-[1200px] mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="text-2xl sm:text-3xl md:text-[32px] font-bold text-[#002B49] mb-2.5">
+              How It Works
             </h2>
-            <p className="text-text-secondary text-sm sm:text-base leading-relaxed">
-              From instant online booking to safe doorstep delivery, every milestone is verified and audited.
+            <p className="text-[#666] text-sm sm:text-base max-w-xl mx-auto">
+              Track, ship and receive in 4 easy steps
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-            {[
-              { num: "01", title: "Book Parcel", desc: "Submit sender, receiver & parcel dimensions online in 2 minutes." },
-              { num: "02", title: "Rate Confirm", desc: "Volumetric calculation confirms transparent, competitive rates." },
-              { num: "03", title: "Carrier Sync", desc: "Integrated API generates AWB and secure QR barcode label." },
-              { num: "04", title: "Doorstep Pickup", desc: "Verified delivery agent collects parcel from your address." },
-              { num: "05", title: "Live Tracking", desc: "Real-time updates via SMS, WhatsApp & tracking portal." },
-              { num: "06", title: "Safe Delivery", desc: "Receiver doorstep delivery with OTP confirmation or COD receipt." },
-            ].map((step) => (
-              <div
-                key={step.num}
-                className="bg-surface-base p-5 rounded-xl border border-border-default shadow-xs space-y-2 flex flex-col justify-between hover:border-brand-primary/40 transition-colors"
-              >
-                <div>
-                  <div className="font-mono text-2xl font-black text-brand-primary/30">
-                    {step.num}
-                  </div>
-                  <h4 className="font-bold text-sm text-text-primary mt-1">{step.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed mt-1">{step.desc}</p>
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+            {/* Step 1 */}
+            <div className="space-y-3">
+              <div className="w-20 h-20 bg-[#ffe8d6] text-[#FF6B00] rounded-full flex items-center justify-center text-3xl mx-auto shadow-xs">
+                <FileText className="w-8 h-8" />
               </div>
-            ))}
+              <h4 className="text-lg font-bold text-[#002B49]">1. Book</h4>
+              <p className="text-sm text-[#666]">Enter parcel details online.</p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="space-y-3">
+              <div className="w-20 h-20 bg-[#ffe8d6] text-[#FF6B00] rounded-full flex items-center justify-center text-3xl mx-auto shadow-xs">
+                <Package className="w-8 h-8" />
+              </div>
+              <h4 className="text-lg font-bold text-[#002B49]">2. Pickup</h4>
+              <p className="text-sm text-[#666]">We pick up from doorstep.</p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="space-y-3">
+              <div className="w-20 h-20 bg-[#ffe8d6] text-[#FF6B00] rounded-full flex items-center justify-center text-3xl mx-auto shadow-xs">
+                <Navigation className="w-8 h-8" />
+              </div>
+              <h4 className="text-lg font-bold text-[#002B49]">3. In Transit</h4>
+              <p className="text-sm text-[#666]">Real-time live GPS tracking.</p>
+            </div>
+
+            {/* Step 4 */}
+            <div className="space-y-3">
+              <div className="w-20 h-20 bg-[#ffe8d6] text-[#FF6B00] rounded-full flex items-center justify-center text-3xl mx-auto shadow-xs">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <h4 className="text-lg font-bold text-[#002B49]">4. Delivery</h4>
+              <p className="text-sm text-[#666]">Safe delivery with OTP verify.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 5. MULTI-CARRIER PARTNERS STRIP */}
-      <section className="max-w-container mx-auto px-4 sm:px-6 text-center space-y-6">
-        <p className="text-xs font-bold uppercase tracking-widest text-text-muted">
-          Powered By India&apos;s Leading Courier & Cargo Networks
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 opacity-80 grayscale hover:grayscale-0 transition-all">
-          <div className="font-black text-xl text-slate-700 tracking-wider">DELHIVERY</div>
-          <div className="font-black text-xl text-blue-800 tracking-wider">BLUE DART</div>
-          <div className="font-black text-xl text-red-600 tracking-wider">DTDC</div>
-          <div className="font-black text-xl text-amber-600 tracking-wider">XPRESSBEES</div>
+      {/* ========================================================================= */}
+      {/* 6. STATS COUNTER (From ai_studio_code (14).html) */}
+      {/* ========================================================================= */}
+      <section className="bg-[#002B49] text-white py-14 px-4 text-center">
+        <div className="w-[90%] max-w-[1200px] mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-3xl sm:text-[40px] font-bold text-[#FF6B00] mb-1">5M+</h3>
+              <p className="text-sm sm:text-base text-slate-200">Deliveries Done</p>
+            </div>
+            <div>
+              <h3 className="text-3xl sm:text-[40px] font-bold text-[#FF6B00] mb-1">27,000+</h3>
+              <p className="text-sm sm:text-base text-slate-200">Pincodes Active</p>
+            </div>
+            <div>
+              <h3 className="text-3xl sm:text-[40px] font-bold text-[#FF6B00] mb-1">99.8%</h3>
+              <p className="text-sm sm:text-base text-slate-200">On-Time Delivery</p>
+            </div>
+            <div>
+              <h3 className="text-3xl sm:text-[40px] font-bold text-[#FF6B00] mb-1">24/7</h3>
+              <p className="text-sm sm:text-base text-slate-200">Live Support</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* 6. CALL TO ACTION BANNER */}
-      <section className="max-w-container mx-auto px-4 sm:px-6">
-        <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white rounded-3xl p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl">
-          <div className="space-y-3 max-w-xl text-center md:text-left">
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-              Ready to dispatch your parcel?
-            </h2>
-            <p className="text-blue-100 text-sm sm:text-base leading-relaxed">
-              Book online in under 2 minutes. Transparent rates, multi-carrier network, and 24/7 shipment tracking.
+      {/* ========================================================================= */}
+      {/* 7. CALL TO ACTION BANNER */}
+      {/* ========================================================================= */}
+      <section className="py-14 sm:py-16 px-4">
+        <div className="w-[90%] max-w-[1200px] mx-auto bg-gradient-to-r from-[#002B49] to-[#003c66] text-white rounded-xl p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+          <div className="text-center md:text-left space-y-2 max-w-xl">
+            <h2 className="text-2xl sm:text-3xl font-bold">Ready to dispatch your parcel?</h2>
+            <p className="text-slate-200 text-sm sm:text-base">
+              Book online in under 2 minutes. Transparent rates, multi-carrier network, and 24/7 tracking.
             </p>
           </div>
-
-          <div className="flex flex-wrap gap-3 sm:gap-4 shrink-0 w-full md:w-auto justify-center">
-            <Link href="/book" className="w-full sm:w-auto">
-              <Button variant="accent" size="lg" className="w-full sm:w-auto shadow-lg font-bold">
-                Book a Parcel Now
-              </Button>
+          <div className="flex flex-wrap gap-4 shrink-0 justify-center">
+            <Link
+              href="/book"
+              className="bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold px-7 py-3.5 rounded-md text-sm sm:text-base shadow-md transition-colors"
+            >
+              Book a Parcel Now
             </Link>
-            <Link href="/contact" className="w-full sm:w-auto">
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full sm:w-auto border-white text-white hover:bg-white/10"
-              >
-                Contact Jaipur Hub
-              </Button>
+            <Link
+              href="/contact"
+              className="border border-white/80 hover:bg-white/10 text-white font-semibold px-7 py-3.5 rounded-md text-sm sm:text-base transition-colors"
+            >
+              Contact Hub
             </Link>
           </div>
         </div>
