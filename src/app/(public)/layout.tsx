@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { Phone, Mail, Clock, MapPin, Truck } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
 import { BottomNav } from "@/components/BottomNav";
 import { getCompanyProfile } from "@/lib/settings";
@@ -15,103 +14,76 @@ export default async function PublicLayout({
   const phone2 = profile.support_phones[1] || "7689987368";
 
   return (
-    <div className="flex flex-col min-h-screen bg-white text-[#222] font-sans antialiased">
-      {/* 1. TOP BAR (Matches ai_studio_code (14).html) */}
-      <div className="bg-[#002B49] text-white text-[13px] py-2 px-4 border-b border-white/10">
-        <div className="w-[90%] max-w-[1200px] mx-auto flex flex-wrap justify-between items-center gap-3">
-          <div className="flex items-center gap-5 flex-wrap">
-            <span className="flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-[#FF6B00]" />
-              <a href={`tel:${phone1}`} className="hover:text-[#FF6B00] transition-colors">
-                +91 {phone1}
-              </a>
-              <span className="text-white/40">/</span>
-              <a href={`tel:${phone2}`} className="hover:text-[#FF6B00] transition-colors">
-                {phone2}
-              </a>
+    <div className="flex flex-col min-h-screen bg-white text-[#222]">
+      {/* 1. TOP BAR (Exact ai_studio_code (14).html) */}
+      <div className="top-bar">
+        <div className="main-container">
+          <div className="flex items-center gap-4 flex-wrap">
+            <span>
+              <i className="fas fa-phone-alt"></i>{" "}
+              <a href={`tel:${phone1}`}>+91 {phone1}</a> /{" "}
+              <a href={`tel:${phone2}`}>{phone2}</a>
             </span>
-            <span className="hidden sm:flex items-center gap-1.5 text-slate-300">
-              <Mail className="w-3.5 h-3.5 text-[#FF6B00]" />
-              <a href={`mailto:${profile.support_email}`} className="hover:text-[#FF6B00] transition-colors">
+            <span className="hidden sm:inline">
+              <i className="fas fa-envelope"></i>{" "}
+              <a href={`mailto:${profile.support_email}`}>
                 {profile.support_email}
               </a>
             </span>
           </div>
-
-          <div className="flex items-center gap-4 text-xs font-medium">
-            <span className="hidden md:flex items-center gap-1.5 text-slate-300">
-              <Clock className="w-3.5 h-3.5 text-[#FF6B00]" /> 24/7 Support
+          <div className="flex items-center gap-4">
+            <span className="hidden md:inline">
+              <i className="fas fa-clock"></i> 24/7 Support
             </span>
             <Link href="/track" className="hover:text-[#FF6B00] transition-colors">
-              Quick Track
+              Tracking
             </Link>
-            <span className="text-white/30">•</span>
+            <span className="opacity-40">•</span>
             <Link href="/login" className="hover:text-[#FF6B00] transition-colors">
-              Customer Sign In
+              Customer Login
             </Link>
           </div>
         </div>
       </div>
 
-      {/* 2. NAVBAR (Sticky with shadow, matches ai_studio_code (14).html) */}
-      <nav className="bg-white sticky top-0 z-50 shadow-[0_4px_15px_rgba(0,0,0,0.05)]">
-        <div className="w-[90%] max-w-[1200px] mx-auto py-3.5 sm:py-4 flex justify-between items-center">
-          {/* Logo */}
-          <Link href="/" className="text-2xl sm:text-[26px] font-bold text-[#002B49] tracking-tight">
-            SS Courier<span className="text-[#FF6B00]"> service</span>
+      {/* NAVBAR (Exact ai_studio_code (14).html) */}
+      <nav className="navbar">
+        <div className="main-container">
+          <Link href="/" className="logo">
+            SS Courier<span> services</span>
           </Link>
 
-          {/* Desktop Nav Links */}
-          <ul className="hidden lg:flex items-center gap-7 text-[15px] font-medium text-[#002B49]">
+          <ul className="nav-links">
             <li>
-              <Link href="/" className="hover:text-[#FF6B00] transition-colors">
-                Home
-              </Link>
+              <Link href="/">Home</Link>
             </li>
             <li>
-              <Link href="/services" className="hover:text-[#FF6B00] transition-colors">
-                Services
-              </Link>
+              <Link href="/services">Services</Link>
             </li>
             <li>
-              <Link href="/track" className="hover:text-[#FF6B00] transition-colors">
-                Tracking
-              </Link>
+              <Link href="/track">Tracking</Link>
             </li>
             <li>
-              <Link href="/calculator" className="hover:text-[#FF6B00] transition-colors">
-                Rate Calculator
-              </Link>
+              <Link href="/calculator">Rate Calculator</Link>
             </li>
             <li>
-              <Link href="/about" className="hover:text-[#FF6B00] transition-colors">
-                About
-              </Link>
+              <Link href="/about">About</Link>
             </li>
             <li>
-              <Link href="/contact" className="hover:text-[#FF6B00] transition-colors">
-                Contact
-              </Link>
+              <Link href="/contact">Contact</Link>
             </li>
             <li>
-              <Link
-                href="/book"
-                className="inline-block bg-[#FF6B00] hover:bg-[#e05e00] text-white px-6 py-2.5 rounded-md font-semibold text-sm shadow-sm transition-all duration-200"
-              >
+              <Link href="/book" className="btn btn-primary">
                 Book Pickup
               </Link>
             </li>
           </ul>
 
-          {/* Mobile Actions + Drawer Toggle */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <Link
-              href="/book"
-              className="inline-block bg-[#FF6B00] hover:bg-[#e05e00] text-white px-3.5 py-2 rounded-md font-semibold text-xs shadow-xs"
-            >
+          {/* Mobile Quick Action & Drawer Trigger */}
+          <div className="lg:hidden flex items-center gap-2">
+            <Link href="/book" className="btn btn-primary text-xs py-2 px-3">
               Book Pickup
             </Link>
-
             <MobileNav
               phones={[phone1, phone2]}
               email={profile.support_email}
@@ -121,7 +93,7 @@ export default async function PublicLayout({
         </div>
 
         {/* Mobile Horizontal Quick Navigation Strip */}
-        <div className="lg:hidden bg-slate-50 border-t border-slate-200 px-3 py-2 overflow-x-auto scrollbar-none flex items-center gap-2 text-xs font-semibold whitespace-nowrap">
+        <div className="lg:hidden bg-slate-50 border-t border-slate-200 px-3 py-2 overflow-x-auto scrollbar-none flex items-center gap-2 text-xs font-semibold whitespace-nowrap mt-2">
           <Link
             href="/"
             className="px-3 py-1.5 rounded-md bg-white border border-slate-200 text-[#002B49] hover:border-[#FF6B00]"
@@ -161,105 +133,73 @@ export default async function PublicLayout({
         </div>
       </nav>
 
-      {/* 3. MAIN PAGE CONTENT */}
+      {/* MAIN CONTENT */}
       <main className="flex-1 pb-16 lg:pb-0">{children}</main>
 
-      {/* 4. FOOTER (Matches ai_studio_code (14).html) */}
-      <footer id="contact" className="bg-[#001b2e] text-[#ccc] pt-14 pb-6 text-sm">
-        <div className="w-[90%] max-w-[1200px] mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
-            {/* Col 1: Brand & Tagline */}
-            <div>
-              <h3 className="text-white text-xl font-bold mb-3.5">
-                SS Courier<span className="text-[#FF6B00]"> service</span>
+      {/* 7. FOOTER (Exact ai_studio_code (14).html) */}
+      <footer id="contact" className="site-footer">
+        <div className="main-container">
+          <div className="footer-grid">
+            <div className="footer-col">
+              <h3 style={{ color: "#fff", marginBottom: "15px" }}>
+                SS Courier<span style={{ color: "var(--secondary)" }}> services</span>
               </h3>
-              <p className="text-slate-300 leading-relaxed text-sm max-w-sm mb-4">
-                Your reliable logistics and multi-carrier cargo delivery partner across Jaipur, Rajasthan, and nationwide across India.
-              </p>
-              <div className="text-xs text-slate-400">
+              <p>Your reliable logistics and cargo delivery partner.</p>
+              <p style={{ marginTop: "12px", fontSize: "12px", color: "#888" }}>
                 Hub: {profile.address}, {profile.city}, {profile.state} {profile.pincode}
-              </div>
+              </p>
             </div>
-
-            {/* Col 2: Quick Links */}
-            <div>
-              <h4 className="text-white text-lg font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2.5 text-sm">
+            <div className="footer-col">
+              <h4>Quick Links</h4>
+              <ul>
                 <li>
-                  <Link href="/" className="hover:text-[#FF6B00] transition-colors">
-                    Home
-                  </Link>
+                  <Link href="/">Home</Link>
                 </li>
                 <li>
-                  <Link href="/about" className="hover:text-[#FF6B00] transition-colors">
-                    About Us
-                  </Link>
+                  <Link href="/about">About Us</Link>
                 </li>
                 <li>
-                  <Link href="/track" className="hover:text-[#FF6B00] transition-colors">
-                    Tracking Portal
-                  </Link>
+                  <Link href="/track">Tracking Portal</Link>
                 </li>
                 <li>
-                  <Link href="/calculator" className="hover:text-[#FF6B00] transition-colors">
-                    Shipping Calculator
-                  </Link>
+                  <Link href="/calculator">Shipping Calculator</Link>
                 </li>
                 <li>
-                  <Link href="/services" className="hover:text-[#FF6B00] transition-colors">
-                    Services
-                  </Link>
+                  <Link href="/services">Services</Link>
                 </li>
                 <li>
-                  <Link href="/book" className="hover:text-[#FF6B00] transition-colors">
-                    Book a Parcel
-                  </Link>
+                  <Link href="/book">Book a Parcel</Link>
                 </li>
               </ul>
             </div>
-
-            {/* Col 3: Contact Info */}
-            <div>
-              <h4 className="text-white text-lg font-semibold mb-4">Contact Us</h4>
-              <div className="space-y-3 text-sm">
-                <p className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-[#FF6B00] shrink-0" />
-                  <a href={`tel:${phone1}`} className="hover:text-white">
-                    +91 {phone1}
-                  </a>
-                  <span>/</span>
-                  <a href={`tel:${phone2}`} className="hover:text-white">
-                    {phone2}
-                  </a>
-                </p>
-                <p className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-[#FF6B00] shrink-0" />
-                  <a href={`mailto:${profile.support_email}`} className="hover:text-white">
-                    {profile.support_email}
-                  </a>
-                </p>
-                <p className="flex items-start gap-2 text-xs text-slate-400 pt-1">
-                  <MapPin className="w-4 h-4 text-[#FF6B00] shrink-0 mt-0.5" />
-                  <span>Johri Bazar, Jaipur, Rajasthan 302003</span>
-                </p>
-              </div>
+            <div className="footer-col">
+              <h4>Contact Us</h4>
+              <p>
+                <i className="fas fa-phone"></i> +91 {phone1} / {phone2}
+              </p>
+              <p style={{ marginTop: "8px" }}>
+                <i className="fas fa-envelope"></i> {profile.support_email}
+              </p>
+              <p style={{ marginTop: "8px", fontSize: "12px", color: "#aaa" }}>
+                <i className="fas fa-map-marker-alt"></i> Johri Bazar, Jaipur, Rajasthan 302003
+              </p>
             </div>
           </div>
-
-          {/* Copyright & Legal Bar */}
-          <div className="border-t border-white/10 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 text-center sm:text-left">
-            <p>&copy; {new Date().getFullYear()} SS Courier service Pvt Ltd. All Rights Reserved.</p>
-            <div className="flex items-center gap-4">
-              <Link href="/privacy-policy" className="hover:text-slate-200 transition-colors">
+          <div className="copyright">
+            <p>
+              &copy; {new Date().getFullYear()} SS Courier service Pvt Ltd. All Rights Reserved. &nbsp;|&nbsp;{" "}
+              <Link href="/privacy-policy" style={{ color: "#aaa" }}>
                 Privacy Policy
-              </Link>
-              <Link href="/terms" className="hover:text-slate-200 transition-colors">
+              </Link>{" "}
+              &nbsp;|&nbsp;{" "}
+              <Link href="/terms" style={{ color: "#aaa" }}>
                 Terms
-              </Link>
-              <Link href="/admin/login" className="hover:text-[#FF6B00] transition-colors font-medium">
+              </Link>{" "}
+              &nbsp;|&nbsp;{" "}
+              <Link href="/admin/login" style={{ color: "var(--secondary)" }}>
                 Admin Operations
               </Link>
-            </div>
+            </p>
           </div>
         </div>
       </footer>

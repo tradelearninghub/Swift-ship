@@ -28,6 +28,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${poppins.variable} ${jetbrainsMono.variable}`}>
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+      </head>
       <body className="min-h-screen bg-white text-[#222] flex flex-col font-sans antialiased">
         {children}
       </body>
