@@ -717,7 +717,7 @@ export default function AdminCouriersPage() {
                     Honest Requirement: Developer Integration Needed (§22)
                   </div>
                   <p className="text-amber-800 text-[11px] leading-relaxed">
-                    If this courier relies on multi-legged OAuth handshake, SOAP/WSDL XML protocols, dynamic rate negotiation, or multi-step booking pipelines, the generic connector cannot reliably fulfill shipments. Rather than silently creating broken consignments, please contact your engineering team to build a dedicated adapter per §22 ("New Courier Rule") of the specification.
+                    If this courier relies on multi-legged OAuth handshake, SOAP/WSDL XML protocols, dynamic rate negotiation, or multi-step booking pipelines, the generic connector cannot reliably fulfill shipments. Rather than silently creating broken consignments, please contact your engineering team to build a dedicated adapter per §22 (&quot;New Courier Rule&quot;) of the specification.
                   </p>
                 </div>
               )}
