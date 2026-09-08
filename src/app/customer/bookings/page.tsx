@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { StateView } from "@/components/ui/StateView";
+import { ReceiptLabelModal } from "@/components/ui/ReceiptLabelModal";
 import { MOCK_BOOKINGS, MockBooking } from "@/lib/mockData";
 import { formatPaiseToRupees, formatGramsToKg } from "@/lib/utils";
 import {
@@ -17,12 +18,14 @@ import {
   Package,
   Layers,
   CheckCircle2,
+  Printer,
 } from "lucide-react";
 
 export default function CustomerBookingsPage() {
   const [viewState, setViewState] = useState<"populated" | "loading" | "empty" | "error">("populated");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [selectedForLabel, setSelectedForLabel] = useState<MockBooking | null>(null);
 
   const filteredBookings = MOCK_BOOKINGS.filter((b) => {
     const matchesSearch =
@@ -211,9 +214,16 @@ export default function CustomerBookingsPage() {
                       <td className="px-6 py-4">
                         <StatusBadge status={b.shipment?.status || b.status} />
                       </td>
-                      <td className="px-6 py-4 text-right space-x-2">
+                      <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedForLabel(b)}
+                        >
+                          <Printer className="w-3.5 h-3.5 mr-1" /> Print Slip
+                        </Button>
                         <Link href={`/customer/bookings/${b.booking_number}`}>
-                          <Button variant="outline" size="sm">
+                          <Button variant="ghost" size="sm">
                             <Eye className="w-3.5 h-3.5 mr-1" /> View
                           </Button>
                         </Link>
@@ -226,6 +236,15 @@ export default function CustomerBookingsPage() {
           </div>
         </StateView>
       </Card>
+
+      {/* Booking Slip / Shipping Label Modal */}
+      {selectedForLabel && (
+        <ReceiptLabelModal
+          isOpen={!!selectedForLabel}
+          onClose={() => setSelectedForLabel(null)}
+          booking={selectedForLabel}
+        />
+      )}
     </div>
   );
 }

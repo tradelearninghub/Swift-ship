@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -17,8 +17,9 @@ import {
   Bell,
   BarChart3,
   Settings,
-  LogOut,
   ShieldCheck,
+  Menu,
+  X,
 } from "lucide-react";
 import { SignOutButton } from "@/components/SignOutButton";
 
@@ -28,17 +29,66 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Bypass admin operational sidebar and chrome for admin login
   if (pathname === "/admin/login") {
     return <>{children}</>;
   }
 
+  const navItems = [
+    { section: "Core Operations" },
+    { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+    { href: "/admin/bookings", label: "Bookings", icon: Package },
+    { href: "/admin/shipments", label: "Shipments & AWB", icon: Send },
+
+    { section: "Management" },
+    { href: "/admin/customers", label: "Customers", icon: Users },
+    { href: "/admin/staff", label: "Staff & Roles", icon: UserCheck },
+    { href: "/admin/couriers", label: "Courier Partners", icon: Building2 },
+
+    { section: "Finance & Support" },
+    { href: "/admin/cod", label: "COD Settlements", icon: DollarSign },
+    { href: "/admin/payments", label: "Payments", icon: CreditCard },
+    { href: "/admin/support", label: "Support Tickets", icon: LifeBuoy },
+
+    { section: "System" },
+    { href: "/admin/notifications", label: "Notifications", icon: Bell },
+    { href: "/admin/reports", label: "Reports", icon: BarChart3 },
+    { href: "/admin/settings", label: "System Settings", icon: Settings },
+  ];
+
+  const isLinkActive = (href: string, exact?: boolean) => {
+    if (exact) return pathname === href;
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
   return (
     <div className="min-h-screen bg-surface-admin-base flex flex-col md:flex-row text-sm">
-      {/* Admin Sidebar (240px desktop) */}
-      <aside className="w-full md:w-60 bg-slate-900 text-slate-300 flex flex-col shrink-0 border-r border-slate-800">
-        <div className="h-14 px-4 border-b border-slate-800 flex items-center justify-between">
+      {/* Mobile Header Bar */}
+      <div className="md:hidden bg-slate-900 text-white h-14 px-4 flex items-center justify-between border-b border-slate-800 shrink-0">
+        <Link href="/admin" className="flex items-center gap-2 font-bold text-base text-white">
+          <div className="w-7 h-7 rounded-md bg-brand-primary flex items-center justify-center text-white">
+            <Truck className="w-4 h-4" />
+          </div>
+          <span>Admin Operations</span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
+        >
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {/* Admin Sidebar (240px desktop, slide-out drawer on mobile) */}
+      <aside
+        className={`${
+          mobileMenuOpen ? "block" : "hidden"
+        } md:flex w-full md:w-60 bg-slate-900 text-slate-300 flex-col shrink-0 border-r border-slate-800 z-30`}
+      >
+        <div className="hidden md:flex h-14 px-4 border-b border-slate-800 items-center justify-between">
           <Link href="/admin" className="flex items-center gap-2 font-bold text-base text-white">
             <div className="w-7 h-7 rounded-md bg-brand-primary flex items-center justify-center text-white">
               <Truck className="w-4 h-4" />
@@ -51,93 +101,36 @@ export default function AdminLayout({
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          <div className="text-[11px] font-bold uppercase text-slate-500 px-3 py-1.5 tracking-wider">
-            Core Operations
-          </div>
-          <Link
-            href="/admin"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium bg-brand-primary text-white"
-          >
-            <LayoutDashboard className="w-4 h-4" /> Dashboard
-          </Link>
-          <Link
-            href="/admin/bookings"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <Package className="w-4 h-4" /> Bookings
-          </Link>
-          <Link
-            href="/admin/shipments"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <Send className="w-4 h-4" /> Shipments & AWB
-          </Link>
+          {navItems.map((item, idx) => {
+            if ("section" in item) {
+              return (
+                <div
+                  key={idx}
+                  className="text-[11px] font-bold uppercase text-slate-500 px-3 pt-3 pb-1 tracking-wider"
+                >
+                  {item.section}
+                </div>
+              );
+            }
 
-          <div className="text-[11px] font-bold uppercase text-slate-500 px-3 pt-3 py-1.5 tracking-wider">
-            Management
-          </div>
-          <Link
-            href="/admin/customers"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <Users className="w-4 h-4" /> Customers
-          </Link>
-          <Link
-            href="/admin/staff"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <UserCheck className="w-4 h-4" /> Staff & Roles
-          </Link>
-          <Link
-            href="/admin/couriers"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <Building2 className="w-4 h-4" /> Courier Partners
-          </Link>
+            const Icon = item.icon!;
+            const active = isLinkActive(item.href!, item.exact);
 
-          <div className="text-[11px] font-bold uppercase text-slate-500 px-3 pt-3 py-1.5 tracking-wider">
-            Finance & Support
-          </div>
-          <Link
-            href="/admin/cod"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <DollarSign className="w-4 h-4" /> COD Settlements
-          </Link>
-          <Link
-            href="/admin/payments"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <CreditCard className="w-4 h-4" /> Payments
-          </Link>
-          <Link
-            href="/admin/support"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <LifeBuoy className="w-4 h-4" /> Support Tickets
-          </Link>
-
-          <div className="text-[11px] font-bold uppercase text-slate-500 px-3 pt-3 py-1.5 tracking-wider">
-            System
-          </div>
-          <Link
-            href="/admin/notifications"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <Bell className="w-4 h-4" /> Notifications
-          </Link>
-          <Link
-            href="/admin/reports"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <BarChart3 className="w-4 h-4" /> Reports
-          </Link>
-          <Link
-            href="/admin/settings"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <Settings className="w-4 h-4" /> System Settings
-          </Link>
+            return (
+              <Link
+                key={item.href}
+                href={item.href!}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
+                  active
+                    ? "bg-brand-primary text-white shadow-sm font-bold"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                }`}
+              >
+                <Icon className="w-4 h-4" /> {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="p-3 border-t border-slate-800 flex items-center justify-between text-xs">
@@ -156,7 +149,7 @@ export default function AdminLayout({
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-auto">
-        <header className="h-14 bg-surface-base border-b border-border-default px-6 flex items-center justify-between shrink-0">
+        <header className="hidden md:flex h-14 bg-surface-base border-b border-border-default px-6 items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <h1 className="text-base font-bold text-text-primary">Admin Control Center</h1>
             <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
@@ -175,7 +168,7 @@ export default function AdminLayout({
           </div>
         </header>
 
-        <main className="flex-1 p-6 max-w-[1600px] w-full mx-auto">{children}</main>
+        <main className="flex-1 p-4 md:p-6 max-w-[1600px] w-full mx-auto">{children}</main>
       </div>
     </div>
   );

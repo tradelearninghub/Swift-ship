@@ -67,13 +67,14 @@ Phase 4  — Admin booking management: review queue, weight/dimension verificati
            table, §16), booking status transitions (§17), activity_logs audit trail (§46).
 
 Phase 5  — Courier partner system: courier_partners, courier_credentials (encrypted),
-           courier_configurations CRUD in admin panel; build the adapter interface
-           (createShipment/trackShipment/cancelShipment/generateLabel/requestPickup) with
-           ONE real adapter implemented end-to-end first, then a mock/manual adapter as the
-           fallback path (§19–24).
+           courier_configurations CRUD in admin panel; pre-built adapter library (Delhivery,
+           DTDC, Shiprocket aggregator, XpressBees) + config-driven Generic REST Connector
+           fallback + honest custom warning (§19–24). [COMPLETED IN ROUND 2]
 
 Phase 6  — Shipment creation + AWB generation, manual AWB fallback, courier_api_logs on every
-           call (§23), idempotency enforcement (§22b).
+           call (§23), idempotency enforcement (§22b). Dual-format shipping label and dispatch
+           receipt system (4x6 thermal 100x150mm + A4 full page, vector Code128 barcodes,
+           vector QR, dynamic settings company profile). [COMPLETED IN ROUND 2]
 
 Phase 7  — Tracking engine: public /track page (AWB/Order ID search + mobile/pincode search
            with rate limiting — §25–27), QR + secure tracking token generation (§29),

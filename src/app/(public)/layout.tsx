@@ -159,16 +159,22 @@ export default async function PublicLayout({
                   <Link href="/about">About Us</Link>
                 </li>
                 <li>
-                  <Link href="/track">Tracking Portal</Link>
-                </li>
-                <li>
-                  <Link href="/calculator">Shipping Calculator</Link>
-                </li>
-                <li>
                   <Link href="/services">Services</Link>
                 </li>
                 <li>
+                  <Link href="/how-it-works">How It Works</Link>
+                </li>
+                <li>
+                  <Link href="/track">Tracking Portal</Link>
+                </li>
+                <li>
+                  <Link href="/calculator">Rate Calculator</Link>
+                </li>
+                <li>
                   <Link href="/book">Book a Parcel</Link>
+                </li>
+                <li>
+                  <Link href="/shipping-policy">Shipping Policy</Link>
                 </li>
               </ul>
             </div>
@@ -193,7 +199,11 @@ export default async function PublicLayout({
               </Link>{" "}
               &nbsp;|&nbsp;{" "}
               <Link href="/terms" style={{ color: "#aaa" }}>
-                Terms
+                Terms of Service
+              </Link>{" "}
+              &nbsp;|&nbsp;{" "}
+              <Link href="/shipping-policy" style={{ color: "#aaa" }}>
+                Shipping Policy
               </Link>{" "}
               &nbsp;|&nbsp;{" "}
               <Link href="/admin/login" style={{ color: "var(--secondary)" }}>

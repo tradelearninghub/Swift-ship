@@ -164,3 +164,36 @@ Framer Motion used sparingly and purposefully:
   arrives (used on the customer tracking page when a live refresh returns a new status).
 - No decorative parallax, no auto-playing carousels — logistics customers want information
   fast, not spectacle.
+
+---
+
+## 9. Shipping Labels & Thermal Printing System **[NEW — Round 2]**
+
+Logistics hardware relies on specialized thermal barcode printers. Two standard sizes are supported as first-class templates:
+
+1. **4x6 Inch (100x150mm) Thermal Label**:
+   - Media query: `@page { size: 100mm 150mm; margin: 3mm; }`
+   - High-contrast, dense hierarchy:
+     - Prominent boxed destination pincode in 24pt bold mono font (`DEST: 302003`).
+     - Vector Code 128 1D Barcode with minimum 40px bar height and 1.8px bar module width.
+     - 2D QR Code (Version 2 matrix, 80x80px) encoding secure tracking URL.
+     - "IF UNDELIVERED RETURN TO" return hub address block.
+   - Zero background clutter, maximum contrast for optical handheld scanners.
+
+2. **A4 Full Page (Office / Invoice)**:
+   - Media query: `@page { size: A4 portrait; margin: 8mm; }`
+   - Split dual-section layout:
+     - Top half: Official Consignment Dispatch Receipt (Customer & Merchant copy with charge breakdown, payment status, terms, and signature/stamp line).
+     - Perforated cut line: `✂ Cut Along Line & Affix Below to Parcel ✂`.
+     - Bottom half: Physical Package Shipping Label.
+
+---
+
+## 10. Toggle Switch Component Standards **[NEW — Round 2]**
+
+A consistent pill-switch design language is enforced across all operational controls (Courier ON/OFF, Staff Active/Inactive, and Granular Capability Switches):
+- Base container: `relative inline-flex h-5 w-9 sm:h-6 sm:w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200`
+- Active State: `bg-emerald-600` (green)
+- Disabled/Inactive State: `bg-slate-300` (muted slate)
+- Indicator thumb: `inline-block h-4 w-4 sm:h-5 sm:w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200`
+- Status labels: paired with uppercase status indicators (`ON`/`OFF` or `ACTIVE`/`INACTIVE`), never color alone.

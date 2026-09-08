@@ -163,13 +163,60 @@ One row per parcel in the booking (supports multi-parcel bookings even though v1
 ## Courier Partners
 
 ### `courier_partners`
-`id`, `name`, `code` (unique), `logo_url`, `website`, `support_contact`, `status` (ACTIVE/INACTIVE), `capability_shipment_api`, `capability_tracking_api`, `capability_label_api`, `capability_pickup_api`, `capability_cancellation_api` (all booleans, §21), `created_at`/`updated_at`.
+| Field | Type | Notes |
+|---|---|---|
+| id | uuid/pk | |
+| name | string | Display name of carrier |
+| code | string, unique | Standard adapter code (e.g. `DELHIVERY`, `DTDC`, `SHIPROCKET`, `XPRESSBEES`, `GENERIC_REST`) |
+| adapter_type | enum(PREBUILT, GENERIC_REST, CUSTOM_CODE) | **[NEW — Round 2]** Dictates engine dispatch mode |
+| is_aggregator | boolean | **[NEW — Round 2]** True for Shiprocket (routes to multiple sub-carriers) |
+| logo_url | string, nullable | |
+| website | string, nullable | |
+| support_contact | string, nullable | |
+| status | enum(ACTIVE, INACTIVE) | §20 ON/OFF toggle |
+| capability_shipment_api | boolean | §21 switch |
+| capability_tracking_api | boolean | §21 switch |
+| capability_label_api | boolean | §21 switch |
+| capability_pickup_api | boolean | §21 switch |
+| capability_cancellation_api | boolean | §21 switch |
+| created_at / updated_at | datetime | |
+
+### `courier_adapter_templates` **[NEW — Round 2]**
+Registry of pre-built adapter definitions: `id`, `adapter_code`, `display_name`, `adapter_type`, `required_credential_keys` (json array e.g. `["api_token", "client_name"]`), `is_aggregator`, `created_at`.
 
 ### `courier_credentials`
-`id`, `courier_partner_id`, `credential_key` (e.g. `api_key`, `client_secret`), `credential_value_encrypted`, `created_at`/`updated_at`. **[IMPROVED]** application-level encryption (§53a), not plaintext, even inside the DB.
+`id`, `courier_partner_id`, `credential_key` (e.g. `api_key`, `client_secret`, `jwt_token`), `credential_value_encrypted`, `created_at`/`updated_at`. **[IMPROVED]** application-level encryption (§53a), not plaintext, even inside the DB.
 
 ### `courier_configurations`
 `id`, `courier_partner_id`, `config_key`, `config_value` (json) — flexible per-courier config (endpoints, zones served, etc.).
+
+**Generic REST Mapping Schema stored in `courier_configurations` (key: `generic_rest_config`)**:
+```json
+{
+  "baseUrl": "https://api.carrier.com/v1",
+  "authMethod": "API_KEY_HEADER | BEARER_TOKEN | BASIC_AUTH",
+  "authHeaderName": "X-API-Key",
+  "authHeaderValue": "encrypted_token",
+  "createShipment": {
+    "path": "/shipments/create",
+    "method": "POST",
+    "fieldMapping": {
+      "sender_name": "shipper.name",
+      "receiver_name": "consignee.name",
+      "weight_grams": "parcel.gross_weight",
+      "cod_amount": "order.cod_value"
+    },
+    "responseAwbPath": "data.waybill_number",
+    "responseLabelUrlPath": "data.label_pdf_url"
+  },
+  "trackShipment": {
+    "path": "/track/{awb}",
+    "method": "GET",
+    "responseStatusPath": "data.status",
+    "statusMap": { "DEL": "DELIVERED", "IT": "IN_TRANSIT" }
+  }
+}
+```
 
 ---
 

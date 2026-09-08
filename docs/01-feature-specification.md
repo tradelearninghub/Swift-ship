@@ -402,6 +402,25 @@ so couriers that support push notifications update tracking in near-real-time in
 ### New Courier Rule
 Admin can manage courier name, API credentials, API configuration/endpoints, and enable/disable from the panel. If a new courier's API is fundamentally different from the existing adapter model, a developer will need to implement a new adapter — this is an accepted architectural limitation.
 
+**[NEW — 22d] Self-Service Pre-Built Adapter Library**
+Admin Panel → Courier Partners → Add New Courier provides direct self-service onboarding for four major courier partners without code changes:
+1. **Delhivery**: Single-carrier CMU API integration (`staging-express.delhivery.com` / `track.delhivery.com`) with API token, client name, and auto waybill generation.
+2. **DTDC**: Connote API integration (`demodashboardapi.dtdc.com` / `dtdcapi.dtdc.com`) with Customer ID and X-Access-Token.
+3. **Shiprocket (Aggregator)**: Unlike single-carrier APIs, Shiprocket aggregates multiple couriers under one REST API. The adapter handles 24-hr JWT authentication (`POST /auth/login`), configurable preferred carrier selection (Auto / Best Rate vs specific sub-carriers), and normalizes underlying courier names on tracking responses.
+4. **XpressBees**: Surface and air cargo manifest API integration with App Key / Secret Key authentication.
+
+**[NEW — 22e] Generic REST Connector**
+For couriers without a dedicated pre-built adapter, a config-driven Generic REST Connector allows admin to define:
+- Base API URL
+- Authentication method (`API_KEY_HEADER`, `BEARER_TOKEN`, `BASIC_AUTH`)
+- Request JSON field mapping for Create Shipment (mapping internal sender, receiver, weight, dimensions, and COD amount to courier payload keys)
+- Dot-delimited JSON response paths for AWB number (`data.awb_number`) and label URL
+- Track Shipment path with `{awb}` placeholder and status mapping dictionary.
+Configuration is stored in `courier_configurations` as JSON.
+
+**[NEW — 22f] Honesty Requirement for Complex Integrations**
+If a courier's API is structurally different (e.g. multi-step OAuth handshakes, SOAP/WSDL XML protocols, or stateful session tokens), the Generic REST Connector will not reliably handle it. In the UI, selecting "Custom/Other" explicitly displays an honest requirement notice: *"This courier's API requires custom integration — contact your developer"* to prevent silent failures.
+
 ---
 
 ## 23. Courier API Test
@@ -678,8 +697,11 @@ Shipment status changed: In Transit
 Admin can view: Customer list, search, add/edit customer, customer details, booking history, shipment history, COD history.
 
 ## 48. Staff Management
-
-Fields: Name, Email, Mobile, Password, Role, Status. Permissions are granular (see §50).
+Admin panel → Staff & Roles provides complete administrative user management:
+- **Staff List**: Name, Email, Mobile, Role Badge, Custom Overrides Count, Active Status.
+- **Add New Staff Form**: Name, Email, Mobile (10-digit Indian format), Password (with interactive show/hide eye toggle), and Role dropdown (`STAFF`, `ADMIN`, `SUPER_ADMIN`).
+- **Active / Inactive Toggle**: An interactive ON/OFF toggle switch per staff member (matching courier ON/OFF styling). Deactivated staff accounts are blocked server-side from authenticating at `/api/auth/login`.
+- **Granular Permission Overrides**: Visual matrix interface allowing admin to grant or deny individual capabilities beyond role defaults, wired directly to `staff_permission_overrides`.
 
 ## 49. Support & Disputes **[NEW]**
 
@@ -692,11 +714,11 @@ A lightweight internal ticket/note system tied to a booking or shipment:
 
 ## 50. Role & Permission System
 
-Example permission keys:
+Granular permission keys categorized by operational domain:
 ```
 booking.view, booking.create, booking.edit, booking.approve, booking.reject, booking.cancel
-shipment.view, shipment.process, shipment.edit
-courier.view, courier.create, courier.edit, courier.enable, courier.disable
+shipment.view, shipment.process, shipment.label, shipment.cancel
+courier.view, courier.manage
 customer.view, customer.create, customer.edit
 cod.view, cod.manage
 payment.view, payment.manage
@@ -706,6 +728,7 @@ settings.view, settings.manage
 users.manage, roles.manage
 support.view, support.manage
 ```
+**Server-Side Enforcement**: All protected administrative API routes and server actions evaluate `hasPermission(session, permissionKey)` server-side, never relying solely on UI element hiding (§53).
 
 ---
 
@@ -846,9 +869,21 @@ COD Report, Payment Report, Revenue Report, Staff Performance Report, RTO Report
 ```
 Filters: Date, Courier, Status, Customer, Payment Type.
 
-## 60. Receipt / Label
+## 60. Receipt / Shipping Label (Dual-Format Architecture)
 
-Contains: Company Logo/Name, Booking ID, AWB, Courier, Sender, Receiver, Parcel info, Prepaid/COD, COD Amount, Shipping Charge, QR Code, Tracking info. The QR points to the secure tracking URL.
+Contains: Company Logo/Name, Booking ID, AWB, Courier, Sender, Receiver, Parcel info, Prepaid/COD, COD Amount, Shipping Charge, QR Code, Tracking info. Company profile information is dynamically pulled from the `settings` table.
+
+**Standard Physical Label Enhancements [Round 2]**:
+- **Scannable Pincodes**: Destination and Origin pincodes rendered in high-contrast, large font boxes for sorting hub operators.
+- **Vector Code 128 Barcode**: Crisp, scalable 1D vector barcode encoding the AWB number, scannable by physical handheld laser scanners.
+- **Vector QR Code**: Scannable 2D matrix encoding the direct secure tracking URL (`https://sscourierservice.in/track?q={awb}`).
+- **Return Address Block**: "IF UNDELIVERED RETURN TO" block with full registered hub address and helpline.
+- **Booking / Ship Date & Weight**: Verified/chargeable weight and dimensions clearly displayed.
+
+**Dual Size Options Supported**:
+1. **4x6 Inch / 100x150mm Thermal Label**: High-density logistics format optimized for thermal label printers (Zebra, TSC, Citizen) with `@page { size: 100mm 150mm; margin: 3mm; }`.
+2. **A4 Full Page (Office / Invoice)**: Split layout containing customer dispatch receipt (top half), perforated cut line, and package shipping label (bottom half) with `@page { size: A4 portrait; margin: 8mm; }`.
+- Extensible template system allowing one-click **Print Slip** and **Download PDF** across Admin Panel and Customer Portal.
 
 ---
 

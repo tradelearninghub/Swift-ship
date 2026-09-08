@@ -115,6 +115,10 @@ export interface MockCourierPartner {
   website: string;
   support_contact: string;
   status: "ACTIVE" | "INACTIVE";
+  adapter_type?: "PREBUILT" | "GENERIC_REST" | "CUSTOM_CODE";
+  is_aggregator?: boolean;
+  credentials?: Record<string, string>;
+  config?: Record<string, any>;
   capability_shipment_api: boolean;
   capability_tracking_api: boolean;
   capability_label_api: boolean;
@@ -158,6 +162,8 @@ export const MOCK_COURIER_PARTNERS: MockCourierPartner[] = [
     id: "courier-1",
     name: "Delhivery",
     code: "DELHIVERY",
+    adapter_type: "PREBUILT",
+    is_aggregator: false,
     website: "https://www.delhivery.com",
     support_contact: "+91 124 6719500",
     status: "ACTIVE",
@@ -173,6 +179,8 @@ export const MOCK_COURIER_PARTNERS: MockCourierPartner[] = [
     id: "courier-2",
     name: "Blue Dart",
     code: "BLUEDART",
+    adapter_type: "PREBUILT",
+    is_aggregator: false,
     website: "https://www.bluedart.com",
     support_contact: "1860 233 1234",
     status: "ACTIVE",
@@ -188,31 +196,52 @@ export const MOCK_COURIER_PARTNERS: MockCourierPartner[] = [
     id: "courier-3",
     name: "DTDC Express",
     code: "DTDC",
+    adapter_type: "PREBUILT",
+    is_aggregator: false,
     website: "https://www.dtdc.in",
     support_contact: "+91 80 2536 5032",
     status: "ACTIVE",
     capability_shipment_api: true,
     capability_tracking_api: true,
-    capability_label_api: false,
+    capability_label_api: true,
     capability_pickup_api: true,
-    capability_cancellation_api: false,
+    capability_cancellation_api: true,
     active_shipments_count: 8,
     api_health_percent: 99.2,
   },
   {
     id: "courier-4",
+    name: "Shiprocket (Aggregator)",
+    code: "SHIPROCKET",
+    adapter_type: "PREBUILT",
+    is_aggregator: true,
+    website: "https://www.shiprocket.in",
+    support_contact: "+91 92666 23006",
+    status: "ACTIVE",
+    capability_shipment_api: true,
+    capability_tracking_api: true,
+    capability_label_api: true,
+    capability_pickup_api: true,
+    capability_cancellation_api: true,
+    active_shipments_count: 19,
+    api_health_percent: 99.5,
+  },
+  {
+    id: "courier-5",
     name: "XpressBees",
     code: "XPRESSBEES",
+    adapter_type: "PREBUILT",
+    is_aggregator: false,
     website: "https://www.xpressbees.com",
     support_contact: "+91 20 4911 1900",
-    status: "INACTIVE",
-    capability_shipment_api: false,
+    status: "ACTIVE",
+    capability_shipment_api: true,
     capability_tracking_api: true,
-    capability_label_api: false,
-    capability_pickup_api: false,
-    capability_cancellation_api: false,
-    active_shipments_count: 0,
-    api_health_percent: 94.0,
+    capability_label_api: true,
+    capability_pickup_api: true,
+    capability_cancellation_api: true,
+    active_shipments_count: 6,
+    api_health_percent: 97.4,
   },
 ];
 
