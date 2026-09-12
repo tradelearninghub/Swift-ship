@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/Input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ShipmentTimeline } from "@/components/ui/ShipmentTimeline";
-import { MOCK_BOOKINGS, MockBooking } from "@/lib/mockData";
 import {
   Search,
   Truck,
@@ -48,8 +47,8 @@ function TrackingContent() {
   const [mobileInput, setMobileInput] = useState(initialMobile);
 
   // Search Results State
-  const [matchedBookings, setMatchedBookings] = useState<MockBooking[]>([]);
-  const [selectedBooking, setSelectedBooking] = useState<MockBooking | null>(null);
+  const [matchedBookings, setMatchedBookings] = useState<any[]>([]);
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -63,72 +62,94 @@ function TrackingContent() {
     }
   }, [initialQuery, initialMobile]);
 
-  // Direct AWB / Booking ID Lookup
-  const handleDirectLookup = (query: string) => {
-    if (!query.trim()) return;
+  // Direct AWB / Booking ID Lookup via real /api/track
+  const handleDirectLookup = async (query: string) => {
+    const q = query.trim().toUpperCase();
+    if (!q) return;
     setIsLoading(true);
     setHasSearched(true);
 
-    setTimeout(() => {
-      const q = query.trim().toUpperCase();
-      const match = MOCK_BOOKINGS.find(
-        (b) =>
-          b.booking_number.toUpperCase() === q ||
-          b.shipment?.awb?.toUpperCase() === q ||
-          b.shipment?.tracking_token?.toUpperCase() === q
-      );
+    try {
+      const res = await fetch(`/api/track?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
 
-      if (match) {
-        setMatchedBookings([match]);
-        setSelectedBooking(match);
+      if (res.ok && data.found && data.shipment) {
+        setSelectedBooking(data.shipment);
+        setMatchedBookings([data.shipment]);
       } else {
+        setSelectedBooking(null);
         setMatchedBookings([]);
-        setSelectedBooking(null);
       }
+    } catch (e) {
+      console.error("Direct lookup error:", e);
+      setSelectedBooking(null);
+      setMatchedBookings([]);
+    } finally {
       setIsLoading(false);
-    }, 350);
+    }
   };
 
-  // Mobile-Only Search (Checks Sender Mobile OR Receiver Mobile)
-  const handleMobileLookup = (mobVal: string) => {
-    if (!mobVal.trim()) return;
+  // Mobile-Only Search via real /api/track
+  const handleMobileLookup = async (mobVal: string) => {
+    const mob = mobVal.trim().replace(/\D/g, "");
+    if (!mob) return;
     setIsLoading(true);
     setHasSearched(true);
 
-    setTimeout(() => {
-      const mob = mobVal.trim().replace(/\D/g, "");
+    try {
+      const res = await fetch(`/api/track?mobile=${encodeURIComponent(mob)}`);
+      const data = await res.json();
 
-      const matches = MOCK_BOOKINGS.filter((b) => {
-        const sm = b.sender_mobile.replace(/\D/g, "");
-        const rm = b.receiver_mobile.replace(/\D/g, "");
-        return sm.includes(mob) || rm.includes(mob);
-      });
-
-      setMatchedBookings(matches);
-      if (matches.length === 1) {
-        setSelectedBooking(matches[0]);
+      if (res.ok && data.found) {
+        if (data.type === "SINGLE" && data.shipment) {
+          setSelectedBooking(data.shipment);
+          setMatchedBookings([data.shipment]);
+        } else if (data.type === "MULTIPLE" && Array.isArray(data.results)) {
+          setSelectedBooking(null);
+          setMatchedBookings(data.results);
+        }
       } else {
         setSelectedBooking(null);
+        setMatchedBookings([]);
       }
+    } catch (e) {
+      console.error("Mobile lookup error:", e);
+      setSelectedBooking(null);
+      setMatchedBookings([]);
+    } finally {
       setIsLoading(false);
-    }, 350);
+    }
   };
 
-  const handleLiveRefresh = () => {
+  const handleLiveRefresh = async () => {
+    if (!selectedBooking) return;
+    const key = selectedBooking.awb || selectedBooking.booking_number;
+    if (!key) return;
     setIsRefreshing(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch(`/api/track?q=${encodeURIComponent(key)}`);
+      const data = await res.json();
+      if (res.ok && data.found && data.shipment) {
+        setSelectedBooking(data.shipment);
+      }
+    } catch (e) {
+      console.error("Refresh error:", e);
+    } finally {
       setIsRefreshing(false);
-    }, 600);
+    }
   };
 
   // Mask sensitive data per §27
-  const maskPhone = (phone: string) => {
+  const maskPhone = (phone?: string) => {
+    if (!phone) return "••••••";
+    if (phone.includes("••")) return phone;
     if (phone.length < 5) return "••••••";
     return phone.slice(0, 2) + "••••••" + phone.slice(-2);
   };
 
   const maskAwb = (awb?: string) => {
-    if (!awb) return "Pending";
+    if (!awb) return "Allocating";
+    if (awb.includes("••")) return awb;
     if (awb.length <= 4) return "••••";
     return awb.slice(0, 3) + "••••" + awb.slice(-3);
   };
@@ -327,8 +348,8 @@ function TrackingContent() {
             <div className="divide-y divide-border-default max-h-96 overflow-y-auto">
               {matchedBookings.map((b) => (
                 <div
-                  key={b.id}
-                  onClick={() => setSelectedBooking(b)}
+                  key={b.booking_number || b.id}
+                  onClick={() => handleDirectLookup(b.booking_number)}
                   className="p-4 hover:bg-blue-50/60 cursor-pointer transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div className="space-y-1">
@@ -336,14 +357,14 @@ function TrackingContent() {
                       <span className="font-mono font-bold text-brand-primary">
                         {b.booking_number}
                       </span>
-                      <StatusBadge status={b.shipment?.status || b.status} />
+                      <StatusBadge status={b.status || b.shipment?.status} />
                     </div>
                     <div className="text-xs text-text-secondary flex flex-wrap gap-x-3 gap-y-1">
                       <span>
                         Route: <strong>{b.sender_city} → {b.receiver_city}</strong>
                       </span>
                       <span>•</span>
-                      <span>AWB: {maskAwb(b.shipment?.awb)}</span>
+                      <span>AWB: {b.awb_masked || maskAwb(b.shipment?.awb || b.awb)}</span>
                       <span>•</span>
                       <span>{b.payment_type === "COD" ? "Cash on Delivery" : "Prepaid"}</span>
                     </div>
@@ -392,20 +413,20 @@ function TrackingContent() {
                     {selectedBooking.booking_number}
                   </span>
                   <StatusBadge
-                    status={selectedBooking.shipment?.status || selectedBooking.status}
+                    status={selectedBooking.status || selectedBooking.shipment?.status}
                   />
                 </div>
                 <div className="text-xs text-text-muted font-mono flex flex-wrap gap-x-4 gap-y-1">
                   <span>
                     AWB:{" "}
                     <strong className="text-text-primary">
-                      {selectedBooking.shipment?.awb || "Pending Allocation"}
+                      {selectedBooking.awb || selectedBooking.shipment?.awb || "Pending Allocation"}
                     </strong>
                   </span>
                   <span>
                     Courier Partner:{" "}
                     <strong className="text-text-primary">
-                      {selectedBooking.shipment?.courier_name || "Assigned Partner"}
+                      {selectedBooking.courier_name || selectedBooking.shipment?.courier_name || "Assigned Partner"}
                     </strong>
                   </span>
                 </div>
@@ -434,7 +455,7 @@ function TrackingContent() {
                     {selectedBooking.sender_city}, {selectedBooking.sender_state}
                   </div>
                   <div className="text-xs text-text-muted font-mono">
-                    Sender: {maskPhone(selectedBooking.sender_mobile)}
+                    Sender: {selectedBooking.sender_mobile_masked || maskPhone(selectedBooking.sender_mobile)}
                   </div>
                 </div>
 
@@ -447,7 +468,7 @@ function TrackingContent() {
                     {selectedBooking.receiver_city}, {selectedBooking.receiver_state}
                   </div>
                   <div className="text-xs text-text-muted font-mono">
-                    Receiver: {maskPhone(selectedBooking.receiver_mobile)}
+                    Receiver: {selectedBooking.receiver_mobile_masked || maskPhone(selectedBooking.receiver_mobile)}
                   </div>
                 </div>
 
@@ -474,9 +495,9 @@ function TrackingContent() {
               {/* Standardized Tracking Timeline (§31) */}
               <ShipmentTimeline
                 currentStatus={
-                  selectedBooking.shipment?.status || selectedBooking.status
+                  selectedBooking.status || selectedBooking.shipment?.status
                 }
-                events={selectedBooking.shipment?.tracking_events || []}
+                events={selectedBooking.events || selectedBooking.shipment?.tracking_events || []}
               />
             </CardContent>
           </Card>

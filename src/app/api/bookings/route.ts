@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
     const bookings = await prisma.booking.findMany({
       where: whereClause,
       include: {
+        customer: true,
         parcels: true,
         charges: true,
         shipment: {

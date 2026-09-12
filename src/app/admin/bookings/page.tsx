@@ -1,41 +1,58 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { StateView } from "@/components/ui/StateView";
 import { ReceiptLabelModal } from "@/components/ui/ReceiptLabelModal";
-import { MOCK_BOOKINGS, MockBooking } from "@/lib/mockData";
 import { formatPaiseToRupees, formatGramsToKg } from "@/lib/utils";
 import {
   Search,
   Plus,
-  Filter,
-  CheckSquare,
   Printer,
-  Eye,
-  SlidersHorizontal,
-  Clock,
-  Send,
-  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 
 export default function AdminBookingsPage() {
-  const [viewState, setViewState] = useState<"populated" | "loading" | "empty" | "error">("populated");
+  const [viewState, setViewState] = useState<"populated" | "loading" | "empty" | "error">("loading");
+  const [bookings, setBookings] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [courierFilter, setCourierFilter] = useState("ALL");
   const [paymentFilter, setPaymentFilter] = useState("ALL");
-  const [selectedForLabel, setSelectedForLabel] = useState<MockBooking | null>(null);
+  const [selectedForLabel, setSelectedForLabel] = useState<any | null>(null);
 
-  const filteredBookings = MOCK_BOOKINGS.filter((b) => {
+  const fetchBookings = useCallback(async () => {
+    setViewState("loading");
+    try {
+      const res = await fetch("/api/bookings?limit=100");
+      if (!res.ok) {
+        throw new Error("Failed to fetch bookings");
+      }
+      const data = await res.json();
+      const list = data.bookings || [];
+      setBookings(list);
+      setViewState(list.length === 0 ? "empty" : "populated");
+    } catch (e) {
+      console.error("Fetch error:", e);
+      setViewState("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
+  const filteredBookings = bookings.filter((b) => {
+    const customerName = b.customer?.name || b.sender_name || "";
     const matchesSearch =
-      b.booking_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.sender_city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.receiver_city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      !searchQuery ||
+      b.booking_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.sender_city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.receiver_city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       b.shipment?.awb?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesTab =
@@ -46,7 +63,9 @@ export default function AdminBookingsPage() {
       (activeTab === "CANCELLED" && (b.status === "CANCELLED" || b.status === "REJECTED"));
 
     const matchesCourier =
-      courierFilter === "ALL" || b.shipment?.courier_partner_id === courierFilter;
+      courierFilter === "ALL" ||
+      b.shipment?.courier_partner_id === courierFilter ||
+      b.shipment?.courier_partner?.name?.toLowerCase().includes(courierFilter.toLowerCase());
 
     const matchesPayment =
       paymentFilter === "ALL" || b.payment_type === paymentFilter;
@@ -66,34 +85,14 @@ export default function AdminBookingsPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* State Demo Toggle */}
-          <div className="hidden xl:flex items-center gap-1 bg-surface-base p-1 rounded-lg border border-border-default text-[11px]">
-            <span className="text-text-muted px-2 font-semibold">State:</span>
-            <button
-              onClick={() => setViewState("populated")}
-              className={`px-2 py-0.5 rounded ${viewState === "populated" ? "bg-brand-primary text-white" : "text-text-secondary"}`}
-            >
-              Populated
-            </button>
-            <button
-              onClick={() => setViewState("loading")}
-              className={`px-2 py-0.5 rounded ${viewState === "loading" ? "bg-brand-primary text-white" : "text-text-secondary"}`}
-            >
-              Loading
-            </button>
-            <button
-              onClick={() => setViewState("empty")}
-              className={`px-2 py-0.5 rounded ${viewState === "empty" ? "bg-brand-primary text-white" : "text-text-secondary"}`}
-            >
-              Empty
-            </button>
-            <button
-              onClick={() => setViewState("error")}
-              className={`px-2 py-0.5 rounded ${viewState === "error" ? "bg-brand-primary text-white" : "text-text-secondary"}`}
-            >
-              Error
-            </button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchBookings}
+            title="Refresh database records"
+          >
+            <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Refresh
+          </Button>
 
           <Link href="/admin/bookings/new">
             <Button variant="primary" size="sm">
@@ -109,27 +108,27 @@ export default function AdminBookingsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-default pb-3">
           <div className="flex flex-wrap gap-2 text-xs font-semibold">
             {[
-              { key: "ALL", label: "All Bookings", count: MOCK_BOOKINGS.length },
+              { key: "ALL", label: "All Bookings", count: bookings.length },
               {
                 key: "NEW",
                 label: "New Requests (Review Queue)",
-                count: MOCK_BOOKINGS.filter((b) => b.status === "REQUESTED").length,
+                count: bookings.filter((b) => b.status === "REQUESTED").length,
                 highlight: true,
               },
               {
                 key: "REVIEW",
                 label: "Under Review",
-                count: MOCK_BOOKINGS.filter((b) => b.status === "UNDER_REVIEW").length,
+                count: bookings.filter((b) => b.status === "UNDER_REVIEW").length,
               },
               {
                 key: "APPROVED",
                 label: "Approved & Dispatched",
-                count: MOCK_BOOKINGS.filter((b) => b.status === "APPROVED").length,
+                count: bookings.filter((b) => b.status === "APPROVED").length,
               },
               {
                 key: "CANCELLED",
                 label: "Cancelled / Rejected",
-                count: MOCK_BOOKINGS.filter(
+                count: bookings.filter(
                   (b) => b.status === "CANCELLED" || b.status === "REJECTED"
                 ).length,
               },
@@ -178,10 +177,10 @@ export default function AdminBookingsPage() {
               className="w-full h-9 px-3 text-xs bg-surface-subtle border border-border-default rounded-lg focus:border-brand-primary focus:outline-none"
             >
               <option value="ALL">All Couriers</option>
-              <option value="courier-1">Delhivery</option>
-              <option value="courier-2">Blue Dart</option>
-              <option value="courier-3">DTDC</option>
-              <option value="courier-4">XpressBees</option>
+              <option value="delhivery">Delhivery</option>
+              <option value="bluedart">Blue Dart</option>
+              <option value="dtdc">DTDC</option>
+              <option value="xpressbees">XpressBees</option>
             </select>
           </div>
 
@@ -204,8 +203,8 @@ export default function AdminBookingsPage() {
         <StateView
           state={viewState}
           emptyTitle="No bookings found"
-          emptyDescription="There are no bookings matching the current filters."
-          onRetry={() => setViewState("populated")}
+          emptyDescription="There are no bookings matching the current filters or registered in the database."
+          onRetry={fetchBookings}
         >
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -224,9 +223,11 @@ export default function AdminBookingsPage() {
               </thead>
               <tbody className="divide-y divide-border-default">
                 {filteredBookings.map((b) => {
-                  const parcel = b.parcels[0];
+                  const parcel = b.parcels && b.parcels[0];
                   const subWeight = parcel?.submitted_weight_grams || 0;
                   const verWeight = parcel?.verified_weight_grams;
+                  const custName = b.customer?.name || b.sender_name;
+                  const custMobile = b.customer?.mobile || b.sender_mobile;
 
                   return (
                     <tr key={b.id} className="hover:bg-surface-subtle transition-colors">
@@ -234,9 +235,9 @@ export default function AdminBookingsPage() {
                         {b.booking_number}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-text-primary">{b.customer_name}</div>
+                        <div className="font-semibold text-text-primary">{custName}</div>
                         <div className="text-[11px] text-text-muted flex items-center gap-1">
-                          <span>{b.customer_mobile}</span> •{" "}
+                          <span>{custMobile}</span> •{" "}
                           <span className="bg-slate-100 px-1 py-0.2 rounded uppercase font-bold text-[9px]">
                             {b.source}
                           </span>
@@ -278,7 +279,7 @@ export default function AdminBookingsPage() {
                         {b.shipment ? (
                           <div>
                             <div className="font-semibold text-text-primary">
-                              {b.shipment.courier_name}
+                              {b.shipment.courier_partner?.name || "Assigned Partner"}
                             </div>
                             <div className="font-mono text-[11px] text-brand-primary">
                               {b.shipment.awb}

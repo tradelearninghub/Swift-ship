@@ -26,6 +26,47 @@ const ReviewSchema = z.object({
   manual_awb: z.string().optional(),
 });
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getSessionUser();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const bookingId = params.id;
+    const booking = await prisma.booking.findFirst({
+      where: {
+        OR: [{ id: bookingId }, { booking_number: bookingId }],
+      },
+      include: {
+        parcels: true,
+        charges: true,
+        customer: true,
+        shipment: {
+          include: {
+            courier_partner: true,
+            tracking_events: {
+              orderBy: { occurred_at: "desc" },
+            },
+          },
+        },
+      },
+    });
+
+    if (!booking) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, booking });
+  } catch (error: any) {
+    console.error("Admin Booking Fetch Error:", error);
+    return NextResponse.json({ error: "Failed to fetch booking details" }, { status: 500 });
+  }
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }

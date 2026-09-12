@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/Input";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/Card";
 import { ReceiptLabelModal } from "@/components/ui/ReceiptLabelModal";
-import { MOCK_BOOKINGS, MOCK_COURIER_PARTNERS, MockBooking } from "@/lib/mockData";
 import { formatPaiseToRupees, formatGramsToKg } from "@/lib/utils";
 import {
   ArrowLeft,
@@ -21,70 +20,104 @@ import {
   ShieldCheck,
   Printer,
   AlertTriangle,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 export default function AdminBookingReviewPage() {
   const params = useParams();
   const router = useRouter();
-  const bookingId = (params?.id as string) || "BK-1031";
+  const bookingId = (params?.id as string) || "";
 
-  // Find booking
-  const booking =
-    MOCK_BOOKINGS.find(
-      (b) =>
-        b.booking_number.toUpperCase() === bookingId.toUpperCase() ||
-        b.id === bookingId
-    ) || MOCK_BOOKINGS[0];
+  const [booking, setBooking] = useState<any | null>(null);
+  const [couriers, setCouriers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const parcel = booking.parcels[0];
+  // Admin Verification Form State
+  const [verifiedWeightGrams, setVerifiedWeightGrams] = useState("1000");
+  const [verifiedLengthCm, setVerifiedLengthCm] = useState("20");
+  const [verifiedWidthCm, setVerifiedWidthCm] = useState("15");
+  const [verifiedHeightCm, setVerifiedHeightCm] = useState("10");
 
-  // Admin Verification Form State (§15 - stored separately)
-  const [verifiedWeightGrams, setVerifiedWeightGrams] = useState(
-    parcel?.verified_weight_grams?.toString() ||
-      parcel?.submitted_weight_grams?.toString() ||
-      "2500"
-  );
-  const [verifiedLengthCm, setVerifiedLengthCm] = useState(
-    parcel?.verified_length_cm?.toString() ||
-      parcel?.submitted_length_cm?.toString() ||
-      "25"
-  );
-  const [verifiedWidthCm, setVerifiedWidthCm] = useState(
-    parcel?.verified_width_cm?.toString() ||
-      parcel?.submitted_width_cm?.toString() ||
-      "20"
-  );
-  const [verifiedHeightCm, setVerifiedHeightCm] = useState(
-    parcel?.verified_height_cm?.toString() ||
-      parcel?.submitted_height_cm?.toString() ||
-      "15"
-  );
-
-  // Manual Shipping Charge State (§16)
-  const [shippingChargeRupees, setShippingChargeRupees] = useState(
-    booking.charges ? (booking.charges.shipping_charge / 100).toString() : "150"
-  );
-  const [additionalChargeRupees, setAdditionalChargeRupees] = useState(
-    booking.charges ? (booking.charges.additional_charge / 100).toString() : "20"
-  );
-  const [discountRupees, setDiscountRupees] = useState(
-    booking.charges ? (booking.charges.discount / 100).toString() : "0"
-  );
-  const [taxRupees, setTaxRupees] = useState(
-    booking.charges ? (booking.charges.tax / 100).toString() : "30"
-  );
-
-  const [selectedCourier, setSelectedCourier] = useState(
-    booking.shipment?.courier_partner_id || "courier-1"
-  );
+  // Manual Shipping Charge State
+  const [shippingChargeRupees, setShippingChargeRupees] = useState("150");
+  const [additionalChargeRupees, setAdditionalChargeRupees] = useState("0");
+  const [discountRupees, setDiscountRupees] = useState("0");
+  const [taxRupees, setTaxRupees] = useState("27");
+  const [selectedCourier, setSelectedCourier] = useState("");
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isApproved, setIsApproved] = useState(booking.status === "APPROVED");
+  const [isApproved, setIsApproved] = useState(false);
   const [isLabelModalOpen, setIsLabelModalOpen] = useState(false);
 
   // Rejection modal
   const [showRejectBox, setShowRejectBox] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+
+  // Fetch real booking and couriers
+  useEffect(() => {
+    async function loadData() {
+      setIsLoading(true);
+      setErrorMsg(null);
+      try {
+        const [bookingRes, couriersRes] = await Promise.all([
+          fetch(`/api/admin/bookings/${bookingId}/review`),
+          fetch("/api/admin/couriers"),
+        ]);
+
+        if (!bookingRes.ok) {
+          throw new Error("Booking not found or access denied");
+        }
+
+        const bData = await bookingRes.json();
+        const cData = couriersRes.ok ? await couriersRes.json() : { couriers: [] };
+
+        const b = bData.booking;
+        setBooking(b);
+        setIsApproved(b.status === "APPROVED");
+
+        const parcel = b.parcels && b.parcels[0];
+        if (parcel) {
+          setVerifiedWeightGrams(
+            (parcel.verified_weight_grams || parcel.submitted_weight_grams || 1000).toString()
+          );
+          setVerifiedLengthCm(
+            (parcel.verified_length_cm || parcel.submitted_length_cm || 20).toString()
+          );
+          setVerifiedWidthCm(
+            (parcel.verified_width_cm || parcel.submitted_width_cm || 15).toString()
+          );
+          setVerifiedHeightCm(
+            (parcel.verified_height_cm || parcel.submitted_height_cm || 10).toString()
+          );
+        }
+
+        if (b.charges) {
+          setShippingChargeRupees((b.charges.shipping_charge / 100).toString());
+          setAdditionalChargeRupees((b.charges.additional_charge / 100).toString());
+          setDiscountRupees((b.charges.discount / 100).toString());
+          setTaxRupees((b.charges.tax / 100).toString());
+        }
+
+        const courierList = cData.couriers || [];
+        setCouriers(courierList);
+        if (b.shipment?.courier_partner_id) {
+          setSelectedCourier(b.shipment.courier_partner_id);
+        } else if (courierList.length > 0) {
+          setSelectedCourier(courierList[0].id);
+        }
+      } catch (err: any) {
+        setErrorMsg(err.message || "Failed to load booking details");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (bookingId) {
+      loadData();
+    }
+  }, [bookingId]);
 
   // Calculate total in Rupees & Paise
   const numShipping = parseFloat(shippingChargeRupees) || 0;
@@ -94,19 +127,101 @@ export default function AdminBookingReviewPage() {
   const totalRupees = numShipping + numAdd + numTax - numDisc;
   const totalPaise = Math.round(totalRupees * 100);
 
-  const handleApproveAndDispatch = () => {
+  const handleApproveAndDispatch = async () => {
+    if (!booking) return;
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
+    setErrorMsg(null);
+
+    try {
+      const payload = {
+        action: "APPROVE",
+        verified_weight_grams: Math.round(parseFloat(verifiedWeightGrams || "1000")),
+        verified_length_cm: Math.round(parseFloat(verifiedLengthCm || "20")),
+        verified_width_cm: Math.round(parseFloat(verifiedWidthCm || "15")),
+        verified_height_cm: Math.round(parseFloat(verifiedHeightCm || "10")),
+        shipping_charge_paise: Math.round(numShipping * 100),
+        additional_charge_paise: Math.round(numAdd * 100),
+        discount_paise: Math.round(numDisc * 100),
+        tax_paise: Math.round(numTax * 100),
+        courier_partner_id: selectedCourier || undefined,
+      };
+
+      const res = await fetch(`/api/admin/bookings/${booking.id}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Approval transaction failed");
+      }
+
+      setBooking(data.result.booking);
       setIsApproved(true);
-    }, 700);
+      setIsLabelModalOpen(true);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to approve booking");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleRejectBooking = () => {
-    if (!rejectionReason.trim()) return;
-    alert(`Booking rejected: ${rejectionReason}`);
-    router.push("/admin/bookings");
+  const handleRejectBooking = async () => {
+    if (!booking || !rejectionReason.trim()) return;
+    setIsProcessing(true);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch(`/api/admin/bookings/${booking.id}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "REJECT",
+          rejection_reason: rejectionReason.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to reject booking");
+      }
+
+      router.push("/admin/bookings");
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to reject booking");
+    } finally {
+      setIsProcessing(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="py-24 text-center space-y-3">
+        <Loader2 className="w-8 h-8 text-brand-primary animate-spin mx-auto" />
+        <p className="text-xs text-text-secondary">Loading booking consignment details...</p>
+      </div>
+    );
+  }
+
+  if (errorMsg || !booking) {
+    return (
+      <div className="max-w-md mx-auto py-16 text-center space-y-4">
+        <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h2 className="text-lg font-bold text-text-primary">Booking Not Found</h2>
+        <p className="text-xs text-text-secondary">{errorMsg || "Unable to locate booking record in the database."}</p>
+        <Link href="/admin/bookings">
+          <Button variant="primary" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Bookings
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const parcel = booking.parcels && booking.parcels[0];
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
@@ -364,7 +479,7 @@ export default function AdminBookingReviewPage() {
                 onChange={(e) => setSelectedCourier(e.target.value)}
                 className="w-full h-10 px-3 text-xs bg-surface-base border border-border-default rounded-lg focus:ring-1 focus:ring-brand-primary"
               >
-                {MOCK_COURIER_PARTNERS.map((c) => (
+                {couriers.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} {c.status === "ACTIVE" ? "(API Online)" : "(Manual Fallback)"}
                   </option>

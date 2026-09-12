@@ -18,7 +18,7 @@ export interface TimelineStep {
 
 interface ShipmentTimelineProps {
   currentStatus: string;
-  events?: MockTrackingEvent[];
+  events?: any[];
   className?: string;
 }
 

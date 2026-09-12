@@ -6,24 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 
-// Default Hostinger production credentials
-const DEFAULT_ENV = {
-  DB_HOST: "127.0.0.1",
-  DB_PORT: "3306",
-  DB_USER: "u905414804_sscouriers",
-  DB_PASSWORD: "SS@Couriers26",
-  DB_NAME: "u905414804_sscouriers",
-  DATABASE_URL: "mysql://u905414804_sscouriers:SS%40Couriers26@127.0.0.1:3306/u905414804_sscouriers?connection_limit=5",
-  AUTH_SECRET: "f47a98c5e13b8602d1a47389c9e6f25108b7e23a4918237b60e9182c34d567ef",
-  JWT_SECRET: "f47a98c5e13b8602d1a47389c9e6f25108b7e23a4918237b60e9182c34d567ef",
-  NEXT_PUBLIC_APP_URL: "https://sscourierservice.in/",
-  APP_URL: "https://sscourierservice.in/",
-  NODE_ENV: "production",
-  PORT: "3000",
-  HOSTNAME: "0.0.0.0",
-};
-
-// 1. Load or auto-generate .env file
+// 1. Load .env file if present
 function ensureEnvFile() {
   const envPath = path.resolve(process.cwd(), ".env");
   if (fs.existsSync(envPath)) {
@@ -41,22 +24,8 @@ function ensureEnvFile() {
       }
     });
   } else {
-    console.log("[ADMIN-SEED] ℹ️ .env not found on disk. Creating production .env file...");
-    const lines = Object.entries(DEFAULT_ENV).map(([k, v]) => `${k}="${v}"`);
-    try {
-      fs.writeFileSync(envPath, lines.join("\n") + "\n", "utf-8");
-      console.log("[ADMIN-SEED] ✅ Created production .env file successfully.");
-    } catch (e) {
-      console.warn("[ADMIN-SEED] ⚠️ Could not write .env file:", e.message);
-    }
+    console.log("[ADMIN-SEED] ℹ️ .env not found on disk. Relying on environment variables.");
   }
-
-  // Ensure process.env has required fallback values
-  Object.entries(DEFAULT_ENV).forEach(([k, v]) => {
-    if (!process.env[k]) {
-      process.env[k] = v;
-    }
-  });
 }
 
 ensureEnvFile();

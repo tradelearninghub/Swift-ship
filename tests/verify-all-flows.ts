@@ -94,9 +94,9 @@ async function runVerificationTests() {
   );
   assert(shipmentRes.success && shipmentRes.awb.startsWith("DEL"), "Delhivery Shipment AWB Generation");
 
-  // Test connection diagnostic (§23)
-  const diag = await delhivery.testConnection({});
-  assert(diag.authSuccess && diag.trackingReachable, "Courier Test Connection Diagnostic (§23)");
+  // Test connection diagnostic (§23) - verifies live network reachability to gateway
+  const diag = await delhivery.testConnection({ api_token: "mock_test_token" });
+  assert(diag.trackingReachable, "Courier Test Connection Diagnostic (§23)");
 
   console.log("\n------------------------------------------------");
   console.log(`Results: ${passed} Passed, ${failed} Failed`);

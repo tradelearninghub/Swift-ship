@@ -24,7 +24,7 @@ export type LabelSize = "4x6" | "A4";
 interface ReceiptLabelModalProps {
   isOpen: boolean;
   onClose: () => void;
-  booking: MockBooking;
+  booking: any;
 }
 
 export function ReceiptLabelModal({

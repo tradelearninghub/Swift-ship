@@ -22,6 +22,7 @@ export default function BookParcelPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [generatedBookingId, setGeneratedBookingId] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [apiError, setApiError] = useState<string | null>(null);
 
   // Form State — Starts clean and empty per user requirements
   const [formData, setFormData] = useState({
@@ -206,17 +207,62 @@ export default function BookParcelPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateStep(4)) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      const newId = `BK-${Math.floor(1000 + Math.random() * 9000)}`;
-      setGeneratedBookingId(newId);
+    setApiError(null);
+
+    try {
+      const payload = {
+        sender_name: formData.sender_name.trim(),
+        sender_mobile: formData.sender_mobile.trim(),
+        sender_email: formData.sender_email.trim() || undefined,
+        sender_address: formData.sender_address.trim(),
+        sender_city: formData.sender_city.trim(),
+        sender_state: formData.sender_state.trim(),
+        sender_pincode: formData.sender_pincode.trim(),
+        receiver_name: formData.receiver_name.trim(),
+        receiver_mobile: formData.receiver_mobile.trim(),
+        receiver_email: formData.receiver_email.trim() || undefined,
+        receiver_address: formData.receiver_address.trim(),
+        receiver_city: formData.receiver_city.trim(),
+        receiver_state: formData.receiver_state.trim(),
+        receiver_pincode: formData.receiver_pincode.trim(),
+        parcel_type: formData.parcel_type || "Standard Parcel",
+        description: formData.description.trim(),
+        submitted_weight_grams: Math.round(parseFloat(formData.weight_kg) * 1000),
+        submitted_length_cm: Math.round(parseFloat(formData.length_cm)),
+        submitted_width_cm: Math.round(parseFloat(formData.width_cm)),
+        submitted_height_cm: Math.round(parseFloat(formData.height_cm)),
+        declared_value_paise: Math.round(parseFloat(formData.declared_value_rupees) * 100),
+        payment_type: formData.payment_type as "PREPAID" | "COD",
+        cod_amount_paise:
+          formData.payment_type === "COD"
+            ? Math.round(parseFloat(formData.cod_amount_rupees || "0") * 100)
+            : 0,
+      };
+
+      const res = await fetch("/api/bookings/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit booking. Please check your details.");
+      }
+
+      setGeneratedBookingId(data.booking.booking_number);
       setIsSuccess(true);
-    }, 600);
+    } catch (err: any) {
+      setApiError(err.message || "An unexpected error occurred while placing your booking.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSuccess) {
@@ -723,6 +769,17 @@ export default function BookParcelPage() {
                   </p>
                 </div>
               </div>
+
+              {/* API Error Alert */}
+              {apiError && (
+                <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-bold text-rose-900">Submission Error</div>
+                    <p className="mt-0.5">{apiError}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
