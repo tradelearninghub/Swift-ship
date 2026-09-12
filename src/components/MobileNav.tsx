@@ -58,7 +58,7 @@ export function MobileNav({
   const navLinks = [
     { href: "/", label: "Home", icon: Home },
     { href: "/services", label: "Services", icon: Layers },
-    { href: "/track", label: "Tracking", icon: Search },
+    { href: "/track", label: "Track Shipment", icon: Search },
     { href: "/calculator", label: "Rate Calculator", icon: Calculator },
     { href: "/how-it-works", label: "How It Works", icon: Compass },
     { href: "/about", label: "About Us", icon: Info },

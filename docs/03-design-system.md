@@ -197,3 +197,42 @@ A consistent pill-switch design language is enforced across all operational cont
 - Disabled/Inactive State: `bg-slate-300` (muted slate)
 - Indicator thumb: `inline-block h-4 w-4 sm:h-5 sm:w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200`
 - Status labels: paired with uppercase status indicators (`ON`/`OFF` or `ACTIVE`/`INACTIVE`), never color alone.
+
+---
+
+## 11. Footer Layout Standards **[NEW — Round 4]**
+
+The public website footer strictly adheres to a structured, balanced four-column layout on desktop, collapsing to a clear single stacked column on mobile:
+
+### Breakpoints & Sizing
+- **Desktop (`1024px+`)**: Four equal-width columns (`grid-cols-4`, `gap-8` / `space-8` = 32px).
+- **Tablet (`640–1023px`)**: Two columns (`sm:grid-cols-2`, `gap-8`).
+- **Mobile (`0–639px`)**: Single stacked column (`grid-cols-1`, `gap-8` / `space-8` vertical rhythm).
+
+### Four Distinct Functional Sections
+1. **Section 1 — Company**: Branded company name, 1–2 line company brief/tagline, and central hub address. All company metadata is sourced dynamically from the `settings` database table (§7/§52).
+2. **Section 2 — Quick Links**: Exactly 6 canonical links matching the fixed header navigation (`Home`, `About Us`, `Services`, `How It Works`, `Track Shipment`, `Book a Parcel`).
+3. **Section 3 — Support & Policies**: Essential customer trust links (`Contact Us`, `Shipping Policy`, `Privacy Policy`, `Terms of Service`).
+4. **Section 4 — Contact Info**: Direct telephone helpline numbers (`support_phones`), official support email, and physical hub location with semantic icons.
+
+### Bottom Utility Row
+A thin border-top utility bar below the four columns displaying:
+- Copyright notice with dynamic current year and company name.
+- Legal policy links: `Privacy Policy`, `Terms of Service`, `Shipping Policy`.
+- Discrete administrative portal entry: `Admin Operations` linking to `/admin/login`.
+
+---
+
+## 12. Mobile Navigation Architecture **[NEW — Round 4]**
+
+The mobile navigation experience is unified into a single, clean pattern:
+
+- **Single Mobile Pattern**: A sticky top header with the company logo, a prominent primary CTA button ("Book a Parcel"), and an accessible hamburger menu trigger button (`aria-label="Open mobile navigation menu"`).
+- **Elimination of Bottom Tab Bar**: Fixed bottom tab bars have been completely excised from the layout. This eliminates screen clutter, removes accidental touch targets on mobile keyboards, and reclaims 64px of vertical viewport height.
+- **Slide-Out Side Drawer**: Opening the hamburger trigger displays a full-height right-aligned drawer panel covering all required user journeys:
+  - Header with branded identity and close (`X`) button.
+  - Quick action CTA button: "Book a Parcel" (`/book`).
+  - Primary navigation links: `Home`, `Services`, `Track Shipment`, `Rate Calculator`, `How It Works`, `About Us`, `Contact Us`.
+  - Customer & Staff portals: `Customer Sign In`, `Register Free Account`, and `Admin Operations`.
+  - Direct contact options: Click-to-call phone links, email mailto link, and central hub address.
+
