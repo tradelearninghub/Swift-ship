@@ -67,7 +67,7 @@ export function ReceiptLabelModal({
   const awb = booking.shipment?.awb || `AWB${booking.booking_number.replace(/[^0-9]/g, "") || "98765432"}`;
   const courier = booking.shipment?.courier_name || "Assigned Carrier";
   const token = booking.shipment?.tracking_token || `tok_${booking.booking_number.toLowerCase()}`;
-  const trackingUrl = `https://sscourierservice.in/track?q=${encodeURIComponent(awb)}`;
+  const trackingUrl = `https://sscourierservice.in/track/${encodeURIComponent(token)}`;
 
   const phone1 = companyProfile.support_phones?.[0] || "8000151117";
   const phone2 = companyProfile.support_phones?.[1] || "7689987368";

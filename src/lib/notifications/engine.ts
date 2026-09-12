@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { sendRealEmail } from "@/lib/email";
 
 export interface NotificationPayload {
   eventKey: string;
@@ -47,8 +48,28 @@ export async function sendNotification(payload: NotificationPayload) {
       body = body.replace(regex, String(val));
     }
 
-    // Email Dispatch Log
+    // Email Dispatch via real SMTP (€38)
     if (recipientEmail) {
+      const emailResult = await sendRealEmail({
+        to: recipientEmail,
+        subject,
+        text: body,
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px;">
+            <div style="background-color: #1e3a8a; padding: 16px 20px; color: #ffffff; border-radius: 6px 6px 0 0;">
+              <h2 style="margin: 0; font-size: 18px;">SS Courier service</h2>
+            </div>
+            <div style="border: 1px solid #e2e8f0; border-top: none; padding: 20px; border-radius: 0 0 6px 6px;">
+              <p style="font-size: 14px; margin-top: 0;">${body}</p>
+              <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+              <p style="font-size: 11px; color: #64748b; margin-bottom: 0;">
+                Fast, Safe & Multi-Carrier Courier Logistics • sscourierservice.in • Helpline: 8000151117
+              </p>
+            </div>
+          </div>
+        `,
+      });
+
       await prisma.notificationLog.create({
         data: {
           channel: "EMAIL",
@@ -56,10 +77,12 @@ export async function sendNotification(payload: NotificationPayload) {
           recipient: recipientEmail,
           booking_id: bookingId || null,
           shipment_id: shipmentId || null,
-          status: "SENT",
-          provider_response: "Email queued with SMTP server",
+          status: emailResult.success ? "SENT" : "FAILED",
+          provider_response: emailResult.success
+            ? `Dispatched via SMTP (MessageId: ${emailResult.messageId})`
+            : `SMTP Dispatch Failure: ${emailResult.error}`,
         },
-      });
+      }).catch(() => {});
     }
 
     // WhatsApp / SMS Dispatch Log

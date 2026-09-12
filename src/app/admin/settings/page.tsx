@@ -13,6 +13,7 @@ import {
   Phone,
   Shield,
   CheckCircle2,
+  AlertCircle,
   Lock,
   Globe,
 } from "lucide-react";
@@ -20,6 +21,45 @@ import {
 export default function AdminSettingsPage() {
   const [activeGroup, setActiveGroup] = useState("company");
   const [saved, setSaved] = useState(false);
+  const [testRecipientEmail, setTestRecipientEmail] = useState("admin@sscourierservice.in");
+  const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
+  const [testEmailResult, setTestEmailResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const handleSendTestEmail = async () => {
+    const email = testRecipientEmail.trim();
+    if (!email || !email.includes("@")) {
+      setTestEmailResult({ success: false, message: "Please enter a valid recipient email address." });
+      return;
+    }
+    setIsSendingTestEmail(true);
+    setTestEmailResult(null);
+    try {
+      const res = await fetch("/api/admin/settings/test-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipientEmail: email }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTestEmailResult({
+          success: true,
+          message: data.message || `Test email dispatched successfully to ${email}!`,
+        });
+      } else {
+        setTestEmailResult({
+          success: false,
+          message: data.error || "Failed to dispatch test email via SMTP server.",
+        });
+      }
+    } catch (err: any) {
+      setTestEmailResult({
+        success: false,
+        message: err.message || "Network error while triggering test email.",
+      });
+    } finally {
+      setIsSendingTestEmail(false);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,15 +190,60 @@ export default function AdminSettingsPage() {
                     <Input label="From Display Name" defaultValue="SS Courier service" required />
                   </div>
 
-                  <div className="pt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => alert("Test email sent to admin@sscourierservice.in successfully!")}
-                    >
-                      Send Test Connection Email (§38)
-                    </Button>
+                  {/* Real SMTP Sending & Choose Recipient Address (New Feature) */}
+                  <div className="pt-4 border-t border-border-default space-y-3">
+                    <div>
+                      <h4 className="text-xs font-bold text-text-primary">
+                        Send Test Connection Email (§38)
+                      </h4>
+                      <p className="text-[11px] text-text-muted mt-0.5">
+                        Specify any custom email address to test live SMTP credentials and delivery end-to-end.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 max-w-lg">
+                      <div className="flex-1">
+                        <Input
+                          type="email"
+                          value={testRecipientEmail}
+                          onChange={(e) => setTestRecipientEmail(e.target.value)}
+                          placeholder="recipient@example.com"
+                          required
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="md"
+                        onClick={handleSendTestEmail}
+                        isLoading={isSendingTestEmail}
+                        className="shrink-0"
+                      >
+                        Send Test Email
+                      </Button>
+                    </div>
+
+                    {testEmailResult && (
+                      <div
+                        className={`p-3 rounded-xl text-xs flex items-start gap-2.5 transition-all ${
+                          testEmailResult.success
+                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                            : "bg-rose-50 text-rose-800 border border-rose-200"
+                        }`}
+                      >
+                        {testEmailResult.success ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                        )}
+                        <div className="space-y-0.5">
+                          <p className="font-semibold">
+                            {testEmailResult.success ? "SMTP Dispatch Verified" : "SMTP Dispatch Failed"}
+                          </p>
+                          <p className="text-[11px] leading-relaxed">{testEmailResult.message}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
