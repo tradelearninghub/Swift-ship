@@ -1029,7 +1029,17 @@ export default function AdminCouriersPage() {
                 <Button variant="outline" size="sm" onClick={() => setOnboardStep(1)}>
                   Back
                 </Button>
-                <Button variant="primary" size="sm" onClick={() => setOnboardStep(3)}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    if (!partnerName.trim() || !partnerCode.trim()) {
+                      alert("Please provide both Partner Name and Unique Carrier Code before proceeding.");
+                      return;
+                    }
+                    setOnboardStep(3);
+                  }}
+                >
                   Proceed to Diagnostic Test <ArrowRight className="w-3.5 h-3.5 ml-1" />
                 </Button>
               </div>

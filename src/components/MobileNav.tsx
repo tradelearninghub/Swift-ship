@@ -19,6 +19,7 @@ import {
   UserPlus,
   Info,
   ShieldCheck,
+  Compass,
 } from "lucide-react";
 
 interface MobileNavProps {
@@ -57,9 +58,9 @@ export function MobileNav({
   const navLinks = [
     { href: "/", label: "Home", icon: Home },
     { href: "/services", label: "Services", icon: Layers },
-    { href: "/track", label: "Tracking Portal", icon: Search },
+    { href: "/track", label: "Tracking", icon: Search },
     { href: "/calculator", label: "Rate Calculator", icon: Calculator },
-    { href: "/book", label: "Book Pickup", icon: PlusCircle, badge: "Fast" },
+    { href: "/how-it-works", label: "How It Works", icon: Compass },
     { href: "/about", label: "About Us", icon: Info },
     { href: "/contact", label: "Contact Us", icon: MessageSquare },
   ];
@@ -101,23 +102,34 @@ export function MobileNav({
                   <Truck className="w-4 h-4" />
                 </div>
                 <span>
-                  SS Courier<span className="text-[#FF6B00]"> service</span>
+                  SS Courier<span className="text-[#FF6B00]"> services</span>
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                aria-label="Close menu"
+                className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                aria-label="Close navigation menu"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
+            {/* Quick Action Button */}
+            <div className="p-4 border-b border-slate-100 bg-slate-50">
+              <Link
+                href="/book"
+                className="w-full flex items-center justify-center gap-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold py-2.5 px-4 rounded-xl shadow-md shadow-[#FF6B00]/20 text-sm transition-all"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Book a Parcel</span>
+              </Link>
+            </div>
+
             {/* Nav Links */}
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
               <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1">
-                Navigation Menu
+                Navigation
               </div>
               {navLinks.map((link) => {
                 const Icon = link.icon;
@@ -126,27 +138,26 @@ export function MobileNav({
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                       isActive
-                        ? "bg-orange-50 text-[#FF6B00] font-bold"
-                        : "text-[#002B49] hover:bg-slate-50"
+                        ? "bg-[#002B49] text-white"
+                        : "text-slate-700 hover:bg-slate-100"
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className={`w-4 h-4 ${isActive ? "text-[#FF6B00]" : "text-slate-400"}`} />
+                      <Icon
+                        className={`w-4 h-4 ${
+                          isActive ? "text-[#FF6B00]" : "text-slate-400"
+                        }`}
+                      />
                       <span>{link.label}</span>
                     </div>
-                    {link.badge && (
-                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-[#FF6B00]/10 text-[#FF6B00]">
-                        {link.badge}
-                      </span>
-                    )}
                   </Link>
                 );
               })}
 
-              {/* Portals */}
-              <div className="pt-4 mt-2 border-t border-slate-100 space-y-1">
+              {/* Portal Links */}
+              <div className="pt-4 border-t border-slate-100 space-y-1">
                 <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1">
                   Portals & Access
                 </div>
@@ -198,15 +209,10 @@ export function MobileNav({
               </div>
             </div>
 
-            {/* Bottom Button */}
-            <div className="p-4 border-t border-slate-100 bg-slate-50">
-              <Link
-                href="/book"
-                className="w-full inline-flex items-center justify-center gap-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white py-3 rounded-lg font-bold text-sm shadow-md transition-colors"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>Book Pickup Now</span>
-              </Link>
+            {/* Footer Notice */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-500 text-center">
+              <p className="font-semibold text-slate-700">SS Courier service</p>
+              <p className="mt-0.5 truncate text-[10px]">{address}</p>
             </div>
           </div>
         </div>

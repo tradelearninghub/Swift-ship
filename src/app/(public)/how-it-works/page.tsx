@@ -2,8 +2,12 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
+import { getCompanyProfile } from "@/lib/settings";
 
-export default function HowItWorksPage() {
+export default async function HowItWorksPage() {
+  const profile = await getCompanyProfile();
+  const companyName = profile.company_name || "SS Courier service";
+
   const steps = [
     {
       num: "01",
@@ -55,7 +59,7 @@ export default function HowItWorksPage() {
         <span className="text-xs font-bold uppercase tracking-wider text-brand-primary bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
           Operational Process
         </span>
-        <h1 className="text-display">How Swift Ship Courier Works</h1>
+        <h1 className="text-display">How {companyName} Works</h1>
         <p className="text-body text-lg">
           A seamless 6-step lifecycle from online parcel booking to doorstep delivery.
         </p>

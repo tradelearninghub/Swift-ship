@@ -138,7 +138,7 @@ app.prepare().then(async () => {
       process.exit(1);
     })
     .listen(port, () => {
-      console.log(`> Swift Ship Courier ready on http://${hostname}:${port} (NODE_ENV=${process.env.NODE_ENV || "production"})`);
+      console.log(`> SS Courier service ready on http://${hostname}:${port} (NODE_ENV=${process.env.NODE_ENV || "production"})`);
     });
 });
 

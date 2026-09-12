@@ -15,7 +15,7 @@ export default async function PublicLayout({
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-[#222]">
-      {/* 1. TOP BAR (Exact ai_studio_code (14).html) */}
+      {/* 1. TOP BAR */}
       <div className="top-bar">
         <div className="main-container">
           <div className="flex items-center gap-4 flex-wrap">
@@ -46,13 +46,14 @@ export default async function PublicLayout({
         </div>
       </div>
 
-      {/* NAVBAR (Exact ai_studio_code (14).html) */}
+      {/* NAVBAR */}
       <nav className="navbar">
         <div className="main-container">
           <Link href="/" className="logo">
             SS Courier<span> services</span>
           </Link>
 
+          {/* Desktop Unified Nav Links */}
           <ul className="nav-links">
             <li>
               <Link href="/">Home</Link>
@@ -67,14 +68,17 @@ export default async function PublicLayout({
               <Link href="/calculator">Rate Calculator</Link>
             </li>
             <li>
-              <Link href="/about">About</Link>
+              <Link href="/how-it-works">How It Works</Link>
+            </li>
+            <li>
+              <Link href="/about">About Us</Link>
             </li>
             <li>
               <Link href="/contact">Contact</Link>
             </li>
             <li>
               <Link href="/book" className="btn btn-primary">
-                Book Pickup
+                Book a Parcel
               </Link>
             </li>
           </ul>
@@ -82,7 +86,7 @@ export default async function PublicLayout({
           {/* Mobile Quick Action & Drawer Trigger */}
           <div className="lg:hidden flex items-center gap-2">
             <Link href="/book" className="btn btn-primary text-xs py-2 px-3">
-              Book Pickup
+              Book a Parcel
             </Link>
             <MobileNav
               phones={[phone1, phone2]}
@@ -101,10 +105,16 @@ export default async function PublicLayout({
             Home
           </Link>
           <Link
+            href="/services"
+            className="px-3 py-1.5 rounded-md bg-white border border-slate-200 text-[#002B49] hover:border-[#FF6B00]"
+          >
+            Services
+          </Link>
+          <Link
             href="/track"
             className="px-3 py-1.5 rounded-md bg-white border border-slate-200 text-[#002B49] hover:border-[#FF6B00]"
           >
-            Track Shipment
+            Tracking
           </Link>
           <Link
             href="/calculator"
@@ -113,10 +123,10 @@ export default async function PublicLayout({
             Rate Calculator
           </Link>
           <Link
-            href="/services"
+            href="/how-it-works"
             className="px-3 py-1.5 rounded-md bg-white border border-slate-200 text-[#002B49] hover:border-[#FF6B00]"
           >
-            Services
+            How It Works
           </Link>
           <Link
             href="/about"
@@ -136,7 +146,7 @@ export default async function PublicLayout({
       {/* MAIN CONTENT */}
       <main className="flex-1 pb-16 lg:pb-0">{children}</main>
 
-      {/* 7. FOOTER (Exact ai_studio_code (14).html) */}
+      {/* FOOTER */}
       <footer id="contact" className="site-footer">
         <div className="main-container">
           <div className="footer-grid">
@@ -156,19 +166,22 @@ export default async function PublicLayout({
                   <Link href="/">Home</Link>
                 </li>
                 <li>
-                  <Link href="/about">About Us</Link>
-                </li>
-                <li>
                   <Link href="/services">Services</Link>
-                </li>
-                <li>
-                  <Link href="/how-it-works">How It Works</Link>
                 </li>
                 <li>
                   <Link href="/track">Tracking Portal</Link>
                 </li>
                 <li>
                   <Link href="/calculator">Rate Calculator</Link>
+                </li>
+                <li>
+                  <Link href="/how-it-works">How It Works</Link>
+                </li>
+                <li>
+                  <Link href="/about">About Us</Link>
+                </li>
+                <li>
+                  <Link href="/contact">Contact Us</Link>
                 </li>
                 <li>
                   <Link href="/book">Book a Parcel</Link>
@@ -214,7 +227,7 @@ export default async function PublicLayout({
         </div>
       </footer>
 
-      {/* 5. Mobile Fixed Bottom Navigation */}
+      {/* Mobile Fixed Bottom Navigation */}
       <BottomNav
         phones={[phone1, phone2]}
         email={profile.support_email}

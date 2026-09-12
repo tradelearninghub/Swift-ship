@@ -1,15 +1,19 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { Truck, ShieldCheck, MapPin, Award, Users, CheckCircle2 } from "lucide-react";
+import { Truck, ShieldCheck, MapPin, Award, Users, CheckCircle2, ArrowRight } from "lucide-react";
+import { getCompanyProfile } from "@/lib/settings";
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const profile = await getCompanyProfile();
+  const companyName = profile.company_name || "SS Courier service";
+
   return (
     <div className="max-w-container mx-auto px-4 py-12 space-y-16">
       {/* Hero */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
         <span className="text-xs font-bold uppercase tracking-wider text-brand-primary bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-          About Swift Ship Courier
+          About {companyName}
         </span>
         <h1 className="text-display">Redefining Multi-Carrier Logistics Across India</h1>
         <p className="text-body text-lg">
@@ -22,7 +26,7 @@ export default function AboutPage() {
         <div className="space-y-4">
           <h2 className="text-h2">Built For Reliability, Transparency, and Speed</h2>
           <p className="text-body">
-            Founded with a mission to simplify parcel dispatch and tracking, Swift Ship bridges the gap between shippers and multiple national courier networks. We eliminate the friction of managing different courier portals by giving you unified booking, verified rates, guaranteed COD settlements, and real-time live checkpoint tracking.
+            Founded with a mission to simplify parcel dispatch and tracking, {companyName} bridges the gap between shippers and multiple national courier networks. We eliminate the friction of managing different courier portals by giving you unified booking, verified rates, guaranteed COD settlements, and real-time live checkpoint tracking.
           </p>
           <div className="space-y-2 pt-2">
             {[
@@ -36,6 +40,13 @@ export default function AboutPage() {
                 <span>{text}</span>
               </div>
             ))}
+          </div>
+          <div className="pt-4">
+            <Link href="/book">
+              <Button variant="primary" size="md">
+                Book a Parcel with {companyName} <ArrowRight className="w-4 h-4 ml-1.5" />
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -57,6 +68,14 @@ export default function AboutPage() {
               <div className="text-3xl font-bold text-blue-700">4+</div>
               <div className="text-xs text-text-muted mt-1 font-medium">Carrier Partners</div>
             </div>
+          </div>
+          <div className="p-4 bg-white rounded-xl border border-border-default text-xs text-text-secondary space-y-1">
+            <div className="font-bold text-text-primary flex items-center gap-1.5">
+              <MapPin className="w-4 h-4 text-brand-primary" /> Central Dispatch Hub
+            </div>
+            <p>
+              {profile.address}, {profile.city}, {profile.state} {profile.pincode}
+            </p>
           </div>
         </div>
       </div>

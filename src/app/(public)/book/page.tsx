@@ -21,6 +21,7 @@ export default function BookParcelPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [generatedBookingId, setGeneratedBookingId] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Form State — Starts clean and empty per user requirements
   const [formData, setFormData] = useState({
@@ -61,12 +62,155 @@ export default function BookParcelPage() {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
+  };
+
+  const validateStep = (step: number): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (step === 1) {
+      if (!formData.sender_name.trim()) {
+        newErrors.sender_name = "Sender name is required";
+      } else if (formData.sender_name.trim().length < 2) {
+        newErrors.sender_name = "Please enter a valid sender name (min 2 characters)";
+      }
+
+      const mobileClean = formData.sender_mobile.replace(/\D/g, "");
+      if (!mobileClean) {
+        newErrors.sender_mobile = "Sender mobile number is required";
+      } else if (!/^[6-9]\d{9}$/.test(mobileClean)) {
+        newErrors.sender_mobile = "Enter a valid 10-digit Indian mobile number (starts with 6-9)";
+      }
+
+      if (formData.sender_email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.sender_email.trim())) {
+        newErrors.sender_email = "Please enter a valid email address";
+      }
+
+      if (!formData.sender_address.trim()) {
+        newErrors.sender_address = "Pickup address is required";
+      } else if (formData.sender_address.trim().length < 5) {
+        newErrors.sender_address = "Please enter a complete street address (min 5 characters)";
+      }
+
+      if (!formData.sender_city.trim()) {
+        newErrors.sender_city = "City is required";
+      }
+
+      if (!formData.sender_state.trim()) {
+        newErrors.sender_state = "State is required";
+      }
+
+      const pinClean = formData.sender_pincode.replace(/\D/g, "");
+      if (!pinClean) {
+        newErrors.sender_pincode = "Pincode is required";
+      } else if (!/^\d{6}$/.test(pinClean)) {
+        newErrors.sender_pincode = "Enter a valid 6-digit Indian pincode";
+      }
+    }
+
+    if (step === 2) {
+      if (!formData.receiver_name.trim()) {
+        newErrors.receiver_name = "Receiver name is required";
+      } else if (formData.receiver_name.trim().length < 2) {
+        newErrors.receiver_name = "Please enter a valid receiver name (min 2 characters)";
+      }
+
+      const mobileClean = formData.receiver_mobile.replace(/\D/g, "");
+      if (!mobileClean) {
+        newErrors.receiver_mobile = "Receiver mobile number is required";
+      } else if (!/^[6-9]\d{9}$/.test(mobileClean)) {
+        newErrors.receiver_mobile = "Enter a valid 10-digit Indian mobile number (starts with 6-9)";
+      }
+
+      if (formData.receiver_email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.receiver_email.trim())) {
+        newErrors.receiver_email = "Please enter a valid email address";
+      }
+
+      if (!formData.receiver_address.trim()) {
+        newErrors.receiver_address = "Delivery address is required";
+      } else if (formData.receiver_address.trim().length < 5) {
+        newErrors.receiver_address = "Please enter a complete delivery address (min 5 characters)";
+      }
+
+      if (!formData.receiver_city.trim()) {
+        newErrors.receiver_city = "City is required";
+      }
+
+      if (!formData.receiver_state.trim()) {
+        newErrors.receiver_state = "State is required";
+      }
+
+      const pinClean = formData.receiver_pincode.replace(/\D/g, "");
+      if (!pinClean) {
+        newErrors.receiver_pincode = "Pincode is required";
+      } else if (!/^\d{6}$/.test(pinClean)) {
+        newErrors.receiver_pincode = "Enter a valid 6-digit Indian pincode";
+      }
+    }
+
+    if (step === 3) {
+      if (!formData.description.trim()) {
+        newErrors.description = "Package description is required";
+      } else if (formData.description.trim().length < 3) {
+        newErrors.description = "Please enter a brief description (min 3 characters)";
+      }
+
+      const wt = parseFloat(formData.weight_kg);
+      if (!formData.weight_kg || isNaN(wt) || wt <= 0) {
+        newErrors.weight_kg = "Enter a valid parcel weight in kg (e.g. 0.5)";
+      }
+
+      const val = parseFloat(formData.declared_value_rupees);
+      if (!formData.declared_value_rupees || isNaN(val) || val < 100) {
+        newErrors.declared_value_rupees = "Declared value must be at least ₹100";
+      }
+
+      const l = parseFloat(formData.length_cm);
+      if (!formData.length_cm || isNaN(l) || l <= 0) {
+        newErrors.length_cm = "Enter length in cm";
+      }
+
+      const w = parseFloat(formData.width_cm);
+      if (!formData.width_cm || isNaN(w) || w <= 0) {
+        newErrors.width_cm = "Enter width in cm";
+      }
+
+      const h = parseFloat(formData.height_cm);
+      if (!formData.height_cm || isNaN(h) || h <= 0) {
+        newErrors.height_cm = "Enter height in cm";
+      }
+    }
+
+    if (step === 4) {
+      if (formData.payment_type === "COD") {
+        const cod = parseFloat(formData.cod_amount_rupees);
+        if (!formData.cod_amount_rupees || isNaN(cod) || cod < 50) {
+          newErrors.cod_amount_rupees = "Enter valid COD amount (minimum ₹50)";
+        }
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep((prev) => prev + 1);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    if (!validateStep(4)) return;
 
+    setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
       const newId = `BK-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -119,6 +263,7 @@ export default function BookParcelPage() {
             onClick={() => {
               setIsSuccess(false);
               setCurrentStep(1);
+              setErrors({});
             }}
           >
             Book Another Parcel
@@ -170,9 +315,9 @@ export default function BookParcelPage() {
         ))}
       </div>
 
-      {/* Main Wizard Form without extra divider lines */}
+      {/* Main Wizard Form */}
       <Card className="shadow-md">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           {/* STEP 1: SENDER DETAILS */}
           {currentStep === 1 && (
             <div className="p-6 sm:p-8 space-y-6">
@@ -188,6 +333,7 @@ export default function BookParcelPage() {
                   value={formData.sender_name}
                   onChange={handleChange}
                   placeholder="e.g. Full Name"
+                  error={errors.sender_name}
                   required
                 />
                 <Input
@@ -199,6 +345,7 @@ export default function BookParcelPage() {
                   onChange={handleChange}
                   placeholder="10-digit mobile number"
                   helperText="10-digit Indian mobile number"
+                  error={errors.sender_mobile}
                   required
                 />
                 <div className="sm:col-span-2">
@@ -209,6 +356,7 @@ export default function BookParcelPage() {
                     value={formData.sender_email}
                     onChange={handleChange}
                     placeholder="email@example.com"
+                    error={errors.sender_email}
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -218,6 +366,7 @@ export default function BookParcelPage() {
                     value={formData.sender_address}
                     onChange={handleChange}
                     placeholder="Complete pickup street address / flat / building"
+                    error={errors.sender_address}
                     required
                   />
                 </div>
@@ -227,6 +376,7 @@ export default function BookParcelPage() {
                   value={formData.sender_city}
                   onChange={handleChange}
                   placeholder="City"
+                  error={errors.sender_city}
                   required
                 />
                 <Input
@@ -235,6 +385,7 @@ export default function BookParcelPage() {
                   value={formData.sender_state}
                   onChange={handleChange}
                   placeholder="State"
+                  error={errors.sender_state}
                   required
                 />
                 <Input
@@ -244,6 +395,7 @@ export default function BookParcelPage() {
                   value={formData.sender_pincode}
                   onChange={handleChange}
                   placeholder="6-digit pincode"
+                  error={errors.sender_pincode}
                   required
                 />
               </div>
@@ -265,6 +417,7 @@ export default function BookParcelPage() {
                   value={formData.receiver_name}
                   onChange={handleChange}
                   placeholder="Recipient full name"
+                  error={errors.receiver_name}
                   required
                 />
                 <Input
@@ -276,6 +429,7 @@ export default function BookParcelPage() {
                   onChange={handleChange}
                   placeholder="10-digit recipient mobile"
                   helperText="Recipient will receive delivery OTP and alerts"
+                  error={errors.receiver_mobile}
                   required
                 />
                 <div className="sm:col-span-2">
@@ -286,6 +440,7 @@ export default function BookParcelPage() {
                     value={formData.receiver_email}
                     onChange={handleChange}
                     placeholder="recipient@example.com"
+                    error={errors.receiver_email}
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -295,6 +450,7 @@ export default function BookParcelPage() {
                     value={formData.receiver_address}
                     onChange={handleChange}
                     placeholder="Complete delivery address"
+                    error={errors.receiver_address}
                     required
                   />
                 </div>
@@ -304,6 +460,7 @@ export default function BookParcelPage() {
                   value={formData.receiver_city}
                   onChange={handleChange}
                   placeholder="City"
+                  error={errors.receiver_city}
                   required
                 />
                 <Input
@@ -312,6 +469,7 @@ export default function BookParcelPage() {
                   value={formData.receiver_state}
                   onChange={handleChange}
                   placeholder="State"
+                  error={errors.receiver_state}
                   required
                 />
                 <Input
@@ -321,6 +479,7 @@ export default function BookParcelPage() {
                   value={formData.receiver_pincode}
                   onChange={handleChange}
                   placeholder="6-digit pincode"
+                  error={errors.receiver_pincode}
                   required
                 />
               </div>
@@ -362,6 +521,7 @@ export default function BookParcelPage() {
                     value={formData.description}
                     onChange={handleChange}
                     placeholder="Brief description of items inside"
+                    error={errors.description}
                     required
                   />
                 </div>
@@ -371,11 +531,12 @@ export default function BookParcelPage() {
                   name="weight_kg"
                   type="number"
                   step="0.05"
-                  min="0.1"
+                  min="0.05"
                   value={formData.weight_kg}
                   onChange={handleChange}
                   placeholder="e.g. 1.5"
                   helperText="Weight will be verified during branch intake"
+                  error={errors.weight_kg}
                   required
                 />
 
@@ -388,12 +549,13 @@ export default function BookParcelPage() {
                   onChange={handleChange}
                   placeholder="e.g. 2000"
                   helperText="Required for transit insurance and valuation"
+                  error={errors.declared_value_rupees}
                   required
                 />
 
                 <div className="sm:col-span-2 space-y-2 pt-2">
                   <label className="block text-xs font-bold uppercase tracking-wider text-text-muted">
-                    Dimensions (Length x Width x Height in CM)
+                    Dimensions (Length x Width x Height in CM) <span className="text-status-danger">*</span>
                   </label>
                   <div className="grid grid-cols-3 gap-3">
                     <Input
@@ -403,6 +565,7 @@ export default function BookParcelPage() {
                       value={formData.length_cm}
                       onChange={handleChange}
                       placeholder="L cm"
+                      error={errors.length_cm}
                       required
                     />
                     <Input
@@ -412,6 +575,7 @@ export default function BookParcelPage() {
                       value={formData.width_cm}
                       onChange={handleChange}
                       placeholder="W cm"
+                      error={errors.width_cm}
                       required
                     />
                     <Input
@@ -421,6 +585,7 @@ export default function BookParcelPage() {
                       value={formData.height_cm}
                       onChange={handleChange}
                       placeholder="H cm"
+                      error={errors.height_cm}
                       required
                     />
                   </div>
@@ -503,6 +668,7 @@ export default function BookParcelPage() {
                     onChange={handleChange}
                     placeholder="e.g. 1500"
                     helperText="This amount will be collected in cash by courier and settled back to your account."
+                    error={errors.cod_amount_rupees}
                     required
                   />
                 </div>
@@ -567,7 +733,10 @@ export default function BookParcelPage() {
                 type="button"
                 variant="outline"
                 size="md"
-                onClick={() => setCurrentStep((prev) => prev - 1)}
+                onClick={() => {
+                  setErrors({});
+                  setCurrentStep((prev) => prev - 1);
+                }}
               >
                 <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
               </Button>
@@ -580,7 +749,7 @@ export default function BookParcelPage() {
                 type="button"
                 variant="primary"
                 size="md"
-                onClick={() => setCurrentStep((prev) => prev + 1)}
+                onClick={handleNextStep}
               >
                 Next Step <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>

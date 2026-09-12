@@ -29,7 +29,7 @@ export async function sendNotification(payload: NotificationPayload) {
       },
       "shipment.delivered": {
         subject: "Delivered Successfully — AWB {{awb}}",
-        body: "Your parcel with AWB {{awb}} has been delivered successfully. Thank you for choosing Swift Ship Courier!",
+        body: "Your parcel with AWB {{awb}} has been delivered successfully. Thank you for choosing SS Courier service!",
       },
     };
 

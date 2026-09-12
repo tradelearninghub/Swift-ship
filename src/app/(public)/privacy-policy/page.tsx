@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-text-primary">1. Information We Collect</h2>
           <p>
-            When you use Swift Ship Courier services, we collect necessary consignment information including sender and receiver names, telephone numbers, delivery postal addresses, parcel contents, weight, dimensions, and declared commercial values.
+            When you use SS Courier service, we collect necessary consignment information including sender and receiver names, telephone numbers, delivery postal addresses, parcel contents, weight, dimensions, and declared commercial values.
           </p>
         </section>
 

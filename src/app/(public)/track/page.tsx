@@ -23,14 +23,13 @@ import {
   Barcode,
 } from "lucide-react";
 
-type SearchMode = "AWB" | "ORDER_ID" | "MOBILE_PINCODE";
+type SearchMode = "AWB" | "ORDER_ID" | "MOBILE";
 
 function TrackingContent() {
   const searchParams = useSearchParams();
   const initialAwb = searchParams.get("awb") || "";
   const initialBookingId = searchParams.get("booking_id") || searchParams.get("order_id") || "";
   const initialMobile = searchParams.get("mobile") || "";
-  const initialPincode = searchParams.get("pincode") || "";
   const initialQuery = searchParams.get("q") || initialAwb || initialBookingId;
 
   const [activeTab, setActiveTab] = useState<SearchMode>(
@@ -39,7 +38,7 @@ function TrackingContent() {
       : initialBookingId
       ? "ORDER_ID"
       : initialMobile
-      ? "MOBILE_PINCODE"
+      ? "MOBILE"
       : "AWB"
   );
 
@@ -47,7 +46,6 @@ function TrackingContent() {
   const [awbInput, setAwbInput] = useState(initialAwb);
   const [bookingIdInput, setBookingIdInput] = useState(initialBookingId);
   const [mobileInput, setMobileInput] = useState(initialMobile);
-  const [pincodeInput, setPincodeInput] = useState(initialPincode);
 
   // Search Results State
   const [matchedBookings, setMatchedBookings] = useState<MockBooking[]>([]);
@@ -61,9 +59,9 @@ function TrackingContent() {
     if (initialQuery) {
       handleDirectLookup(initialQuery);
     } else if (initialMobile) {
-      handleMobilePincodeLookup(initialMobile, initialPincode);
+      handleMobileLookup(initialMobile);
     }
-  }, [initialQuery, initialMobile, initialPincode]);
+  }, [initialQuery, initialMobile]);
 
   // Direct AWB / Booking ID Lookup
   const handleDirectLookup = (query: string) => {
@@ -91,24 +89,19 @@ function TrackingContent() {
     }, 350);
   };
 
-  // Mobile + Pincode Search (Checks (Sender Mobile + Pincode) OR (Receiver Mobile + Pincode))
-  const handleMobilePincodeLookup = (mobVal: string, pinVal: string) => {
+  // Mobile-Only Search (Checks Sender Mobile OR Receiver Mobile)
+  const handleMobileLookup = (mobVal: string) => {
     if (!mobVal.trim()) return;
     setIsLoading(true);
     setHasSearched(true);
 
     setTimeout(() => {
-      const mob = mobVal.trim();
-      const pin = pinVal.trim();
+      const mob = mobVal.trim().replace(/\D/g, "");
 
       const matches = MOCK_BOOKINGS.filter((b) => {
-        if (pin) {
-          return (
-            (b.sender_mobile.includes(mob) && b.sender_pincode === pin) ||
-            (b.receiver_mobile.includes(mob) && b.receiver_pincode === pin)
-          );
-        }
-        return b.sender_mobile.includes(mob) || b.receiver_mobile.includes(mob);
+        const sm = b.sender_mobile.replace(/\D/g, "");
+        const rm = b.receiver_mobile.replace(/\D/g, "");
+        return sm.includes(mob) || rm.includes(mob);
       });
 
       setMatchedBookings(matches);
@@ -118,7 +111,7 @@ function TrackingContent() {
         setSelectedBooking(null);
       }
       setIsLoading(false);
-    }, 400);
+    }, 350);
   };
 
   const handleLiveRefresh = () => {
@@ -185,15 +178,15 @@ function TrackingContent() {
 
           <button
             type="button"
-            onClick={() => setActiveTab("MOBILE_PINCODE")}
+            onClick={() => setActiveTab("MOBILE")}
             className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg transition-all ${
-              activeTab === "MOBILE_PINCODE"
+              activeTab === "MOBILE"
                 ? "bg-surface-base text-brand-primary shadow-sm font-bold"
                 : "text-text-secondary hover:text-text-primary"
             }`}
           >
             <Phone className="w-4 h-4 hidden sm:inline" />
-            <span>Mobile + Pincode</span>
+            <span>Mobile Number</span>
           </button>
         </div>
 
@@ -271,34 +264,31 @@ function TrackingContent() {
           </form>
         )}
 
-        {/* Option 3: Mobile + Pincode Search */}
-        {activeTab === "MOBILE_PINCODE" && (
+        {/* Option 3: Mobile Number Only Search */}
+        {activeTab === "MOBILE" && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleMobilePincodeLookup(mobileInput, pincodeInput);
+              handleMobileLookup(mobileInput);
             }}
             className="space-y-4"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Input
-                label="Mobile Number"
-                type="tel"
-                maxLength={10}
-                value={mobileInput}
-                onChange={(e) => setMobileInput(e.target.value)}
-                placeholder="10-digit mobile number"
-                required
-              />
-              <Input
-                label="Origin or Destination Pincode"
-                type="text"
-                maxLength={6}
-                value={pincodeInput}
-                onChange={(e) => setPincodeInput(e.target.value)}
-                placeholder="6-digit pincode"
-                required
-              />
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-text-primary">
+                Enter Registered 10-Digit Mobile Number
+              </label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  maxLength={10}
+                  value={mobileInput}
+                  onChange={(e) => setMobileInput(e.target.value.replace(/\D/g, ""))}
+                  placeholder="e.g. 9876543210 or 8000151117"
+                  className="w-full h-12 pl-4 pr-12 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:outline-none transition-all"
+                  required
+                />
+                <Phone className="w-5 h-5 text-text-muted absolute right-4 top-3.5" />
+              </div>
             </div>
             <Button
               type="submit"
@@ -307,10 +297,10 @@ function TrackingContent() {
               className="w-full shadow-md"
               isLoading={isLoading}
             >
-              Search by Mobile & Pincode
+              Track by Mobile Number
             </Button>
             <p className="text-center text-[11px] text-text-muted">
-              Checks both (Sender Mobile + Pincode) and (Receiver Mobile + Pincode) with privacy verification.
+              Searches shipments where this mobile number is either sender or receiver.
             </p>
           </form>
         )}
@@ -326,7 +316,7 @@ function TrackingContent() {
                 Multiple Shipments Found ({matchedBookings.length})
               </span>
               <span className="text-xs font-normal text-text-muted">
-                Showing all consignments associated with your query
+                Showing all consignments associated with your mobile number
               </span>
             </CardTitle>
             <p className="text-xs text-text-secondary mt-1">
@@ -374,7 +364,7 @@ function TrackingContent() {
           <AlertCircle className="w-10 h-10 text-amber-500 mx-auto" />
           <h3 className="text-base font-bold text-text-primary">No Consignment Found</h3>
           <p className="text-xs text-text-secondary max-w-sm mx-auto">
-            We could not find any active shipment matching your query. Please double-check your AWB, Booking ID, or Mobile + Pincode.
+            We could not find any active shipment matching your query. Please double-check your AWB, Booking ID, or Mobile Number.
           </p>
         </div>
       )}

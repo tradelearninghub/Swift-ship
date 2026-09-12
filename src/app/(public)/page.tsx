@@ -11,7 +11,6 @@ export default function HomePage() {
   const [trackType, setTrackType] = useState<TrackType>("awb");
   const [searchValue, setSearchValue] = useState("");
   const [mobileValue, setMobileValue] = useState("");
-  const [pincodeValue, setPincodeValue] = useState("");
 
   const handleTrackSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,9 +24,8 @@ export default function HomePage() {
       router.push(`/track?order_id=${encodeURIComponent(q)}`);
     } else {
       const m = mobileValue.trim();
-      const p = pincodeValue.trim();
-      if (!m || !p) return;
-      router.push(`/track?mobile=${encodeURIComponent(m)}&pincode=${encodeURIComponent(p)}`);
+      if (!m) return;
+      router.push(`/track?mobile=${encodeURIComponent(m)}`);
     }
   };
 
@@ -39,7 +37,7 @@ export default function HomePage() {
       <section className="hero" id="track">
         <div className="main-container">
           <h1>Fast, Safe & Reliable Courier Services</h1>
-          <p>Track your package live anywhere across the globe</p>
+          <p>Track your package live anywhere across India and abroad</p>
 
           <div className="tracking-wrapper">
             {/* 3 Options Tabs */}
@@ -70,7 +68,6 @@ export default function HomePage() {
                 onClick={() => {
                   setTrackType("mobile");
                   setMobileValue("");
-                  setPincodeValue("");
                 }}
               >
                 <i className="fas fa-mobile-alt"></i> Mobile No.
@@ -80,26 +77,14 @@ export default function HomePage() {
             {/* Input Form Box */}
             <form className="track-box" onSubmit={handleTrackSubmit}>
               {trackType === "mobile" ? (
-                <div style={{ display: "flex", flex: 1, gap: "8px", flexWrap: "wrap" }}>
-                  <input
-                    type="tel"
-                    maxLength={10}
-                    value={mobileValue}
-                    onChange={(e) => setMobileValue(e.target.value.replace(/\D/g, ""))}
-                    placeholder="Enter Registered 10-digit Mobile Number"
-                    required
-                    style={{ flex: 1, minWidth: "160px" }}
-                  />
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={pincodeValue}
-                    onChange={(e) => setPincodeValue(e.target.value.replace(/\D/g, ""))}
-                    placeholder="Delivery Pincode (6 digits)"
-                    required
-                    style={{ width: "180px", borderLeft: "1px solid #ddd" }}
-                  />
-                </div>
+                <input
+                  type="tel"
+                  maxLength={10}
+                  value={mobileValue}
+                  onChange={(e) => setMobileValue(e.target.value.replace(/\D/g, ""))}
+                  placeholder="Enter Registered 10-digit Mobile Number"
+                  required
+                />
               ) : (
                 <input
                   type="text"
@@ -107,8 +92,8 @@ export default function HomePage() {
                   onChange={(e) => setSearchValue(e.target.value)}
                   placeholder={
                     trackType === "awb"
-                      ? "Enter AWB / Consignment Number (e.g. SWIFT123456)"
-                      : "Enter Order / Reference ID (e.g. ORD-98765)"
+                      ? "Enter AWB / Consignment Number (e.g. DEL98234123)"
+                      : "Enter Order / Reference ID (e.g. BK-1025)"
                   }
                   required
                 />

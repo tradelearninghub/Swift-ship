@@ -277,6 +277,30 @@ Registry of pre-built adapter definitions: `id`, `adapter_code`, `display_name`,
 ### `support_ticket_notes`
 `id`, `ticket_id`, `author_id`, `note`, `created_at`.
 
+## Rate Cards & Automated Pricing [NEW — §65a]
+
+### `rate_cards`
+Backs the instant rate calculator (`/calculator` and `/api/calculator`), computing indicative multi-carrier quotes based on origin hub, destination zone, weight slabs, and volumetric dimensions (`(L × W × H) / 5000`).
+
+| Field | Type | Notes |
+|---|---|---|
+| id | uuid/pk | |
+| courier_code | string | DELHIVERY, DTDC, XPRESSBEES, STANDARD |
+| courier_name | string | Human-readable name (e.g. "Delhivery Express Air") |
+| service_type | enum(EXPRESS, SURFACE) | |
+| zone | enum(ZONE_A, ZONE_B, ZONE_C, ZONE_D, ZONE_E) | Local, Regional, Metro, ROI, Special |
+| zone_title | string | Display label (e.g. "Zone C — Metro Corridors") |
+| base_weight_grams | int | Initial slab weight (e.g. 500g) |
+| base_rate_paise | int | Initial slab charge in paise (e.g. 5000 = ₹50) |
+| additional_weight_grams | int | Increment weight slab (e.g. 500g or 1000g) |
+| additional_rate_paise | int | Charge per additional increment in paise |
+| min_transit_days | int | Minimum expected transit days |
+| max_transit_days | int | Maximum expected transit days |
+| is_active | boolean | default true |
+| created_at / updated_at | datetime | |
+
+> **[IMPORTANT]** Quotes produced from `rate_cards` are strictly **indicative estimates** for customer transparency (§65a). The binding `shipping_charge` applied to a booking is confirmed by admin/staff during review (§10 & §16) and recorded in `booking_charges`.
+
 ---
 
 ## Settings & System

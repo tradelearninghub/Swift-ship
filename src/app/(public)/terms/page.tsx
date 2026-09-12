@@ -12,7 +12,7 @@ export default function TermsOfServicePage() {
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-text-primary">1. Agreement to Terms</h2>
           <p>
-            By booking a parcel or utilizing multi-courier tracking services on Swift Ship Courier, you agree to these Terms of Service, rate schedules, and courier carriage conditions.
+            By booking a parcel or utilizing multi-courier tracking services on SS Courier service, you agree to these Terms of Service, rate schedules, and courier carriage conditions.
           </p>
         </section>
 

@@ -963,9 +963,16 @@ The architecture must allow these to be added later **without a core rewrite**:
 
 - New courier partners (new adapters)
 - New/updated courier APIs
-- Online payment gateway (Razorpay/Stripe/PayU)
-- **65a. Automated pricing engine** — a rate-card system keyed by (courier, origin zone, destination zone, weight slab, dimensional weight) that can compute an instant customer-facing quote; designed as a pluggable "quote provider" so manual admin pricing and automated pricing can coexist during rollout.
-- Mobile app (via the same REST/API layer)
+- **65a. Automated pricing engine (Built in v1 — /calculator & /api/calculator)**:
+  A multi-carrier rate-card calculation engine keyed by origin pincode (default Jaipur Central Hub 302003), destination pincode, weight slab, and volumetric dimensions (`(L × W × H) / 5000`).
+  - Resolves Indian pincodes into standardized shipping zones:
+    - **Zone A**: Intra-City Jaipur (`302xxx`, same-day / next-day delivery)
+    - **Zone B**: Intra-State Regional Rajasthan (`30xxxx` - `34xxxx`, 1 - 2 days)
+    - **Zone C**: Major Metro Corridors (Delhi NCR, Mumbai, Bengaluru, Chennai, Kolkata, Hyderabad, 2 - 3 days)
+    - **Zone D**: Rest of India Tier-2 & Tier-3 (3 - 5 days)
+    - **Zone E**: Special Remote Zones (North-East, J&K, Island territories, 4 - 7 days)
+  - Provides comparative quotes across Delhivery Express Air, DTDC Standard Surface, and XpressBees Priority.
+  - **ESTIMATE ONLY RULE**: Per §10 & §16, this calculator provides an indicative customer estimate for transparency. The actual customer `shipping_charge` is verified, calibrated, and confirmed manually by admin/staff upon package physical intake at the hub.
 - WhatsApp bot for two-way customer interaction (status queries, not just outbound notifications)
 - Advanced reports / BI export
 - Customer wallet (prepaid balance for frequent shippers)

@@ -142,12 +142,12 @@ export default function AdminSettingsPage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Input label="SMTP Host" defaultValue="smtp.mailtrap.io" required />
-                    <Input label="SMTP Port" defaultValue="587" required />
-                    <Input label="SMTP Username" defaultValue="swift_relay_user" required />
+                    <Input label="SMTP Host" defaultValue="smtp.hostinger.com" required />
+                    <Input label="SMTP Port" defaultValue="465" required />
+                    <Input label="SMTP Username" defaultValue="support@sscourierservice.in" required />
                     <Input label="SMTP Password" type="password" defaultValue="••••••••••••" required />
-                    <Input label="From Email Address" defaultValue="notifications@swiftship.com" required />
-                    <Input label="From Display Name" defaultValue="Swift Ship Courier" required />
+                    <Input label="From Email Address" defaultValue="support@sscourierservice.in" required />
+                    <Input label="From Display Name" defaultValue="SS Courier service" required />
                   </div>
 
                   <div className="pt-2">
@@ -155,7 +155,7 @@ export default function AdminSettingsPage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => alert("Test email sent to admin@swiftship.com successfully!")}
+                      onClick={() => alert("Test email sent to admin@sscourierservice.in successfully!")}
                     >
                       Send Test Connection Email (§38)
                     </Button>

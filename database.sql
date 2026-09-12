@@ -419,6 +419,26 @@ CREATE TABLE IF NOT EXISTS `activity_logs` (
   CONSTRAINT `fk_activity_actor` FOREIGN KEY (`actor_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 27. Rate Cards (Automated Indicative Pricing Engine - §65a)
+CREATE TABLE IF NOT EXISTS `rate_cards` (
+  `id` VARCHAR(191) NOT NULL PRIMARY KEY,
+  `courier_code` VARCHAR(50) NOT NULL,
+  `courier_name` VARCHAR(100) NOT NULL,
+  `service_type` VARCHAR(20) NOT NULL,
+  `zone` VARCHAR(50) NOT NULL,
+  `zone_title` VARCHAR(100) NOT NULL,
+  `base_weight_grams` INT NOT NULL,
+  `base_rate_paise` INT NOT NULL,
+  `additional_weight_grams` INT NOT NULL,
+  `additional_rate_paise` INT NOT NULL,
+  `min_transit_days` INT NOT NULL DEFAULT 1,
+  `max_transit_days` INT NOT NULL DEFAULT 3,
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  INDEX `idx_rate_cards_courier_zone` (`courier_code`, `zone`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- =============================================================================
 -- SEED INITIAL DATA (Idempotent INSERT IGNORE / ON DUPLICATE KEY UPDATE)
 -- =============================================================================
@@ -533,5 +553,19 @@ INSERT INTO `settings` (`id`, `group`, `key`, `value`, `updated_at`) VALUES
   NOW(3)
 )
 ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `updated_at` = NOW(3);
+
+-- Seed Indicative Rate Cards (§65a)
+INSERT INTO `rate_cards` (`id`, `courier_code`, `courier_name`, `service_type`, `zone`, `zone_title`, `base_weight_grams`, `base_rate_paise`, `additional_weight_grams`, `additional_rate_paise`, `min_transit_days`, `max_transit_days`, `is_active`) VALUES
+('rc-del-zone-a', 'DELHIVERY', 'Delhivery Express Air', 'EXPRESS', 'ZONE_A', 'Zone A — Intra-City Jaipur', 500, 5000, 500, 3000, 1, 1, 1),
+('rc-del-zone-b', 'DELHIVERY', 'Delhivery Express Air', 'EXPRESS', 'ZONE_B', 'Zone B — Intra-State (Rajasthan)', 500, 7500, 500, 4000, 1, 2, 1),
+('rc-del-zone-c', 'DELHIVERY', 'Delhivery Express Air', 'EXPRESS', 'ZONE_C', 'Zone C — Metro Corridors', 500, 11000, 500, 6000, 2, 3, 1),
+('rc-del-zone-d', 'DELHIVERY', 'Delhivery Express Air', 'EXPRESS', 'ZONE_D', 'Zone D — Rest of India', 500, 13500, 500, 7500, 3, 4, 1),
+('rc-del-zone-e', 'DELHIVERY', 'Delhivery Express Air', 'EXPRESS', 'ZONE_E', 'Zone E — Special Remote Zones', 500, 17500, 500, 9500, 4, 6, 1),
+('rc-dtdc-zone-a', 'DTDC', 'DTDC Standard Surface', 'SURFACE', 'ZONE_A', 'Zone A — Intra-City Jaipur', 500, 4000, 1000, 2500, 1, 2, 1),
+('rc-dtdc-zone-b', 'DTDC', 'DTDC Standard Surface', 'SURFACE', 'ZONE_B', 'Zone B — Intra-State (Rajasthan)', 500, 6000, 1000, 3500, 2, 3, 1),
+('rc-dtdc-zone-c', 'DTDC', 'DTDC Standard Surface', 'SURFACE', 'ZONE_C', 'Zone C — Metro Corridors', 500, 8500, 1000, 4500, 3, 5, 1),
+('rc-dtdc-zone-d', 'DTDC', 'DTDC Standard Surface', 'SURFACE', 'ZONE_D', 'Zone D — Rest of India', 500, 10500, 1000, 5500, 4, 6, 1),
+('rc-dtdc-zone-e', 'DTDC', 'DTDC Standard Surface', 'SURFACE', 'ZONE_E', 'Zone E — Special Remote Zones', 500, 14000, 1000, 7500, 5, 7, 1)
+ON DUPLICATE KEY UPDATE `base_rate_paise` = VALUES(`base_rate_paise`), `additional_rate_paise` = VALUES(`additional_rate_paise`);
 
 SET FOREIGN_KEY_CHECKS = 1;

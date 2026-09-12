@@ -685,3 +685,29 @@ model ActivityLog {
   @@index([entity_type, entity_id])
   @@map("activity_logs")
 }
+
+// -----------------------------------------------------------------------------
+// Rate Cards (Automated Indicative Pricing Engine - §65a)
+// -----------------------------------------------------------------------------
+
+model RateCard {
+  id                      String   @id @default(uuid())
+  courier_code            String   @db.VarChar(50)
+  courier_name            String   @db.VarChar(100)
+  service_type            String   @db.VarChar(20)
+  zone                    String   @db.VarChar(50)
+  zone_title              String   @db.VarChar(100)
+  base_weight_grams       Int
+  base_rate_paise         Int
+  additional_weight_grams Int
+  additional_rate_paise   Int
+  min_transit_days        Int      @default(1)
+  max_transit_days        Int      @default(3)
+  is_active               Boolean  @default(true)
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+
+  @@index([courier_code, zone])
+  @@map("rate_cards")
+}
+
