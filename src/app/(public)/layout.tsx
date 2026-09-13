@@ -193,7 +193,7 @@ export default async function PublicLayout({
               <div className="space-y-3 text-sm text-slate-300">
                 <div>
                   <p className="font-semibold text-slate-200 text-xs uppercase tracking-wider mb-1">
-                    Direct Helpline
+                    Helpline
                   </p>
                   <div className="flex flex-col gap-1">
                     {profile.support_phones.map((phone, idx) => (
@@ -237,11 +237,19 @@ export default async function PublicLayout({
             </div>
           </div>
 
-          {/* Thin bottom bar: Copyright + Links */}
+          {/* Thin bottom bar: Attribution + Links */}
           <div className="copyright pt-6 border-t border-white/10 text-center text-xs text-slate-400">
             <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
               <span>
-                &copy; {new Date().getFullYear()} {profile.company_name}. All Rights Reserved.
+                Developed & Managed by{" "}
+                <a
+                  href="https://decentonline.in"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-slate-300 hover:text-[#FF6B00] font-medium transition-colors underline underline-offset-2"
+                >
+                  Decent Online
+                </a>
               </span>
               <span className="hidden sm:inline opacity-40">•</span>
               <Link href="/privacy-policy" className="hover:text-white transition-colors">
