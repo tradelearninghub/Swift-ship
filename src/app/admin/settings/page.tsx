@@ -60,6 +60,12 @@ export default function AdminSettingsPage() {
     address: "Shop No 4, 5th Crossing, Padmavati School, Ghee Walo Ka Rasta, Johri Bazar",
     city: "Jaipur",
     pincode: "302003",
+    // Social Links
+    facebook_url: "",
+    instagram_url: "",
+    twitter_url: "",
+    linkedin_url: "",
+    youtube_url: "",
     // SMTP
     smtp_host: "smtp.hostinger.com",
     smtp_port: "465",
@@ -112,6 +118,11 @@ export default function AdminSettingsPage() {
           if (cp.address) next.address = cp.address;
           if (cp.city) next.city = cp.city;
           if (cp.pincode) next.pincode = cp.pincode;
+          if (cp.facebook_url) next.facebook_url = cp.facebook_url;
+          if (cp.instagram_url) next.instagram_url = cp.instagram_url;
+          if (cp.twitter_url) next.twitter_url = cp.twitter_url;
+          if (cp.linkedin_url) next.linkedin_url = cp.linkedin_url;
+          if (cp.youtube_url) next.youtube_url = cp.youtube_url;
         }
         if (map.smtp_config) {
           const sc = map.smtp_config;
@@ -171,6 +182,11 @@ export default function AdminSettingsPage() {
           city: fields.city,
           state: "Rajasthan",
           pincode: fields.pincode,
+          facebook_url: fields.facebook_url,
+          instagram_url: fields.instagram_url,
+          twitter_url: fields.twitter_url,
+          linkedin_url: fields.linkedin_url,
+          youtube_url: fields.youtube_url,
         };
       } else if (activeGroup === "smtp") {
         key = "smtp_config";
@@ -400,6 +416,53 @@ export default function AdminSettingsPage() {
                       onChange={(e) => setField("pincode", e.target.value)}
                       required
                     />
+                  </div>
+
+                  {/* Social Media Links Section */}
+                  <div className="pt-4 border-t border-border-default space-y-3">
+                    <div>
+                      <h4 className="font-bold text-xs text-text-primary uppercase tracking-wider">
+                        Social Media Channels & Public Links
+                      </h4>
+                      <p className="text-[11px] text-text-muted mt-0.5">
+                        These links will appear directly in the website footer. Leave blank to omit any channel.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Input
+                        label="Facebook Page URL"
+                        value={fields.facebook_url}
+                        onChange={(e) => setField("facebook_url", e.target.value)}
+                        placeholder="https://facebook.com/your-page"
+                      />
+                      <Input
+                        label="Instagram Profile URL"
+                        value={fields.instagram_url}
+                        onChange={(e) => setField("instagram_url", e.target.value)}
+                        placeholder="https://instagram.com/your-handle"
+                      />
+                      <Input
+                        label="Twitter / X Profile URL"
+                        value={fields.twitter_url}
+                        onChange={(e) => setField("twitter_url", e.target.value)}
+                        placeholder="https://x.com/your-handle"
+                      />
+                      <Input
+                        label="LinkedIn Page URL"
+                        value={fields.linkedin_url}
+                        onChange={(e) => setField("linkedin_url", e.target.value)}
+                        placeholder="https://linkedin.com/company/your-company"
+                      />
+                      <div className="sm:col-span-2">
+                        <Input
+                          label="YouTube Channel URL"
+                          value={fields.youtube_url}
+                          onChange={(e) => setField("youtube_url", e.target.value)}
+                          placeholder="https://youtube.com/@your-channel"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

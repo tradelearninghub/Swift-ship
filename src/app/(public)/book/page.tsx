@@ -201,15 +201,24 @@ export default function BookParcelPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (validateStep(currentStep)) {
-      setCurrentStep((prev) => prev + 1);
+      setCurrentStep((prev) => Math.min(prev + 1, 4));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateStep(4)) return;
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    // Do NOT submit if user is still on earlier steps
+    if (currentStep !== 4) {
+      handleNextStep();
+      return;
+    }
+
+    if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) {
+      return;
+    }
 
     setIsSubmitting(true);
     setApiError(null);
@@ -363,7 +372,23 @@ export default function BookParcelPage() {
 
       {/* Main Wizard Form */}
       <Card className="shadow-md">
-        <form onSubmit={handleSubmit} noValidate>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (currentStep === 4) {
+              handleSubmit(e);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+              e.preventDefault();
+              if (currentStep < 4) {
+                handleNextStep();
+              }
+            }
+          }}
+          noValidate
+        >
           {/* STEP 1: SENDER DETAILS */}
           {currentStep === 1 && (
             <div className="p-6 sm:p-8 space-y-6">
@@ -812,13 +837,14 @@ export default function BookParcelPage() {
               </Button>
             ) : (
               <Button
-                type="submit"
+                type="button"
                 variant="accent"
                 size="lg"
+                onClick={() => handleSubmit()}
                 isLoading={isSubmitting}
-                className="shadow-md"
+                className="shadow-md font-bold px-8"
               >
-                Submit Booking Request
+                Confirm & Submit Booking Request
               </Button>
             )}
           </CardFooter>

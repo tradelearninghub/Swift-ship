@@ -14,6 +14,11 @@ export interface CompanyProfileSettings {
   google_maps_embed_url?: string;
   latitude?: number;
   longitude?: number;
+  facebook_url?: string;
+  instagram_url?: string;
+  twitter_url?: string;
+  linkedin_url?: string;
+  youtube_url?: string;
 }
 
 export const DEFAULT_COMPANY_PROFILE: CompanyProfileSettings = {
@@ -31,6 +36,11 @@ export const DEFAULT_COMPANY_PROFILE: CompanyProfileSettings = {
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3557.484920272099!2d75.82412537611685!3d26.921104759799295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db14b1a473b11%3A0xb35a0f5a11c1e5cb!2sJohri%20Bazar%2C%20Jaipur%2C%20Rajasthan%20302003!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin",
   latitude: 26.9211,
   longitude: 75.8267,
+  facebook_url: "",
+  instagram_url: "",
+  twitter_url: "",
+  linkedin_url: "",
+  youtube_url: "",
 };
 
 export async function getCompanyProfile(): Promise<CompanyProfileSettings> {

@@ -114,10 +114,18 @@ export async function POST(
     const data = validation.data;
 
     // Verify session user exists in database to avoid foreign key errors
-    const validUser = session.id
-      ? await prisma.user.findUnique({ where: { id: session.id }, select: { id: true } })
-      : null;
-    const actorId = validUser?.id || null;
+    let actorId: string | null = null;
+    if (session.id) {
+      const u = await prisma.user.findUnique({ where: { id: session.id }, select: { id: true } });
+      if (u) actorId = u.id;
+    }
+    if (!actorId) {
+      const fallbackAdmin = await prisma.user.findFirst({
+        where: { role: { name: { in: ["SUPER_ADMIN", "ADMIN", "Super Admin", "Admin"] } } },
+        select: { id: true },
+      });
+      actorId = fallbackAdmin?.id || null;
+    }
 
     // Find booking
     const booking = await prisma.booking.findFirst({
@@ -141,7 +149,7 @@ export async function POST(
       const reason = (data.rejection_reason || "").trim() || "Rejected by admin";
 
       const updatedBooking = await prisma.$transaction(async (tx) => {
-        const b = await tx.booking.update({
+        await tx.booking.update({
           where: { id: booking.id },
           data: {
             status: newStatus,
@@ -159,7 +167,20 @@ export async function POST(
           },
         });
 
-        return b;
+        return await tx.booking.findUnique({
+          where: { id: booking.id },
+          include: {
+            parcels: true,
+            charges: true,
+            customer: true,
+            shipment: {
+              include: {
+                courier_partner: true,
+                tracking_events: { orderBy: { occurred_at: "desc" } },
+              },
+            },
+          },
+        });
       });
 
       return NextResponse.json({
@@ -220,7 +241,7 @@ export async function POST(
       }
 
       // 3. Update Booking status to APPROVED
-      const updatedBooking = await tx.booking.update({
+      await tx.booking.update({
         where: { id: booking.id },
         data: {
           status: "APPROVED",
@@ -229,11 +250,20 @@ export async function POST(
         },
       });
 
-      // 4. Generate Shipment / AWB if courier partner assigned
+      // 4. Generate Shipment / AWB if courier partner assigned or default
+      let partnerIdToUse = data.courier_partner_id;
+      if (!partnerIdToUse) {
+        const defaultPartner = await tx.courierPartner.findFirst({
+          where: { status: "ACTIVE" },
+          orderBy: { code: "asc" },
+        });
+        partnerIdToUse = defaultPartner?.id;
+      }
+
       let shipmentRecord: any = null;
-      if (data.courier_partner_id) {
+      if (partnerIdToUse) {
         const partner = await tx.courierPartner.findUnique({
-          where: { id: data.courier_partner_id },
+          where: { id: partnerIdToUse },
         });
 
         if (partner) {
@@ -353,13 +383,29 @@ export async function POST(
           after: {
             status: "APPROVED",
             charges_total: totalPaise,
-            courier_partner_id: data.courier_partner_id,
+            courier_partner_id: partnerIdToUse,
             shipment_id: shipmentRecord?.id,
           },
         },
       });
 
-      return { booking: updatedBooking, shipment: shipmentRecord };
+      // Return fully enriched booking so caller UI maintains parcels, charges, shipment, customer
+      const enrichedBooking = await tx.booking.findUnique({
+        where: { id: booking.id },
+        include: {
+          parcels: true,
+          charges: true,
+          customer: true,
+          shipment: {
+            include: {
+              courier_partner: true,
+              tracking_events: { orderBy: { occurred_at: "desc" } },
+            },
+          },
+        },
+      });
+
+      return { booking: enrichedBooking, shipment: shipmentRecord };
     });
 
     return NextResponse.json({

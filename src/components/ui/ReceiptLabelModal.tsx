@@ -55,7 +55,11 @@ export function ReceiptLabelModal({
       .catch(() => {});
   }, []);
 
-  const parcel = booking.parcels[0];
+  if (!booking) return null;
+
+  const parcel = (Array.isArray(booking.parcels) && booking.parcels.length > 0)
+    ? booking.parcels[0]
+    : (booking.parcel || {});
   const weightGrams =
     parcel?.verified_weight_grams ?? parcel?.submitted_weight_grams ?? 0;
   const lengthCm =
@@ -64,9 +68,10 @@ export function ReceiptLabelModal({
   const heightCm =
     parcel?.verified_height_cm ?? parcel?.submitted_height_cm ?? 0;
 
-  const awb = booking.shipment?.awb || `AWB${booking.booking_number.replace(/[^0-9]/g, "") || "98765432"}`;
+  const bookingNumber = booking.booking_number || "BK-UNKNOWN";
+  const awb = booking.shipment?.awb || `AWB${bookingNumber.replace(/[^0-9]/g, "") || "98765432"}`;
   const courier = booking.shipment?.courier_name || "Assigned Carrier";
-  const token = booking.shipment?.tracking_token || `tok_${booking.booking_number.toLowerCase()}`;
+  const token = booking.shipment?.tracking_token || `tok_${bookingNumber.toLowerCase()}`;
   const trackingUrl = `https://sscourierservice.in/track/${encodeURIComponent(token)}`;
 
   const phone1 = companyProfile.support_phones?.[0] || "8000151117";

@@ -172,7 +172,13 @@ export default function AdminBookingReviewPage() {
 
       const updated = data.booking || data.result?.booking;
       if (updated) {
-        setBooking(updated);
+        setBooking((prev: any) => ({
+          ...prev,
+          ...updated,
+          parcels: updated.parcels || prev?.parcels || [],
+          charges: updated.charges || prev?.charges,
+          shipment: updated.shipment || data.shipment || prev?.shipment,
+        }));
       }
       setIsApproved(true);
       if (data.shipment || data.result?.shipment) {

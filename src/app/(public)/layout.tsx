@@ -115,6 +115,59 @@ export default async function PublicLayout({
                 <span className="font-semibold text-slate-300">Central Hub: </span>
                 {profile.address}, {profile.city}, {profile.state} {profile.pincode}
               </div>
+
+              {/* Social Media Links */}
+              <div className="pt-3">
+                <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2.5">
+                  Follow Us Online
+                </p>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  {[
+                    {
+                      url: profile.facebook_url || "https://facebook.com",
+                      icon: "fab fa-facebook-f",
+                      hover: "hover:bg-[#1877F2]",
+                      label: "Facebook",
+                    },
+                    {
+                      url: profile.instagram_url || "https://instagram.com",
+                      icon: "fab fa-instagram",
+                      hover: "hover:bg-[#E4405F]",
+                      label: "Instagram",
+                    },
+                    {
+                      url: profile.twitter_url || "https://x.com",
+                      icon: "fab fa-x-twitter",
+                      hover: "hover:bg-slate-700",
+                      label: "Twitter / X",
+                    },
+                    {
+                      url: profile.linkedin_url || "https://linkedin.com",
+                      icon: "fab fa-linkedin-in",
+                      hover: "hover:bg-[#0A66C2]",
+                      label: "LinkedIn",
+                    },
+                    {
+                      url: profile.youtube_url || "https://youtube.com",
+                      icon: "fab fa-youtube",
+                      hover: "hover:bg-[#FF0000]",
+                      label: "YouTube",
+                    },
+                  ].map((s, idx) => (
+                    <a
+                      key={idx}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`w-8 h-8 rounded-full bg-white/10 ${s.hover} text-white flex items-center justify-center transition-all text-xs shadow-sm`}
+                      title={s.label}
+                      aria-label={s.label}
+                    >
+                      <i className={s.icon}></i>
+                    </a>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Section 2 — Quick Links (6 canonical links matching header nav) */}
@@ -239,9 +292,13 @@ export default async function PublicLayout({
 
           {/* Thin bottom bar: Attribution + Links */}
           <div className="copyright pt-6 border-t border-white/10 text-center text-xs text-slate-400">
-            <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 leading-relaxed">
               <span>
-                Developed & Managed by{" "}
+                © {new Date().getFullYear()} {profile.company_name || "SS Courier service"}. All rights reserved.
+              </span>
+              <span className="hidden sm:inline opacity-40">•</span>
+              <span>
+                Developed &amp; Managed by{" "}
                 <a
                   href="https://decentonline.in"
                   target="_blank"

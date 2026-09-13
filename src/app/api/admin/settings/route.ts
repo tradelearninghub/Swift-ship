@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const group = req.nextUrl.searchParams.get("group");
 
     // Public info for company profile does not require admin login
-    if (group === "company_profile" && !session) {
+    if (group === "company_profile") {
       const setting = await prisma.setting.findFirst({
         where: { key: "company_profile" },
       });
