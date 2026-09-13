@@ -2,67 +2,53 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, hasPermission } from "@/lib/auth";
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getSessionUser();
-    const searchParams = req.nextUrl.searchParams;
-
-    const status = searchParams.get("status");
-    const search = searchParams.get("search");
-    const limit = parseInt(searchParams.get("limit") || "50");
-
-    const whereClause: any = {};
-
-    // If customer, restrict to their customer ID
-    if (session?.role === "CUSTOMER" && session.customerId) {
-      whereClause.customer_id = session.customerId;
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (status && status !== "ALL") {
-      whereClause.status = status;
-    }
-
-    if (search) {
-      whereClause.OR = [
-        { booking_number: { contains: search } },
-        { receiver_name: { contains: search } },
-        { sender_city: { contains: search } },
-        { receiver_city: { contains: search } },
-        { shipment: { awb: { contains: search } } },
-      ];
-    }
-
-    const bookings = await prisma.booking.findMany({
-      where: whereClause,
+    const bookingId = params.id;
+    const booking = await prisma.booking.findFirst({
+      where: {
+        OR: [{ id: bookingId }, { booking_number: bookingId }],
+      },
       include: {
-        customer: true,
         parcels: true,
         charges: true,
+        customer: true,
         shipment: {
           include: {
             courier_partner: true,
             tracking_events: {
               orderBy: { occurred_at: "desc" },
-              take: 1,
             },
           },
         },
       },
-      orderBy: { created_at: "desc" },
-      take: limit,
     });
 
-    return NextResponse.json({ bookings });
+    if (!booking) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, booking });
   } catch (error: any) {
-    console.error("Fetch Bookings Error:", error);
     return NextResponse.json(
-      { error: "Failed to retrieve bookings" },
+      { error: error.message || "Failed to fetch booking" },
       { status: 500 }
     );
   }
 }
 
-export async function DELETE(req: NextRequest) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getSessionUser();
     if (!session) {
@@ -75,21 +61,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    let bookingId = req.nextUrl.searchParams.get("id");
-    if (!bookingId) {
-      try {
-        const body = await req.json();
-        bookingId = body.id || body.booking_number;
-      } catch {}
-    }
-
-    if (!bookingId) {
-      return NextResponse.json(
-        { error: "Booking ID is required" },
-        { status: 400 }
-      );
-    }
-
+    const bookingId = params.id;
     const booking = await prisma.booking.findFirst({
       where: {
         OR: [{ id: bookingId }, { booking_number: bookingId }],
@@ -108,6 +80,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await prisma.$transaction(async (tx) => {
+      // 1. Clean up shipment & children
       if (booking.shipment) {
         if (booking.shipment.cod_transaction) {
           await tx.codTransaction.delete({
@@ -125,6 +98,7 @@ export async function DELETE(req: NextRequest) {
         }).catch(() => {});
       }
 
+      // 2. Clean up child records
       await tx.payment.deleteMany({
         where: { booking_id: booking.id },
       }).catch(() => {});
@@ -141,6 +115,7 @@ export async function DELETE(req: NextRequest) {
         where: { booking_id: booking.id },
       }).catch(() => {});
 
+      // 3. Delete Booking
       await tx.booking.delete({
         where: { id: booking.id },
       });
@@ -151,11 +126,10 @@ export async function DELETE(req: NextRequest) {
       message: `Booking ${booking.booking_number} deleted successfully`,
     });
   } catch (error: any) {
-    console.error("Booking Delete Error:", error);
+    console.error("Booking Deletion Error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to delete booking" },
       { status: 500 }
     );
   }
 }
-

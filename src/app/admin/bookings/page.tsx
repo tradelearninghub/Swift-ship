@@ -13,7 +13,11 @@ import {
   Plus,
   Printer,
   RefreshCw,
+  Trash2,
+  XCircle,
+  AlertTriangle,
 } from "lucide-react";
+import { Modal } from "@/components/ui/Modal";
 
 export default function AdminBookingsPage() {
   const [viewState, setViewState] = useState<"populated" | "loading" | "empty" | "error">("loading");
@@ -23,6 +27,14 @@ export default function AdminBookingsPage() {
   const [courierFilter, setCourierFilter] = useState("ALL");
   const [paymentFilter, setPaymentFilter] = useState("ALL");
   const [selectedForLabel, setSelectedForLabel] = useState<any | null>(null);
+
+  // Delete & Reject Modals State
+  const [bookingToDelete, setBookingToDelete] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [bookingToReject, setBookingToReject] = useState<any | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchBookings = useCallback(async () => {
     setViewState("loading");
@@ -44,6 +56,59 @@ export default function AdminBookingsPage() {
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
+
+  const handleConfirmDelete = async () => {
+    if (!bookingToDelete) return;
+    setIsDeleting(true);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/bookings?id=${bookingToDelete.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete booking");
+      }
+      setBookings((prev) => prev.filter((b) => b.id !== bookingToDelete.id));
+      setBookingToDelete(null);
+    } catch (err: any) {
+      setActionError(err.message || "Failed to delete booking");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleConfirmReject = async () => {
+    if (!bookingToReject) return;
+    setIsRejecting(true);
+    setActionError(null);
+    try {
+      const reason = rejectReason.trim() || "Rejected by administrator";
+      const res = await fetch(`/api/admin/bookings/${bookingToReject.id}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "REJECT",
+          rejection_reason: reason,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to reject booking");
+      }
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.id === bookingToReject.id ? { ...b, status: "REJECTED", rejection_reason: reason } : b
+        )
+      );
+      setBookingToReject(null);
+      setRejectReason("");
+    } catch (err: any) {
+      setActionError(err.message || "Failed to reject booking");
+    } finally {
+      setIsRejecting(false);
+    }
+  };
 
   const filteredBookings = bookings.filter((b) => {
     const customerName = b.customer?.name || b.sender_name || "";
@@ -292,7 +357,7 @@ export default function AdminBookingsPage() {
                       <td className="px-4 py-3">
                         <StatusBadge status={b.shipment?.status || b.status} />
                       </td>
-                      <td className="px-4 py-3 text-right space-x-1.5">
+                      <td className="px-4 py-3 text-right space-x-1.5 whitespace-nowrap">
                         <Link href={`/admin/bookings/${b.booking_number}/review`}>
                           <Button
                             variant={b.status === "REQUESTED" ? "accent" : "outline"}
@@ -301,6 +366,20 @@ export default function AdminBookingsPage() {
                             {b.status === "REQUESTED" ? "Review & Rate" : "View"}
                           </Button>
                         </Link>
+                        {b.status === "REQUESTED" && (
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            title="Reject Booking"
+                            onClick={() => {
+                              setBookingToReject(b);
+                              setRejectReason("");
+                              setActionError(null);
+                            }}
+                          >
+                            Reject
+                          </Button>
+                        )}
                         {b.shipment && (
                           <Button
                             variant="ghost"
@@ -311,6 +390,18 @@ export default function AdminBookingsPage() {
                             <Printer className="w-3.5 h-3.5" />
                           </Button>
                         )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                          title="Delete Booking"
+                          onClick={() => {
+                            setBookingToDelete(b);
+                            setActionError(null);
+                          }}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
                       </td>
                     </tr>
                   );
@@ -329,6 +420,95 @@ export default function AdminBookingsPage() {
           booking={selectedForLabel}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!bookingToDelete}
+        onClose={() => {
+          if (!isDeleting) setBookingToDelete(null);
+        }}
+        title="Delete Booking"
+        description={`Permanently delete consignment #${bookingToDelete?.booking_number}?`}
+        maxWidth="sm"
+      >
+        <div className="space-y-4 pt-2">
+          {actionError && (
+            <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs">
+              {actionError}
+            </div>
+          )}
+          <p className="text-xs text-slate-600 leading-relaxed">
+            This will permanently remove booking #{bookingToDelete?.booking_number}, including parcel items, charges, tracking milestones, and consignment records from the database.
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setBookingToDelete(null)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleConfirmDelete}
+              isLoading={isDeleting}
+            >
+              Delete Permanently
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Reject Confirmation Modal */}
+      <Modal
+        isOpen={!!bookingToReject}
+        onClose={() => {
+          if (!isRejecting) setBookingToReject(null);
+        }}
+        title="Reject Booking Request"
+        description={`Specify reason for rejecting booking #${bookingToReject?.booking_number}`}
+        maxWidth="md"
+      >
+        <div className="space-y-4 pt-2">
+          {actionError && (
+            <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs">
+              {actionError}
+            </div>
+          )}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-primary">
+              Rejection Reason:
+            </label>
+            <textarea
+              rows={3}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="e.g. Unserviceable delivery pincode, hazardous goods, incomplete address details..."
+              className="w-full text-xs p-2.5 bg-surface-base border border-border-default rounded-lg focus:outline-none focus:border-brand-primary"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setBookingToReject(null)}
+              disabled={isRejecting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleConfirmReject}
+              isLoading={isRejecting}
+            >
+              Confirm Rejection
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

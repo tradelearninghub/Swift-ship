@@ -64,8 +64,9 @@ export async function clearAuthCookie() {
 
 export function hasPermission(user: SessionUser | null, permissionKey: string): boolean {
   if (!user) return false;
-  if (user.role === "SUPER_ADMIN") return true;
-  return user.permissions.includes(permissionKey);
+  const roleUpper = (user.role || "").toUpperCase();
+  if (roleUpper === "SUPER_ADMIN" || roleUpper === "ADMIN") return true;
+  return Array.isArray(user.permissions) && user.permissions.includes(permissionKey);
 }
 
 export const RegisterInputSchema = z.object({

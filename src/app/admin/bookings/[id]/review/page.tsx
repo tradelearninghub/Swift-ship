@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/Card";
 import { ReceiptLabelModal } from "@/components/ui/ReceiptLabelModal";
+import { Modal } from "@/components/ui/Modal";
 import { formatPaiseToRupees, formatGramsToKg } from "@/lib/utils";
 import {
   ArrowLeft,
@@ -22,6 +23,7 @@ import {
   AlertTriangle,
   Loader2,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 
 export default function AdminBookingReviewPage() {
@@ -54,6 +56,9 @@ export default function AdminBookingReviewPage() {
   // Rejection modal
   const [showRejectBox, setShowRejectBox] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+
+  // Delete modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Fetch real booking and couriers
   useEffect(() => {
@@ -133,12 +138,17 @@ export default function AdminBookingReviewPage() {
     setErrorMsg(null);
 
     try {
+      const weightNum = parseFloat(verifiedWeightGrams);
+      const lengthNum = parseFloat(verifiedLengthCm);
+      const widthNum = parseFloat(verifiedWidthCm);
+      const heightNum = parseFloat(verifiedHeightCm);
+
       const payload = {
         action: "APPROVE",
-        verified_weight_grams: Math.round(parseFloat(verifiedWeightGrams || "1000")),
-        verified_length_cm: Math.round(parseFloat(verifiedLengthCm || "20")),
-        verified_width_cm: Math.round(parseFloat(verifiedWidthCm || "15")),
-        verified_height_cm: Math.round(parseFloat(verifiedHeightCm || "10")),
+        verified_weight_grams: !isNaN(weightNum) && weightNum > 0 ? Math.round(weightNum) : undefined,
+        verified_length_cm: !isNaN(lengthNum) && lengthNum > 0 ? Math.round(lengthNum) : undefined,
+        verified_width_cm: !isNaN(widthNum) && widthNum > 0 ? Math.round(widthNum) : undefined,
+        verified_height_cm: !isNaN(heightNum) && heightNum > 0 ? Math.round(heightNum) : undefined,
         shipping_charge_paise: Math.round(numShipping * 100),
         additional_charge_paise: Math.round(numAdd * 100),
         discount_paise: Math.round(numDisc * 100),
@@ -157,9 +167,14 @@ export default function AdminBookingReviewPage() {
         throw new Error(data.error || "Approval transaction failed");
       }
 
-      setBooking(data.result.booking);
+      const updated = data.booking || data.result?.booking;
+      if (updated) {
+        setBooking(updated);
+      }
       setIsApproved(true);
-      setIsLabelModalOpen(true);
+      if (data.shipment || data.result?.shipment) {
+        setIsLabelModalOpen(true);
+      }
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to approve booking");
     } finally {
@@ -168,7 +183,8 @@ export default function AdminBookingReviewPage() {
   };
 
   const handleRejectBooking = async () => {
-    if (!booking || !rejectionReason.trim()) return;
+    if (!booking) return;
+    const reason = rejectionReason.trim() || "Consignment rejected by admin";
     setIsProcessing(true);
     setErrorMsg(null);
 
@@ -178,7 +194,7 @@ export default function AdminBookingReviewPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "REJECT",
-          rejection_reason: rejectionReason.trim(),
+          rejection_reason: reason,
         }),
       });
 
@@ -190,6 +206,30 @@ export default function AdminBookingReviewPage() {
       router.push("/admin/bookings");
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to reject booking");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDeleteBooking = async () => {
+    if (!booking) return;
+    setIsProcessing(true);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch(`/api/admin/bookings/${booking.id}/review`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete booking");
+      }
+
+      router.push("/admin/bookings");
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to delete booking");
+      setShowDeleteModal(false);
     } finally {
       setIsProcessing(false);
     }
@@ -242,7 +282,7 @@ export default function AdminBookingReviewPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           {isApproved && (
             <Button
               variant="outline"
@@ -253,9 +293,19 @@ export default function AdminBookingReviewPage() {
             </Button>
           )}
           <Button
+            variant="outline"
+            size="sm"
+            className="text-rose-600 border-rose-200 hover:bg-rose-50"
+            onClick={() => setShowDeleteModal(true)}
+            disabled={isProcessing}
+          >
+            <Trash2 className="w-4 h-4 mr-1.5" /> Delete Booking
+          </Button>
+          <Button
             variant="danger"
             size="sm"
             onClick={() => setShowRejectBox(!showRejectBox)}
+            disabled={isProcessing}
           >
             <XCircle className="w-4 h-4 mr-1.5" /> Reject Request
           </Button>
@@ -537,6 +587,39 @@ export default function AdminBookingReviewPage() {
           </Card>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete Booking Record"
+        description={`Are you sure you want to permanently delete booking #${booking.booking_number}?`}
+        maxWidth="sm"
+      >
+        <div className="space-y-4 pt-2">
+          <p className="text-xs text-slate-600 leading-relaxed">
+            This action is irreversible. All associated parcel records, manual charges, tracking events, and consignment references will be completely removed from the database.
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDeleteModal(false)}
+              disabled={isProcessing}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleDeleteBooking}
+              isLoading={isProcessing}
+            >
+              Confirm Delete
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Thermal Label Modal */}
       <ReceiptLabelModal
