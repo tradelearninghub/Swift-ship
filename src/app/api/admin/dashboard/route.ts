@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, hasPermission } from "@/lib/auth";
+import { getStartOfTodayIST } from "@/lib/datetime";
 
 export async function GET(req: NextRequest) {
   try {
@@ -9,8 +10,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const startOfTodayIST = getStartOfTodayIST();
 
     const [
       todayBookings,
@@ -23,9 +23,9 @@ export async function GET(req: NextRequest) {
       codSettled,
       recentBookings,
     ] = await Promise.all([
-      // Today's bookings count
+      // Today's bookings count (IST day boundary: 00:00:00+05:30)
       prisma.booking.count({
-        where: { created_at: { gte: today } },
+        where: { created_at: { gte: startOfTodayIST } },
       }),
       // New / Requested
       prisma.booking.count({ where: { status: "REQUESTED" } }),

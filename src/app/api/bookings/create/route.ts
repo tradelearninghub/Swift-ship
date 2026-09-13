@@ -4,12 +4,18 @@ import { getSessionUser } from "@/lib/auth";
 import { z } from "zod";
 
 const BookingCreateSchema = z.object({
+  // Customer identity (optional separate customer from sender)
+  customer_name: z.string().optional(),
+  customer_mobile: z.string().optional(),
+
   // Sender Details
   sender_name: z.string().min(2, "Sender name required"),
   sender_mobile: z.string().regex(/^[6-9]\d{9}$/, "Valid 10-digit mobile required"),
   sender_email: z.string().email().optional().or(z.literal("")),
   sender_address: z.string().min(5, "Full address required"),
+  sender_landmark: z.string().optional(),
   sender_city: z.string().min(2, "City required"),
+  sender_district: z.string().optional(),
   sender_state: z.string().min(2, "State required"),
   sender_pincode: z.string().regex(/^\d{6}$/, "Valid 6-digit pincode required"),
 
@@ -18,7 +24,9 @@ const BookingCreateSchema = z.object({
   receiver_mobile: z.string().regex(/^[6-9]\d{9}$/, "Valid 10-digit mobile required"),
   receiver_email: z.string().email().optional().or(z.literal("")),
   receiver_address: z.string().min(5, "Full delivery address required"),
+  receiver_landmark: z.string().optional(),
   receiver_city: z.string().min(2, "City required"),
+  receiver_district: z.string().optional(),
   receiver_state: z.string().min(2, "State required"),
   receiver_pincode: z.string().regex(/^\d{6}$/, "Valid 6-digit pincode required"),
 
@@ -51,36 +59,57 @@ export async function POST(req: NextRequest) {
     const data = validation.data;
     const session = await getSessionUser();
 
-    // Determine Customer ID and Creator ID
-    let customerId = session?.customerId;
-    let createdById = session?.id;
+    // 1. Link Booking to Existing Customer by Mobile Number (§9)
+    // Works across all sources: public web, staff manual booking, or authenticated customer
+    const mobileToMatch = (data.customer_mobile || data.sender_mobile).trim();
+    const nameToMatch = (data.customer_name || data.sender_name).trim();
 
-    if (!customerId || !createdById) {
-      // Find or create guest customer by mobile
-      let customer = await prisma.customer.findFirst({
-        where: { mobile: data.sender_mobile },
+    let customerId: string;
+
+    const existingCustomer = await prisma.customer.findFirst({
+      where: { mobile: mobileToMatch },
+    });
+
+    if (existingCustomer) {
+      customerId = existingCustomer.id;
+    } else {
+      const createdCustomer = await prisma.customer.create({
+        data: {
+          name: nameToMatch,
+          mobile: mobileToMatch,
+          email: data.sender_email || null,
+          status: "ACTIVE",
+          account_type: "INDIVIDUAL",
+        },
       });
-
-      if (!customer) {
-        customer = await prisma.customer.create({
-          data: {
-            name: data.sender_name,
-            mobile: data.sender_mobile,
-            email: data.sender_email || null,
-            status: "ACTIVE",
-          },
-        });
-      }
-      customerId = customer.id;
-
-      // Use default admin user as creator if unauthenticated
-      const adminUser = await prisma.user.findFirst({
-        where: { role: { name: "SUPER_ADMIN" } },
-      });
-      createdById = adminUser?.id || customer.id;
+      customerId = createdCustomer.id;
     }
 
-    // Generate unique human-readable booking number (e.g. BK-1035)
+    // Determine creator user ID (foreign key to users table)
+    let createdById = session?.id;
+    if (createdById) {
+      const validUser = await prisma.user.findUnique({
+        where: { id: createdById },
+        select: { id: true },
+      });
+      if (!validUser) createdById = undefined;
+    }
+
+    if (!createdById) {
+      const defaultAdmin = await prisma.user.findFirst({
+        where: { role: { name: { in: ["SUPER_ADMIN", "ADMIN", "Super Admin", "Admin"] } } },
+        select: { id: true },
+      });
+      createdById = defaultAdmin?.id;
+    }
+
+    // Fallback if no admin in DB
+    if (!createdById) {
+      const anyUser = await prisma.user.findFirst({ select: { id: true } });
+      createdById = anyUser?.id || customerId;
+    }
+
+    // Generate human-readable booking number (e.g. BK-1035)
     const count = await prisma.booking.count();
     const bookingNumber = `BK-${1000 + count + 1}`;
 
@@ -88,28 +117,32 @@ export async function POST(req: NextRequest) {
       const booking = await tx.booking.create({
         data: {
           booking_number: bookingNumber,
-          customer_id: customerId!,
-          source: session ? "CUSTOMER" : "CUSTOMER",
+          customer_id: customerId,
+          source: session?.role ? "STAFF" : "CUSTOMER",
           created_by: createdById!,
           status: "REQUESTED",
           payment_type: data.payment_type,
           cod_amount: data.payment_type === "COD" ? data.cod_amount_paise : 0,
 
-          // Sender snapshot frozen at booking time (§73)
+          // Sender Snapshot frozen at booking time (§73, §10, §11)
           sender_name: data.sender_name,
           sender_mobile: data.sender_mobile,
           sender_email: data.sender_email || null,
           sender_address: data.sender_address,
+          sender_landmark: data.sender_landmark || null,
           sender_city: data.sender_city,
+          sender_district: data.sender_district || null,
           sender_state: data.sender_state,
           sender_pincode: data.sender_pincode,
 
-          // Receiver snapshot frozen at booking time (§75)
+          // Receiver Snapshot frozen at booking time (§75, §10, §11)
           receiver_name: data.receiver_name,
           receiver_mobile: data.receiver_mobile,
           receiver_email: data.receiver_email || null,
           receiver_address: data.receiver_address,
+          receiver_landmark: data.receiver_landmark || null,
           receiver_city: data.receiver_city,
+          receiver_district: data.receiver_district || null,
           receiver_state: data.receiver_state,
           receiver_pincode: data.receiver_pincode,
         },
@@ -139,6 +172,7 @@ export async function POST(req: NextRequest) {
             booking_number: booking.booking_number,
             payment_type: booking.payment_type,
             cod_amount: booking.cod_amount,
+            customer_id: customerId,
           },
         },
       });
@@ -152,12 +186,13 @@ export async function POST(req: NextRequest) {
         id: newBooking.booking.id,
         booking_number: newBooking.booking.booking_number,
         status: newBooking.booking.status,
+        customer_id: customerId,
       },
     });
   } catch (error: any) {
     console.error("Booking Creation Error:", error);
     return NextResponse.json(
-      { error: "Internal server error during booking creation" },
+      { error: error.message || "Internal server error during booking creation" },
       { status: 500 }
     );
   }

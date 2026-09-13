@@ -265,7 +265,9 @@ model CustomerAddress {
   customer_id String
   label       String
   address     String   @db.Text
+  landmark    String?
   city        String
+  district    String?
   state       String
   pincode     String
   is_default  Boolean  @default(false)
@@ -297,18 +299,22 @@ model Booking {
   sender_mobile    String
   sender_email     String?
   sender_address   String        @db.Text
+  sender_landmark  String?
   sender_city      String
+  sender_district  String?
   sender_state     String
   sender_pincode   String
 
   // Receiver Snapshot
-  receiver_name    String
-  receiver_mobile  String
-  receiver_email   String?
-  receiver_address String        @db.Text
-  receiver_city    String
-  receiver_state   String
-  receiver_pincode String
+  receiver_name     String
+  receiver_mobile   String
+  receiver_email    String?
+  receiver_address  String        @db.Text
+  receiver_landmark String?
+  receiver_city     String
+  receiver_district String?
+  receiver_state    String
+  receiver_pincode  String
 
   rejection_reason String?       @db.Text
   reviewed_by      String?
@@ -572,9 +578,10 @@ model NotificationTemplate {
   id         String              @id @default(uuid())
   event_key  String
   channel    NotificationChannel
-  subject    String?
-  body       String              @db.Text
-  is_active  Boolean             @default(true)
+  subject      String?
+  body         String              @db.Text
+  sender_email String?
+  is_active    Boolean             @default(true)
   created_at DateTime            @default(now())
   updated_at DateTime            @updatedAt
 

@@ -22,7 +22,9 @@ import {
   Key,
   CheckCircle2,
   ShieldAlert,
+  Trash2,
 } from "lucide-react";
+import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal";
 
 interface StaffMember {
   id: string;
@@ -116,6 +118,7 @@ export default function AdminStaffPage() {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [activeOverrides, setActiveOverrides] = useState<Record<string, boolean>>({});
   const [savingOverrides, setSavingOverrides] = useState(false);
+  const [deletingStaff, setDeletingStaff] = useState<StaffMember | null>(null);
 
   // Load staff list from API
   const loadStaff = async () => {
@@ -405,14 +408,26 @@ export default function AdminStaffPage() {
 
                       {/* Actions */}
                       <td className="px-5 py-3.5 text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openOverridesModal(member)}
-                        >
-                          <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" />
-                          Permissions & Overrides
-                        </Button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openOverridesModal(member)}
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" />
+                            Permissions & Overrides
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="danger"
+                            size="sm"
+                            onClick={() => setDeletingStaff(member)}
+                            className="bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200"
+                            title="Deactivate and delete staff account"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -422,6 +437,27 @@ export default function AdminStaffPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Staff Confirmation Modal (§6) */}
+      {deletingStaff && (
+        <DeleteConfirmModal
+          isOpen={!!deletingStaff}
+          onClose={() => setDeletingStaff(null)}
+          onConfirm={async () => {
+            const res = await fetch(`/api/admin/staff?id=${deletingStaff.id}`, {
+              method: "DELETE",
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to delete staff member");
+            setStaffList((prev) => prev.filter((s) => s.id !== deletingStaff.id));
+            setDeletingStaff(null);
+          }}
+          title="Deactivate & Delete Staff Account"
+          entityName={`${deletingStaff.name} (${deletingStaff.role})`}
+          description="The account will be deactivated immediately. Past activity logs and review actions taken by this user will be safely preserved in compliance with data retention policies."
+          confirmButtonText="Deactivate & Delete"
+        />
+      )}
 
       {/* ============================================================== */}
       {/* 1. ADD NEW STAFF MODAL                                         */}

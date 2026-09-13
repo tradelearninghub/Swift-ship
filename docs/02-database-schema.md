@@ -52,7 +52,7 @@ For per-staff-member permission grants beyond their role default: `user_id`, `pe
 | created_at / updated_at | datetime | |
 
 ### `customer_addresses`
-`id`, `customer_id`, `label` (Home/Office/etc.), `address`, `city`, `state`, `pincode`, `is_default` (boolean).
+`id`, `customer_id`, `label` (Home/Office/etc.), `address`, `landmark` (optional text), `city`, `district`, `state`, `pincode`, `is_default` (boolean).
 
 ---
 
@@ -70,9 +70,9 @@ For per-staff-member permission grants beyond their role default: `user_id`, `pe
 | payment_type | enum(PREPAID, COD) | |
 | cod_amount | int (paise) | 0 if prepaid |
 | — sender snapshot — | | |
-| sender_name, sender_mobile, sender_email, sender_address, sender_city, sender_state, sender_pincode | | frozen at booking time |
+| sender_name, sender_mobile, sender_email, sender_address, sender_landmark, sender_city, sender_district, sender_state, sender_pincode | | frozen at booking time |
 | — receiver snapshot — | | |
-| receiver_name, receiver_mobile, receiver_email, receiver_address, receiver_city, receiver_state, receiver_pincode | | frozen at booking time |
+| receiver_name, receiver_mobile, receiver_email, receiver_address, receiver_landmark, receiver_city, receiver_district, receiver_state, receiver_pincode | | frozen at booking time |
 | rejection_reason | string, nullable | |
 | reviewed_by | fk → users.id, nullable | |
 | reviewed_at | datetime, nullable | |
@@ -259,7 +259,7 @@ Registry of pre-built adapter definitions: `id`, `adapter_code`, `display_name`,
 ## Notifications
 
 ### `notification_templates`
-`id`, `event_key` (e.g. `booking.approved`), `channel` (EMAIL/WHATSAPP/SMS), `subject` (email only), `body`, `is_active`, `updated_at`.
+`id`, `event_key` (e.g. `booking.approved`), `channel` (EMAIL/WHATSAPP/SMS), `subject` (email only), `body`, `sender_email` (e.g. `support@sscourierservice.in` / `sales@` / `no-reply@`), `is_active`, `updated_at`.
 
 ### `notification_rules`
 `id`, `event_key`, `channel`, `enabled` (boolean) — implements the ON/OFF grid from §42.

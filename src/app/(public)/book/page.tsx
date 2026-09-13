@@ -15,6 +15,7 @@ import {
   ArrowRight,
   ArrowLeft,
 } from "lucide-react";
+import { INDIAN_STATES_AND_UTS } from "@/lib/geo";
 
 export default function BookParcelPage() {
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -31,7 +32,9 @@ export default function BookParcelPage() {
     sender_mobile: "",
     sender_email: "",
     sender_address: "",
+    sender_landmark: "",
     sender_city: "",
+    sender_district: "",
     sender_state: "",
     sender_pincode: "",
 
@@ -40,7 +43,9 @@ export default function BookParcelPage() {
     receiver_mobile: "",
     receiver_email: "",
     receiver_address: "",
+    receiver_landmark: "",
     receiver_city: "",
+    receiver_district: "",
     receiver_state: "",
     receiver_pincode: "",
 
@@ -103,8 +108,12 @@ export default function BookParcelPage() {
         newErrors.sender_city = "City is required";
       }
 
+      if (!formData.sender_district.trim()) {
+        newErrors.sender_district = "District is required";
+      }
+
       if (!formData.sender_state.trim()) {
-        newErrors.sender_state = "State is required";
+        newErrors.sender_state = "Please select a state / UT";
       }
 
       const pinClean = formData.sender_pincode.replace(/\D/g, "");
@@ -143,8 +152,12 @@ export default function BookParcelPage() {
         newErrors.receiver_city = "City is required";
       }
 
+      if (!formData.receiver_district.trim()) {
+        newErrors.receiver_district = "District is required";
+      }
+
       if (!formData.receiver_state.trim()) {
-        newErrors.receiver_state = "State is required";
+        newErrors.receiver_state = "Please select a state / UT";
       }
 
       const pinClean = formData.receiver_pincode.replace(/\D/g, "");
@@ -229,14 +242,18 @@ export default function BookParcelPage() {
         sender_mobile: formData.sender_mobile.trim(),
         sender_email: formData.sender_email.trim() || undefined,
         sender_address: formData.sender_address.trim(),
+        sender_landmark: formData.sender_landmark.trim() || undefined,
         sender_city: formData.sender_city.trim(),
+        sender_district: formData.sender_district.trim() || undefined,
         sender_state: formData.sender_state.trim(),
         sender_pincode: formData.sender_pincode.trim(),
         receiver_name: formData.receiver_name.trim(),
         receiver_mobile: formData.receiver_mobile.trim(),
         receiver_email: formData.receiver_email.trim() || undefined,
         receiver_address: formData.receiver_address.trim(),
+        receiver_landmark: formData.receiver_landmark.trim() || undefined,
         receiver_city: formData.receiver_city.trim(),
+        receiver_district: formData.receiver_district.trim() || undefined,
         receiver_state: formData.receiver_state.trim(),
         receiver_pincode: formData.receiver_pincode.trim(),
         parcel_type: formData.parcel_type || "Standard Parcel",
@@ -441,6 +458,16 @@ export default function BookParcelPage() {
                     required
                   />
                 </div>
+                <div className="sm:col-span-2">
+                  <Input
+                    label="Landmark (Optional)"
+                    name="sender_landmark"
+                    value={formData.sender_landmark}
+                    onChange={handleChange}
+                    placeholder="e.g. Near Metro Station, Behind City Hospital"
+                    error={errors.sender_landmark}
+                  />
+                </div>
                 <Input
                   label="City"
                   name="sender_city"
@@ -451,14 +478,37 @@ export default function BookParcelPage() {
                   required
                 />
                 <Input
-                  label="State"
-                  name="sender_state"
-                  value={formData.sender_state}
+                  label="District"
+                  name="sender_district"
+                  value={formData.sender_district}
                   onChange={handleChange}
-                  placeholder="State"
-                  error={errors.sender_state}
+                  placeholder="District"
+                  error={errors.sender_district}
                   required
                 />
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-text-primary">
+                    State / Union Territory <span className="text-status-danger">*</span>
+                  </label>
+                  <select
+                    name="sender_state"
+                    value={formData.sender_state}
+                    onChange={handleChange}
+                    className={`w-full h-10 px-3 py-2 text-sm bg-surface-base border rounded-lg focus:ring-1 focus:ring-brand-primary ${
+                      errors.sender_state ? "border-status-danger" : "border-border-default"
+                    }`}
+                  >
+                    <option value="">Select State / UT</option>
+                    {INDIAN_STATES_AND_UTS.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.sender_state && (
+                    <p className="text-xs text-status-danger mt-1">{errors.sender_state}</p>
+                  )}
+                </div>
                 <Input
                   label="Pincode"
                   name="sender_pincode"
@@ -525,6 +575,16 @@ export default function BookParcelPage() {
                     required
                   />
                 </div>
+                <div className="sm:col-span-2">
+                  <Input
+                    label="Landmark (Optional)"
+                    name="receiver_landmark"
+                    value={formData.receiver_landmark}
+                    onChange={handleChange}
+                    placeholder="e.g. Opposite Bank of Baroda, Near Clock Tower"
+                    error={errors.receiver_landmark}
+                  />
+                </div>
                 <Input
                   label="City"
                   name="receiver_city"
@@ -535,14 +595,37 @@ export default function BookParcelPage() {
                   required
                 />
                 <Input
-                  label="State"
-                  name="receiver_state"
-                  value={formData.receiver_state}
+                  label="District"
+                  name="receiver_district"
+                  value={formData.receiver_district}
                   onChange={handleChange}
-                  placeholder="State"
-                  error={errors.receiver_state}
+                  placeholder="District"
+                  error={errors.receiver_district}
                   required
                 />
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-text-primary">
+                    State / Union Territory <span className="text-status-danger">*</span>
+                  </label>
+                  <select
+                    name="receiver_state"
+                    value={formData.receiver_state}
+                    onChange={handleChange}
+                    className={`w-full h-10 px-3 py-2 text-sm bg-surface-base border rounded-lg focus:ring-1 focus:ring-brand-primary ${
+                      errors.receiver_state ? "border-status-danger" : "border-border-default"
+                    }`}
+                  >
+                    <option value="">Select State / UT</option>
+                    {INDIAN_STATES_AND_UTS.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.receiver_state && (
+                    <p className="text-xs text-status-danger mt-1">{errors.receiver_state}</p>
+                  )}
+                </div>
                 <Input
                   label="Pincode"
                   name="receiver_pincode"

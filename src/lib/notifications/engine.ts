@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendRealEmail } from "@/lib/email";
+import { formatDateTimeIST } from "@/lib/datetime";
 
 export interface NotificationPayload {
   eventKey: string;
@@ -7,68 +8,141 @@ export interface NotificationPayload {
   recipientMobile?: string | null;
   bookingId?: string | null;
   shipmentId?: string | null;
-  variables: Record<string, string | number>;
+  variables: Record<string, any>;
 }
 
 export async function sendNotification(payload: NotificationPayload) {
   try {
-    const { eventKey, recipientEmail, recipientMobile, bookingId, shipmentId, variables } = payload;
+    const { eventKey, recipientEmail, recipientMobile, bookingId, shipmentId, variables = {} } = payload;
 
-    // Default template mappings
-    const templates: Record<string, { subject: string; body: string }> = {
+    // 1. Fetch template from database
+    let dbTemplate: any = null;
+    try {
+      dbTemplate = await prisma.notificationTemplate.findFirst({
+        where: { event_key: eventKey, channel: "EMAIL" },
+      });
+    } catch {
+      // Database not reachable
+    }
+
+    // Check if notifications for this event have been disabled
+    if (dbTemplate && dbTemplate.is_active === false) {
+      console.log(`[NOTIFICATION-ENGINE] Notification for ${eventKey} is disabled by admin settings.`);
+      return { success: true, skipped: true, reason: "Template disabled" };
+    }
+
+    // Default template fallbacks if not in database
+    const defaultTemplates: Record<string, { subject: string; body: string }> = {
       "booking.created": {
-        subject: "Booking Request Received — {{booking_number}}",
-        body: "Hello {{customer_name}}, we have received your booking request {{booking_number}}. Our operations team will verify dimensions and confirm freight charges shortly.",
+        subject: "Booking Request Received — {{bookingId}}",
+        body: "Hello {{customerName}},\n\nWe have received your booking request #{{bookingId}}.\nOur operations team will verify dimensions and confirm freight charges shortly.\n\nTrack live at: {{trackingLink}}\n\nThank you,\n{{companyName}}",
       },
       "booking.approved": {
-        subject: "Booking Confirmed & Dispatched — {{booking_number}}",
-        body: "Hello {{customer_name}}, your booking {{booking_number}} has been approved. Shipping charge: ₹{{charge_amount}}. Track live at: {{tracking_url}}",
+        subject: "Booking Approved & Dispatched — {{bookingId}}",
+        body: "Hello {{customerName}},\n\nYour booking #{{bookingId}} has been approved.\nCourier Partner: {{courierName}}\nAWB: {{awb}}\n\nTrack your shipment live: {{trackingLink}}\n\nTeam {{companyName}}",
+      },
+      "shipment.created": {
+        subject: "Shipment Allocated — AWB {{awb}}",
+        body: "Hello {{customerName}},\n\nShipment for booking #{{bookingId}} has been allocated to {{courierName}} (AWB: {{awb}}).\n\nTrack live: {{trackingLink}}\n\nTeam {{companyName}}",
+      },
+      "shipment.awb_generated": {
+        subject: "AWB Generated & Dispatched — AWB {{awb}}",
+        body: "Hello {{customerName}},\n\nYour parcel with AWB {{awb}} has been manifest-dispatched via {{courierName}}.\n\nLive tracking: {{trackingLink}}\n\nTeam {{companyName}}",
+      },
+      "shipment.in_transit": {
+        subject: "Shipment In Transit Checkpoint — AWB {{awb}}",
+        body: "Hello {{customerName}},\n\nYour shipment with AWB {{awb}} is in transit via {{courierName}}.\n\nLive tracking: {{trackingLink}}\n\nTeam {{companyName}}",
       },
       "shipment.out_for_delivery": {
-        subject: "Out For Delivery — AWB {{awb}}",
-        body: "Your parcel (AWB: {{awb}}) is out for delivery today. Keep OTP / payment ready.",
+        subject: "Out For Delivery Today — AWB {{awb}}",
+        body: "Hello {{customerName}},\n\nYour parcel (AWB: {{awb}}) is out for delivery today. Please keep your OTP / payment ready.\n\nLive tracking: {{trackingLink}}\n\nTeam {{companyName}}",
       },
       "shipment.delivered": {
         subject: "Delivered Successfully — AWB {{awb}}",
-        body: "Your parcel with AWB {{awb}} has been delivered successfully. Thank you for choosing SS Courier service!",
+        body: "Hello {{customerName}},\n\nYour parcel with AWB {{awb}} has been delivered successfully.\nThank you for choosing {{companyName}}!\n\nDetails: {{trackingLink}}",
+      },
+      "shipment.rto": {
+        subject: "Return to Origin (RTO) Notice — AWB {{awb}}",
+        body: "Hello {{customerName}},\n\nYour parcel with AWB {{awb}} is being returned to origin.\n\nDetails: {{trackingLink}}\nHelpline: 8000151117",
       },
     };
 
-    const template = templates[eventKey] || {
-      subject: `Notification: ${eventKey}`,
-      body: `Update regarding your parcel shipment: ${JSON.stringify(variables)}`,
+    let subject = dbTemplate?.subject || defaultTemplates[eventKey]?.subject || `Update: ${eventKey}`;
+    let body = dbTemplate?.body || defaultTemplates[eventKey]?.body || `Shipment notification for ${eventKey}.`;
+
+    // 2. Normalize and enrich variable map
+    const customerName = String(variables.customerName || variables.customer_name || "Valued Customer");
+    const bookingNum = String(variables.bookingId || variables.booking_number || variables.booking_id || "—");
+    const awb = String(variables.awb || variables.awb_number || "—");
+    const courierName = String(variables.courierName || variables.courier_name || "Carrier Partner");
+    const trackingLink = String(variables.trackingLink || variables.tracking_url || "https://sscourierservice.in/track");
+    const companyName = String(variables.companyName || variables.company_name || "SS Courier service");
+
+    const mergedVars: Record<string, string> = {
+      customerName,
+      customer_name: customerName,
+      bookingId: bookingNum,
+      booking_number: bookingNum,
+      booking_id: bookingNum,
+      awb,
+      awb_number: awb,
+      courierName,
+      courier_name: courierName,
+      trackingLink,
+      tracking_url: trackingLink,
+      companyName,
+      company_name: companyName,
+      chargeAmount: String(variables.chargeAmount || variables.charge_amount || "0"),
+      charge_amount: String(variables.chargeAmount || variables.charge_amount || "0"),
+      currentDate: formatDateTimeIST(new Date(), false),
     };
 
-    // Interpolate variables
-    let subject = template.subject;
-    let body = template.body;
-    for (const [key, val] of Object.entries(variables)) {
-      const regex = new RegExp(`{{${key}}}`, "g");
-      subject = subject.replace(regex, String(val));
-      body = body.replace(regex, String(val));
+    // Include any custom caller-supplied variables
+    for (const [k, v] of Object.entries(variables)) {
+      if (v instanceof Date) {
+        mergedVars[k] = formatDateTimeIST(v, false);
+      } else if (typeof v === "string" || typeof v === "number") {
+        mergedVars[k] = String(v);
+      }
     }
 
-    // Email Dispatch via real SMTP (€38)
+    // 3. Interpolate variables (case-insensitive regex for {{tag}} and {tag})
+    for (const [key, val] of Object.entries(mergedVars)) {
+      const doubleBraceRegex = new RegExp(`{{${key}}}`, "gi");
+      const singleBraceRegex = new RegExp(`{${key}}`, "gi");
+      subject = subject.replace(doubleBraceRegex, val).replace(singleBraceRegex, val);
+      body = body.replace(doubleBraceRegex, val).replace(singleBraceRegex, val);
+    }
+
+    // 4. Email Dispatch via real SMTP
     if (recipientEmail) {
-      const emailResult = await sendRealEmail({
+      const emailOptions: any = {
         to: recipientEmail,
         subject,
         text: body,
         html: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px;">
-            <div style="background-color: #1e3a8a; padding: 16px 20px; color: #ffffff; border-radius: 6px 6px 0 0;">
-              <h2 style="margin: 0; font-size: 18px;">SS Courier service</h2>
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #002B49; padding: 20px; color: #ffffff; border-radius: 8px 8px 0 0; text-align: left;">
+              <h2 style="margin: 0; font-size: 18px; font-weight: bold; letter-spacing: 0.5px;">SS Courier service</h2>
+              <p style="margin: 4px 0 0; font-size: 11px; opacity: 0.8;">Express Logistics & Multi-Carrier Courier Deliveries</p>
             </div>
-            <div style="border: 1px solid #e2e8f0; border-top: none; padding: 20px; border-radius: 0 0 6px 6px;">
-              <p style="font-size: 14px; margin-top: 0;">${body}</p>
-              <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
-              <p style="font-size: 11px; color: #64748b; margin-bottom: 0;">
-                Fast, Safe & Multi-Carrier Courier Logistics • sscourierservice.in • Helpline: 8000151117
+            <div style="border: 1px solid #e2e8f0; border-top: none; padding: 24px 20px; border-radius: 0 0 8px 8px; background-color: #ffffff;">
+              <div style="font-size: 14px; margin-top: 0; color: #1e293b; white-space: pre-line;">${body}</div>
+              <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0 16px;" />
+              <p style="font-size: 11px; color: #64748b; margin-bottom: 4px; line-height: 1.4;">
+                SS Courier service • Shop No 4, Johri Bazar, Jaipur 302003<br/>
+                Helpline: +91 8000151117 / +91 7689987368 • Website: <a href="https://sscourierservice.in" style="color: #FF6B00; text-decoration: none;">sscourierservice.in</a>
               </p>
             </div>
           </div>
         `,
-      });
+      };
+
+      if (dbTemplate?.sender_email) {
+        emailOptions.from = dbTemplate.sender_email;
+      }
+
+      const emailResult = await sendRealEmail(emailOptions);
 
       await prisma.notificationLog.create({
         data: {
@@ -85,7 +159,7 @@ export async function sendNotification(payload: NotificationPayload) {
       }).catch(() => {});
     }
 
-    // WhatsApp / SMS Dispatch Log
+    // 5. WhatsApp Dispatch Log
     if (recipientMobile) {
       await prisma.notificationLog.create({
         data: {
@@ -97,7 +171,7 @@ export async function sendNotification(payload: NotificationPayload) {
           status: "SENT",
           provider_response: "WhatsApp message delivered to gateway",
         },
-      });
+      }).catch(() => {});
     }
 
     return { success: true };

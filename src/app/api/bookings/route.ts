@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
 
     const status = searchParams.get("status");
     const search = searchParams.get("search");
+    const customer_id = searchParams.get("customer_id");
     const limit = parseInt(searchParams.get("limit") || "50");
 
     const whereClause: any = {};
@@ -16,6 +17,8 @@ export async function GET(req: NextRequest) {
     // If customer, restrict to their customer ID
     if (session?.role === "CUSTOMER" && session.customerId) {
       whereClause.customer_id = session.customerId;
+    } else if (customer_id) {
+      whereClause.customer_id = customer_id;
     }
 
     if (status && status !== "ALL") {

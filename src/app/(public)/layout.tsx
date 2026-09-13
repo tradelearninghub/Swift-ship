@@ -20,8 +20,8 @@ export default async function PublicLayout({
           <div className="flex items-center gap-4 flex-wrap">
             <span>
               <i className="fas fa-phone-alt"></i>{" "}
-              <a href={`tel:${phone1}`}>+91 {phone1}</a> /{" "}
-              <a href={`tel:${phone2}`}>{phone2}</a>
+              <a href={`tel:+91${phone1.replace(/^\+91/, "").trim()}`}>+91 {phone1.replace(/^\+91/, "").trim()}</a> /{" "}
+              <a href={`tel:+91${phone2.replace(/^\+91/, "").trim()}`}>+91 {phone2.replace(/^\+91/, "").trim()}</a>
             </span>
             <span className="hidden sm:inline">
               <i className="fas fa-envelope"></i>{" "}
@@ -116,58 +116,66 @@ export default async function PublicLayout({
                 {profile.address}, {profile.city}, {profile.state} {profile.pincode}
               </div>
 
-              {/* Social Media Links */}
-              <div className="pt-3">
-                <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2.5">
-                  Follow Us Online
-                </p>
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  {[
-                    {
-                      url: profile.facebook_url || "https://facebook.com",
-                      icon: "fab fa-facebook-f",
-                      hover: "hover:bg-[#1877F2]",
-                      label: "Facebook",
-                    },
-                    {
-                      url: profile.instagram_url || "https://instagram.com",
-                      icon: "fab fa-instagram",
-                      hover: "hover:bg-[#E4405F]",
-                      label: "Instagram",
-                    },
-                    {
-                      url: profile.twitter_url || "https://x.com",
-                      icon: "fab fa-x-twitter",
-                      hover: "hover:bg-slate-700",
-                      label: "Twitter / X",
-                    },
-                    {
-                      url: profile.linkedin_url || "https://linkedin.com",
-                      icon: "fab fa-linkedin-in",
-                      hover: "hover:bg-[#0A66C2]",
-                      label: "LinkedIn",
-                    },
-                    {
-                      url: profile.youtube_url || "https://youtube.com",
-                      icon: "fab fa-youtube",
-                      hover: "hover:bg-[#FF0000]",
-                      label: "YouTube",
-                    },
-                  ].map((s, idx) => (
-                    <a
-                      key={idx}
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`w-8 h-8 rounded-full bg-white/10 ${s.hover} text-white flex items-center justify-center transition-all text-xs shadow-sm`}
-                      title={s.label}
-                      aria-label={s.label}
-                    >
-                      <i className={s.icon}></i>
-                    </a>
-                  ))}
-                </div>
-              </div>
+              {/* Social Media Links — ONLY render if configured in Admin (§4) */}
+              {(() => {
+                const socialList = [
+                  {
+                    url: profile.facebook_url?.trim(),
+                    icon: "fab fa-facebook-f",
+                    hover: "hover:bg-[#1877F2]",
+                    label: "Facebook",
+                  },
+                  {
+                    url: profile.instagram_url?.trim(),
+                    icon: "fab fa-instagram",
+                    hover: "hover:bg-[#E4405F]",
+                    label: "Instagram",
+                  },
+                  {
+                    url: (profile.x_url || profile.twitter_url)?.trim(),
+                    icon: "fab fa-x-twitter",
+                    hover: "hover:bg-slate-900",
+                    label: "X (formerly Twitter)",
+                  },
+                  {
+                    url: profile.linkedin_url?.trim(),
+                    icon: "fab fa-linkedin-in",
+                    hover: "hover:bg-[#0A66C2]",
+                    label: "LinkedIn",
+                  },
+                  {
+                    url: profile.youtube_url?.trim(),
+                    icon: "fab fa-youtube",
+                    hover: "hover:bg-[#FF0000]",
+                    label: "YouTube",
+                  },
+                ].filter((s) => Boolean(s.url));
+
+                if (socialList.length === 0) return null;
+
+                return (
+                  <div className="pt-3">
+                    <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2.5">
+                      Follow Us Online
+                    </p>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      {socialList.map((s, idx) => (
+                        <a
+                          key={idx}
+                          href={s.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`w-8 h-8 rounded-full bg-white/10 ${s.hover} text-white flex items-center justify-center transition-all text-xs shadow-sm`}
+                          title={s.label}
+                          aria-label={s.label}
+                        >
+                          <i className={s.icon}></i>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Section 2 — Quick Links (6 canonical links matching header nav) */}
@@ -249,16 +257,19 @@ export default async function PublicLayout({
                     Helpline
                   </p>
                   <div className="flex flex-col gap-1">
-                    {profile.support_phones.map((phone, idx) => (
-                      <a
-                        key={idx}
-                        href={`tel:${phone}`}
-                        className="hover:text-[#FF6B00] transition-colors flex items-center gap-2"
-                      >
-                        <i className="fas fa-phone text-[#FF6B00] text-xs"></i>
-                        <span>+91 {phone}</span>
-                      </a>
-                    ))}
+                    {profile.support_phones.map((phone, idx) => {
+                      const cleanPhone = phone.replace(/^\+91/, "").trim();
+                      return (
+                        <a
+                          key={idx}
+                          href={`tel:+91${cleanPhone}`}
+                          className="hover:text-[#FF6B00] transition-colors flex items-center gap-2"
+                        >
+                          <i className="fas fa-phone text-[#FF6B00] text-xs"></i>
+                          <span>+91 {cleanPhone}</span>
+                        </a>
+                      );
+                    })}
                   </div>
                 </div>
 

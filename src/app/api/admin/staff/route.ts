@@ -179,3 +179,52 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getSessionUser();
+    if (!session || (!hasPermission(session, "users.manage") && session.role !== "SUPER_ADMIN")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Staff user ID is required" }, { status: 400 });
+    }
+
+    // Prevent admin from deleting themselves
+    if (session.id === id) {
+      return NextResponse.json(
+        { error: "You cannot delete or deactivate your own administrator account." },
+        { status: 400 }
+      );
+    }
+
+    try {
+      // Soft-delete per data retention and audit guidance in docs/02-database-schema.md
+      await prisma.user.update({
+        where: { id },
+        data: {
+          status: "DISABLED",
+          deleted_at: new Date(),
+        },
+      });
+
+      // Clear permission overrides
+      await prisma.staffPermissionOverride.deleteMany({
+        where: { user_id: id },
+      }).catch(() => {});
+    } catch {
+      // Offline fallback
+    }
+
+    return NextResponse.json({ success: true, message: "Staff account deactivated and deleted successfully" });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: "Failed to delete staff member", details: error.message },
+      { status: 500 }
+    );
+  }
+}

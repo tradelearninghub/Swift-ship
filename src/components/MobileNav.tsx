@@ -189,16 +189,19 @@ export function MobileNav({
                 <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                   Direct Contact
                 </div>
-                {phones.map((p, i) => (
-                  <a
-                    key={i}
-                    href={`tel:${p}`}
-                    className="flex items-center gap-2 font-semibold text-[#002B49] hover:text-[#FF6B00]"
-                  >
-                    <Phone className="w-3.5 h-3.5 text-[#FF6B00]" />
-                    <span>+91 {p}</span>
-                  </a>
-                ))}
+                {phones.map((p, i) => {
+                  const cleanP = p.replace(/^\+91/, "").trim();
+                  return (
+                    <a
+                      key={i}
+                      href={`tel:+91${cleanP}`}
+                      className="flex items-center gap-2 font-semibold text-[#002B49] hover:text-[#FF6B00]"
+                    >
+                      <Phone className="w-3.5 h-3.5 text-[#FF6B00]" />
+                      <span>+91 {cleanP}</span>
+                    </a>
+                  );
+                })}
                 <a
                   href={`mailto:${email}`}
                   className="flex items-center gap-2 text-slate-600 hover:text-[#FF6B00]"

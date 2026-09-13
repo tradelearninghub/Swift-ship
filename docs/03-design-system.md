@@ -236,3 +236,38 @@ The mobile navigation experience is unified into a single, clean pattern:
   - Customer & Staff portals: `Customer Sign In`, `Register Free Account`, and `Admin Operations`.
   - Direct contact options: Click-to-call phone links, email mailto link, and central hub address.
 
+---
+
+## 13. Accessible Deletion Confirmation Modal **[NEW — Round 7]**
+
+All destructive actions (deleting courier partners, staff members, or notification templates) must use the standardized `DeleteConfirmModal` component (`src/components/ui/DeleteConfirmModal.tsx`):
+
+- **Visual Contrast**: Prominently renders a warning icon in a rose circular badge (`bg-rose-50 text-rose-600`), contrasting sharply with normal informational dialogues.
+- **Explicit Item Identification**: Emphasizes the exact target name or identifier in bold or badge format so the operator never deletes an unintended record.
+- **Warning Details**: Explicitly outlines the downstream consequences (e.g. historical shipment constraints, account deactivation, or loss of custom email templates).
+- **Secondary Actions**: Provides an unambiguous "Cancel" option (`variant="outline"`) alongside the primary destructive action (`variant="danger"` with `Trash2` icon and loading spinner).
+- **Error Feedback**: Renders any server-side validation error (e.g. "Cannot delete courier with active shipments") directly within a rose error banner inside the modal without losing modal state.
+
+---
+
+## 14. Email Template Management System **[NEW — Round 7]**
+
+The notification settings interface (§39 / §42) provides an interactive, accessible email template editor (`/admin/settings`):
+
+- **Channel & Event Registry**: Displays all 13 canonical system events organized into clear functional groups (Booking Lifecycle, Shipment Updates, Exception Alerts).
+- **Live Sender Email Selector**: Allows configuring dynamic SMTP sender identity per template (e.g., `support@sscourierservice.in`, `sales@`, `no-reply@`).
+- **Dynamic Variable Injection Chips**: Interactive pills at the top of the editor displaying available tokens (e.g. `{{customerName}}`, `{{awb}}`, `{{trackingUrl}}`, `{{amount}}`). Clicking a chip automatically appends the token into the active field (subject or body).
+- **Dual Naming Compatibility**: The backend engine evaluates and substitutes both `camelCase` and `snake_case` variable notations to eliminate template breakage.
+- **Accessible State Toggles**: Each template features an independent ON/OFF toggle switch allowing operators to pause specific email triggers without wiping content.
+
+---
+
+## 15. Address Standardization Standards **[NEW — Round 7]**
+
+To eliminate dispatch failures, delivery discrepancies, and invalid postal records across India:
+
+- **State / Union Territory Selector**: Free-text state inputs are replaced with a standardized `<select>` dropdown populated from `INDIAN_STATES_AND_UTS` (`src/lib/geo.ts`), covering all 28 Indian States and 8 Union Territories in alphabetical order.
+- **District Field**: Mandatory district field included on both Sender and Receiver forms to assist courier sorting hubs and route assignments.
+- **Landmark Field**: Optional text field (`sender_landmark`, `receiver_landmark`) rendered directly beneath the street address with contextual placeholder guidance (`e.g. Near Metro Station, Behind City Hospital`).
+- **Standardized +91 Contact Format**: All public phone displays, mobile drawer links, and headers explicitly prepend the Indian country code (`+91`) both visually and in `tel:` URI links (`tel:+918000151117`).
+

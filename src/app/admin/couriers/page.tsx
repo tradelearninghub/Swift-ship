@@ -24,11 +24,14 @@ import {
   HelpCircle,
   AlertTriangle,
   ArrowRight,
+  Trash2,
 } from "lucide-react";
+import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal";
 
 export default function AdminCouriersPage() {
   const [couriers, setCouriers] = useState<MockCourierPartner[]>(MOCK_COURIER_PARTNERS);
   const [loading, setLoading] = useState(false);
+  const [deletingCourier, setDeletingCourier] = useState<MockCourierPartner | null>(null);
 
   // Load couriers from API
   useEffect(() => {
@@ -579,20 +582,56 @@ export default function AdminCouriersPage() {
                     )}
                   </div>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleTestConnection(courier)}
-                  >
-                    <Activity className="w-3.5 h-3.5 mr-1 text-brand-primary" />
-                    Test Connection
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleTestConnection(courier)}
+                    >
+                      <Activity className="w-3.5 h-3.5 mr-1 text-brand-primary" />
+                      Test Connection
+                    </Button>
+                    {courier.code !== "IN_HOUSE" && (
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="sm"
+                        onClick={() => setDeletingCourier(courier)}
+                        className="bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200"
+                        title="Delete courier partner"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
           );
         })}
       </div>
+
+      {/* Delete Courier Confirmation Modal (§6) */}
+      {deletingCourier && (
+        <DeleteConfirmModal
+          isOpen={!!deletingCourier}
+          onClose={() => setDeletingCourier(null)}
+          onConfirm={async () => {
+            const res = await fetch(`/api/admin/couriers?id=${deletingCourier.id}`, {
+              method: "DELETE",
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              throw new Error(data.error || "Failed to delete courier partner");
+            }
+            setCouriers((prev) => prev.filter((c) => c.id !== deletingCourier.id));
+            setDeletingCourier(null);
+          }}
+          title="Delete Courier Partner"
+          entityName={deletingCourier.name}
+          description="If historical shipments are attached to this carrier, deletion will be safely blocked to preserve audit logs."
+        />
+      )}
 
       {/* Onboarding Modal (§1 Self-Service Onboarding) */}
       <Modal

@@ -79,8 +79,8 @@ export function ReceiptLabelModal({
   const returnAddress = `${companyProfile.address}, ${companyProfile.city}, ${companyProfile.state} - ${companyProfile.pincode}`;
 
   const barcodeSvg = generateCode128Svg(awb, { height: 42, barWidth: 1.8 });
-  const qrSvg = generateQrCodeSvg(trackingUrl, 110);
-  const qrSvgSmall = generateQrCodeSvg(trackingUrl, 80);
+  const qrSvg = generateQrCodeSvg(trackingUrl, 120, 4);
+  const qrSvgSmall = generateQrCodeSvg(trackingUrl, 96, 4);
 
   // Print handler with size-specific @page media query
   const handlePrint = () => {
