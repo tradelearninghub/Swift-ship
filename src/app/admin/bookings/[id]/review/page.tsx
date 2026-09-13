@@ -337,7 +337,7 @@ export default function AdminBookingReviewPage() {
           <Card>
             <CardHeader className="py-3 bg-surface-subtle flex flex-row items-center justify-between">
               <CardTitle className="text-xs uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-                <Scale className="w-4 h-4 text-brand-primary" /> Weight & Dimension Verification (§15)
+                <Scale className="w-4 h-4 text-brand-primary" /> Weight & Dimension Verification
               </CardTitle>
               <span className="text-[11px] font-semibold text-text-secondary bg-slate-200 px-2 py-0.5 rounded">
                 Separate Stored Metrics
@@ -414,7 +414,7 @@ export default function AdminBookingReviewPage() {
           <Card>
             <CardHeader className="py-3 bg-surface-subtle flex flex-row items-center justify-between">
               <CardTitle className="text-xs uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-                <Calculator className="w-4 h-4 text-emerald-600" /> Manual Shipping Charge Breakdown (§16)
+                <Calculator className="w-4 h-4 text-emerald-600" /> Manual Shipping Charge Breakdown
               </CardTitle>
               <span className="text-xs font-mono font-bold text-brand-primary">
                 Total: {formatPaiseToRupees(totalPaise)}
@@ -502,7 +502,7 @@ export default function AdminBookingReviewPage() {
           <Card>
             <CardHeader className="py-3 bg-surface-subtle">
               <CardTitle className="text-xs uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-                <History className="w-4 h-4 text-slate-600" /> Activity Audit Trail (§46)
+                <History className="w-4 h-4 text-slate-600" /> Activity Audit Trail
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">

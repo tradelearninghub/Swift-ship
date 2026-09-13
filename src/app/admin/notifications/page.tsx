@@ -29,7 +29,7 @@ export default function AdminNotificationsPage() {
         <div>
           <h1 className="text-xl font-bold text-text-primary">Notification Rules & Dispatch Grid</h1>
           <p className="text-xs text-text-secondary mt-0.5">
-            Configure per-event automated multi-channel triggers for Email, WhatsApp, and SMS (§42).
+          Configure per-event automated multi-channel triggers for Email, WhatsApp, and SMS.
           </p>
         </div>
       </div>
@@ -37,7 +37,7 @@ export default function AdminNotificationsPage() {
       <Card>
         <CardHeader className="py-3 bg-surface-subtle">
           <CardTitle className="text-xs uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-            <Bell className="w-3.5 h-3.5 text-brand-primary" /> Lifecycle Event Dispatch Matrix (§42)
+            <Bell className="w-3.5 h-3.5 text-brand-primary" /> Lifecycle Event Dispatch Matrix
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">

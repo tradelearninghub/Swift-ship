@@ -268,7 +268,7 @@ export default function AdminStaffPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl font-bold text-text-primary">Staff & Role Permissions (§48 & §50)</h1>
+          <h1 className="text-xl font-bold text-text-primary">Staff & Role Permissions</h1>
           <p className="text-xs text-text-secondary mt-0.5">
             Manage operational team members, configure granular permission overrides, and enforce active server-side access control.
           </p>
@@ -289,7 +289,7 @@ export default function AdminStaffPage() {
             </CardTitle>
           </div>
           <div className="text-[11px] text-text-muted">
-            Strict server-side RBAC enforced (§53)
+            Strict server-side RBAC enforced
           </div>
         </CardHeader>
 
@@ -302,7 +302,7 @@ export default function AdminStaffPage() {
                   <th className="px-5 py-3 font-semibold">Contact Info</th>
                   <th className="px-5 py-3 font-semibold">Assigned Role</th>
                   <th className="px-5 py-3 font-semibold">Custom Overrides</th>
-                  <th className="px-5 py-3 font-semibold text-center">Active Status (§48)</th>
+                  <th className="px-5 py-3 font-semibold text-center">Active Status</th>
                   <th className="px-5 py-3 font-semibold text-right">Actions</th>
                 </tr>
               </thead>

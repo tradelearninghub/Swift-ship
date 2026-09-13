@@ -450,7 +450,7 @@ export default function AdminCouriersPage() {
         <div>
           <h1 className="text-xl font-bold text-text-primary">Courier Partners & Adapters</h1>
           <p className="text-xs text-text-secondary mt-0.5">
-            Self-service courier onboarding, multi-carrier API endpoints, granular capability switches (§21), and encrypted credentials.
+            Self-service courier onboarding, multi-carrier API endpoints, granular capability switches, and encrypted credentials.
           </p>
         </div>
 
@@ -527,7 +527,7 @@ export default function AdminCouriersPage() {
                 {/* Granular Capabilities Switches (§21) */}
                 <div className="space-y-2">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted flex items-center justify-between">
-                    <span>Granular API Capability Switches (§21)</span>
+                    <span>Granular API Capability Switches</span>
                     <span className="text-[10px] text-text-muted font-normal lowercase">click to toggle</span>
                   </div>
 
@@ -585,7 +585,7 @@ export default function AdminCouriersPage() {
                     onClick={() => handleTestConnection(courier)}
                   >
                     <Activity className="w-3.5 h-3.5 mr-1 text-brand-primary" />
-                    Test Connection (§23)
+                    Test Connection
                   </Button>
                 </div>
               </CardContent>
@@ -714,10 +714,10 @@ export default function AdminCouriersPage() {
                 <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl space-y-2">
                   <div className="flex items-center gap-2 font-bold text-amber-900 text-sm">
                     <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                    Honest Requirement: Developer Integration Needed (§22)
+                    Notice: Custom Integration Required
                   </div>
                   <p className="text-amber-800 text-[11px] leading-relaxed">
-                    If this courier relies on multi-legged OAuth handshake, SOAP/WSDL XML protocols, dynamic rate negotiation, or multi-step booking pipelines, the generic connector cannot reliably fulfill shipments. Rather than silently creating broken consignments, please contact your engineering team to build a dedicated adapter per §22 (&quot;New Courier Rule&quot;) of the specification.
+                    If this courier relies on multi-legged OAuth handshake, SOAP/WSDL XML protocols, dynamic rate negotiation, or multi-step booking pipelines, the generic connector cannot reliably fulfill shipments. Please contact your engineering team to configure a custom adapter for this carrier.
                   </p>
                 </div>
               )}
@@ -1034,7 +1034,9 @@ export default function AdminCouriersPage() {
                   size="sm"
                   onClick={() => {
                     if (!partnerName.trim() || !partnerCode.trim()) {
-                      alert("Please provide both Partner Name and Unique Carrier Code before proceeding.");
+                      // Trigger HTML5 validation on the required fields
+                      const form = document.getElementById("onboard-form-step2") as HTMLFormElement | null;
+                      if (form) { form.reportValidity(); }
                       return;
                     }
                     setOnboardStep(3);
@@ -1050,7 +1052,7 @@ export default function AdminCouriersPage() {
           {onboardStep === 3 && (
             <div className="space-y-4">
               <div>
-                <h4 className="font-bold text-text-primary mb-1">Verify API Connectivity (§23)</h4>
+                <h4 className="font-bold text-text-primary mb-1">Verify API Connectivity</h4>
                 <p className="text-text-secondary text-[11px]">
                   Send a live probe to authenticate your credentials with {partnerName} before saving.
                 </p>
@@ -1119,7 +1121,7 @@ export default function AdminCouriersPage() {
           {onboardStep === 4 && (
             <div className="space-y-4">
               <div>
-                <h4 className="font-bold text-text-primary mb-1">Enable Granular Capabilities (§21)</h4>
+                <h4 className="font-bold text-text-primary mb-1">Enable Granular Capabilities</h4>
                 <p className="text-text-secondary text-[11px]">
                   Turn specific features ON/OFF for this courier partner. You can adjust these anytime.
                 </p>
@@ -1260,7 +1262,7 @@ export default function AdminCouriersPage() {
 
                 <div className="p-3 bg-slate-900 text-slate-200 rounded-xl font-mono text-[11px] space-y-1">
                   <div className="text-slate-400 font-bold uppercase text-[9px]">
-                    Adapter Gateway Output Log (§22c)
+                    Adapter Gateway Output Log
                   </div>
                   <div>{testResult.logText}</div>
                 </div>

@@ -12,7 +12,7 @@ export default function ContactPage() {
   const [settings, setSettings] = useState(MOCK_COMPANY_SETTINGS);
 
   useEffect(() => {
-    // Dynamically fetch company profile settings per §7
+    // Dynamically fetch company profile settings from DB
     fetch("/api/admin/settings?group=company_profile")
       .then((res) => res.json())
       .then((data) => {

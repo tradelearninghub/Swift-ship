@@ -7,6 +7,30 @@ import { BarChart3, Download, Calendar, Filter, FileSpreadsheet } from "lucide-r
 
 export default function AdminReportsPage() {
   const [reportType, setReportType] = useState("BOOKINGS");
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const res = await fetch(`/api/admin/reports?type=${reportType}&format=csv`);
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ss-courier-${reportType.toLowerCase()}-report.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const data = await res.json();
+        console.error("Export failed:", data.error);
+      }
+    } catch (err) {
+      console.error("Export error:", err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const reports = [
     { key: "BOOKINGS", label: "Booking Volume Report", desc: "Total bookings, source breakdown, approval conversion rates." },
@@ -23,11 +47,11 @@ export default function AdminReportsPage() {
         <div>
           <h1 className="text-xl font-bold text-text-primary">Operational & Financial Reports</h1>
           <p className="text-xs text-text-secondary mt-0.5">
-            Export detailed multi-carrier logistics analytics, revenue summaries, and COD audits (§59).
+            Export detailed multi-carrier logistics analytics, revenue summaries, and COD audits.
           </p>
         </div>
 
-        <Button variant="primary" size="sm" onClick={() => alert("Downloading CSV export...")}>
+        <Button variant="primary" size="sm" onClick={handleExport} isLoading={isExporting}>
           <Download className="w-4 h-4 mr-1.5" /> Export Current Report (CSV)
         </Button>
       </div>
@@ -66,7 +90,7 @@ export default function AdminReportsPage() {
           </div>
         </div>
 
-        {/* Mock Data Table Preview */}
+        {/* Report Table Preview */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-surface-subtle border-b border-border-default uppercase text-text-muted">

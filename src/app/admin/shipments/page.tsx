@@ -1,45 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { StateView } from "@/components/ui/StateView";
 import { ReceiptLabelModal } from "@/components/ui/ReceiptLabelModal";
-import { MOCK_BOOKINGS, MockBooking } from "@/lib/mockData";
-import {
-  Send,
-  Search,
-  Filter,
-  Printer,
-  RefreshCw,
-  Truck,
-  ExternalLink,
-} from "lucide-react";
+import { Search, Printer, RefreshCw, ExternalLink } from "lucide-react";
 
 export default function AdminShipmentsPage() {
-  const [viewState, setViewState] = useState<"populated" | "loading" | "empty" | "error">("populated");
+  const [viewState, setViewState] = useState<"populated" | "loading" | "empty" | "error">("loading");
+  const [shipments, setShipments] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [selectedForLabel, setSelectedForLabel] = useState<MockBooking | null>(null);
+  const [selectedForLabel, setSelectedForLabel] = useState<any | null>(null);
 
-  // Shipments derived from bookings with shipments
-  const activeShipments = MOCK_BOOKINGS.filter((b) => b.shipment);
+  const fetchShipments = useCallback(async () => {
+    setViewState("loading");
+    try {
+      const params = new URLSearchParams({ limit: "100" });
+      if (statusFilter !== "ALL") params.set("status", statusFilter);
+      if (searchQuery) params.set("q", searchQuery);
 
-  const filtered = activeShipments.filter((b) => {
-    const s = b.shipment!;
-    const matchesSearch =
-      b.booking_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.awb?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.courier_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.receiver_name.toLowerCase().includes(searchQuery.toLowerCase());
+      const res = await fetch(`/api/admin/shipments?${params}`);
+      if (!res.ok) throw new Error("Failed to fetch shipments");
+      const data = await res.json();
+      const list = data.shipments || [];
+      setShipments(list);
+      setViewState(list.length === 0 ? "empty" : "populated");
+    } catch {
+      setViewState("error");
+    }
+  }, [statusFilter, searchQuery]);
 
-    const matchesStatus =
-      statusFilter === "ALL" || s.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    fetchShipments();
+  }, [fetchShipments]);
 
   return (
     <div className="space-y-6">
@@ -50,6 +47,9 @@ export default function AdminShipmentsPage() {
             Monitor active carrier dispatches, sync live tracking checkpoints, and print thermal labels.
           </p>
         </div>
+        <Button variant="outline" size="sm" onClick={fetchShipments}>
+          <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Refresh
+        </Button>
       </div>
 
       {/* Filters Bar */}
@@ -96,7 +96,7 @@ export default function AdminShipmentsPage() {
           state={viewState}
           emptyTitle="No shipments found"
           emptyDescription="No shipments match the selected status filters."
-          onRetry={() => setViewState("populated")}
+          onRetry={fetchShipments}
         >
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -112,9 +112,9 @@ export default function AdminShipmentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-default">
-                {filtered.map((b) => {
-                  const s = b.shipment!;
-                  const latestEvent = s.tracking_events[s.tracking_events.length - 1];
+                {shipments.map((s) => {
+                  const latestEvent = s.tracking_events?.[0];
+                  const b = s.booking;
 
                   return (
                     <tr key={s.id} className="hover:bg-surface-subtle transition-colors">
@@ -122,19 +122,21 @@ export default function AdminShipmentsPage() {
                         {s.awb}
                       </td>
                       <td className="px-4 py-3 font-mono font-semibold text-text-primary">
-                        {b.booking_number}
+                        {b?.booking_number || "—"}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-text-primary">{s.courier_name}</div>
+                        <div className="font-semibold text-text-primary">
+                          {s.courier_partner?.name || "Unknown"}
+                        </div>
                         <div className="text-[10px] text-text-muted font-mono uppercase">
-                          Source: {s.awb_source}
+                          {s.awb_source || s.courier_partner?.code}
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <div>
-                          {b.sender_city} → {b.receiver_city}
+                          {b?.sender_city} → {b?.receiver_city}
                         </div>
-                        <div className="text-[11px] text-text-muted">{b.receiver_name}</div>
+                        <div className="text-[11px] text-text-muted">{b?.receiver_name}</div>
                       </td>
                       <td className="px-4 py-3">
                         {latestEvent ? (
@@ -161,7 +163,7 @@ export default function AdminShipmentsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setSelectedForLabel(b)}
+                          onClick={() => setSelectedForLabel({ ...b, shipment: s })}
                         >
                           <Printer className="w-3.5 h-3.5 mr-1" /> Label
                         </Button>

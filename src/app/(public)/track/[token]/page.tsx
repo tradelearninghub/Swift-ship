@@ -69,7 +69,7 @@ export default function QrTrackingTokenPage() {
         </Link>
         <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-full text-xs font-medium">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Verified QR Label Scan (§29)</span>
+          <span>Verified QR Label Scan</span>
         </div>
       </div>
 
@@ -182,7 +182,7 @@ export default function QrTrackingTokenPage() {
               {/* Verified Tracking Milestones Timeline */}
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted mb-4">
-                  Consignment Milestone History (§31)
+                  Consignment Milestone History
                 </h3>
                 <ShipmentTimeline
                   currentStatus={shipment.status}
