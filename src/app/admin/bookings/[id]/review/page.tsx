@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/Card";
 import { ReceiptLabelModal } from "@/components/ui/ReceiptLabelModal";
+import { MilestoneUpdateModal } from "@/components/ui/MilestoneUpdateModal";
 import { Modal } from "@/components/ui/Modal";
 import { formatPaiseToRupees, formatGramsToKg } from "@/lib/utils";
 import {
@@ -24,6 +25,7 @@ import {
   Loader2,
   AlertCircle,
   Trash2,
+  MapPin,
 } from "lucide-react";
 
 export default function AdminBookingReviewPage() {
@@ -52,6 +54,7 @@ export default function AdminBookingReviewPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [isLabelModalOpen, setIsLabelModalOpen] = useState(false);
+  const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
 
   // Rejection modal
   const [showRejectBox, setShowRejectBox] = useState(false);
@@ -283,14 +286,24 @@ export default function AdminBookingReviewPage() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {isApproved && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsLabelModalOpen(true)}
-            >
-              <Printer className="w-4 h-4 mr-1.5" /> Print Thermal Label
-            </Button>
+          {(isApproved || booking.shipment) && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-brand-primary border-brand-primary/40 hover:bg-brand-primary/10"
+                onClick={() => setIsMilestoneModalOpen(true)}
+              >
+                <MapPin className="w-4 h-4 mr-1.5" /> Update Milestone
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsLabelModalOpen(true)}
+              >
+                <Printer className="w-4 h-4 mr-1.5" /> Print Thermal Label
+              </Button>
+            </>
           )}
           <Button
             variant="outline"
@@ -517,34 +530,50 @@ export default function AdminBookingReviewPage() {
           <Card>
             <CardHeader className="py-3 bg-surface-subtle">
               <CardTitle className="text-xs uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-                <Truck className="w-4 h-4 text-brand-primary" /> Courier Partner Selection
+                <Truck className="w-4 h-4 text-brand-primary" /> Delivery Courier Assignment
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-3 text-xs">
               <label className="block font-semibold text-text-primary">
-                Assign Line-Haul Partner:
+                Select Dispatch Method / Carrier:
               </label>
               <select
                 value={selectedCourier}
                 onChange={(e) => setSelectedCourier(e.target.value)}
-                className="w-full h-10 px-3 text-xs bg-surface-base border border-border-default rounded-lg focus:ring-1 focus:ring-brand-primary"
+                className="w-full h-10 px-3 text-xs bg-surface-base border border-border-default rounded-lg focus:ring-1 focus:ring-brand-primary font-medium"
               >
-                {couriers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} {c.status === "ACTIVE" ? "(API Online)" : "(Manual Fallback)"}
-                  </option>
-                ))}
+                {couriers.map((c) => {
+                  const isInHouse = c.code === "IN_HOUSE";
+                  return (
+                    <option key={c.id} value={c.id}>
+                      {isInHouse ? "🏢 [IN-HOUSE] SS Courier Self Fleet (Manual Milestones)" : `🌐 [3RD PARTY] ${c.name}`}
+                    </option>
+                  );
+                })}
               </select>
 
-              <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1 text-[11px] text-text-secondary">
-                <div className="font-semibold text-text-primary">Selected Partner Capabilities:</div>
-                <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Automated AWB Generation
+              {couriers.find((c) => c.id === selectedCourier)?.code === "IN_HOUSE" ? (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-1.5 text-xs text-blue-900">
+                  <div className="font-bold flex items-center gap-1.5 text-blue-800">
+                    <Truck className="w-4 h-4" /> SS Courier In-House Delivery Selected
+                  </div>
+                  <p className="text-[11px] text-blue-700 leading-relaxed">
+                    • Generates official consignment <strong className="font-mono bg-blue-100 px-1 py-0.5 rounded">SSC-XXXXXXX</strong> AWB.<br />
+                    • Admins directly log tracking milestones & hub checkpoints.<br />
+                    • Checkpoint updates reflect instantly on customer tracking (<code className="font-mono">/track</code>).
+                  </p>
                 </div>
-                <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Real-time Polling & Webhooks
+              ) : (
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1 text-[11px] text-text-secondary">
+                  <div className="font-semibold text-text-primary">Selected Partner Capabilities:</div>
+                  <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Automated Carrier AWB Generation
+                  </div>
+                  <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Real-time Polling & Webhooks
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -627,6 +656,30 @@ export default function AdminBookingReviewPage() {
         onClose={() => setIsLabelModalOpen(false)}
         booking={booking}
       />
+
+      {/* Milestone Update Modal */}
+      {isMilestoneModalOpen && (booking.shipment || isApproved) && (
+        <MilestoneUpdateModal
+          isOpen={isMilestoneModalOpen}
+          onClose={() => setIsMilestoneModalOpen(false)}
+          shipment={
+            booking.shipment || {
+              id: booking.id,
+              awb: booking.booking_number,
+              status: booking.status,
+              booking,
+              courier_partner: couriers.find((c) => c.id === selectedCourier),
+            }
+          }
+          onSuccess={(updatedShipment) => {
+            setBooking((prev: any) => ({
+              ...prev,
+              status: updatedShipment?.status === "DELIVERED" ? "DELIVERED" : prev.status,
+              shipment: updatedShipment || prev.shipment,
+            }));
+          }}
+        />
+      )}
     </div>
   );
 }

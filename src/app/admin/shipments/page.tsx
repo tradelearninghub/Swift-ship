@@ -7,7 +7,8 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { StateView } from "@/components/ui/StateView";
 import { ReceiptLabelModal } from "@/components/ui/ReceiptLabelModal";
-import { Search, Printer, RefreshCw, ExternalLink } from "lucide-react";
+import { MilestoneUpdateModal } from "@/components/ui/MilestoneUpdateModal";
+import { Search, Printer, RefreshCw, ExternalLink, MapPin } from "lucide-react";
 
 export default function AdminShipmentsPage() {
   const [viewState, setViewState] = useState<"populated" | "loading" | "empty" | "error">("loading");
@@ -15,6 +16,7 @@ export default function AdminShipmentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [selectedForLabel, setSelectedForLabel] = useState<any | null>(null);
+  const [selectedForMilestone, setSelectedForMilestone] = useState<any | null>(null);
 
   const fetchShipments = useCallback(async () => {
     setViewState("loading");
@@ -159,7 +161,16 @@ export default function AdminShipmentsPage() {
                       <td className="px-4 py-3">
                         <StatusBadge status={s.status} />
                       </td>
-                      <td className="px-4 py-3 text-right space-x-2">
+                      <td className="px-4 py-3 text-right space-x-1.5 whitespace-nowrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-brand-primary hover:bg-brand-primary/10 border-brand-primary/30"
+                          onClick={() => setSelectedForMilestone(s)}
+                          title="Update Tracking Status / Milestones"
+                        >
+                          <MapPin className="w-3.5 h-3.5 mr-1" /> Update Status
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -168,7 +179,7 @@ export default function AdminShipmentsPage() {
                           <Printer className="w-3.5 h-3.5 mr-1" /> Label
                         </Button>
                         <Link href={`/track?q=${s.awb}`}>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" title="View Public Tracking">
                             <ExternalLink className="w-3.5 h-3.5" />
                           </Button>
                         </Link>
@@ -188,6 +199,16 @@ export default function AdminShipmentsPage() {
           isOpen={!!selectedForLabel}
           onClose={() => setSelectedForLabel(null)}
           booking={selectedForLabel}
+        />
+      )}
+
+      {/* Milestone / Checkpoint Update Modal */}
+      {selectedForMilestone && (
+        <MilestoneUpdateModal
+          isOpen={!!selectedForMilestone}
+          onClose={() => setSelectedForMilestone(null)}
+          shipment={selectedForMilestone}
+          onSuccess={() => fetchShipments()}
         />
       )}
     </div>

@@ -18,10 +18,18 @@ export async function getSmtpConfig(): Promise<SmtpConfig> {
   let dbSmtp: any = null;
   try {
     const setting = await prisma.setting.findFirst({
-      where: { key: "smtp" },
+      where: { key: { in: ["smtp", "smtp_config"] } },
     });
-    if (setting?.value && typeof setting.value === "object") {
-      dbSmtp = setting.value;
+    if (setting?.value) {
+      if (typeof setting.value === "string") {
+        try {
+          dbSmtp = JSON.parse(setting.value);
+        } catch {
+          dbSmtp = setting.value;
+        }
+      } else if (typeof setting.value === "object") {
+        dbSmtp = setting.value;
+      }
     }
   } catch (err) {
     // Database might be unavailable
@@ -84,8 +92,15 @@ export async function getSmtpConfig(): Promise<SmtpConfig> {
 /**
  * Create a configured nodemailer transporter
  */
-export async function createMailTransporter() {
-  const config = await getSmtpConfig();
+export async function createMailTransporter(customConfig?: Partial<SmtpConfig>) {
+  const baseConfig = await getSmtpConfig();
+  const config = {
+    ...baseConfig,
+    ...(customConfig || {}),
+  };
+
+  config.port = Number(config.port) || 465;
+  config.secure = config.port === 465;
 
   return {
     transporter: nodemailer.createTransport({
@@ -117,9 +132,9 @@ export interface SendEmailOptions {
 /**
  * Dispatch real email via Nodemailer (§38)
  */
-export async function sendRealEmail(options: SendEmailOptions) {
+export async function sendRealEmail(options: SendEmailOptions, customConfig?: Partial<SmtpConfig>) {
   try {
-    const { transporter, config } = await createMailTransporter();
+    const { transporter, config } = await createMailTransporter(customConfig);
 
     const fromAddress = options.from || `"${config.fromName}" <${config.fromEmail}>`;
 
@@ -149,8 +164,8 @@ export async function sendRealEmail(options: SendEmailOptions) {
 /**
  * Test SMTP sending to an admin-specified recipient address (§38 + New Feature)
  */
-export async function sendTestEmail(recipientEmail: string) {
-  const { transporter, config } = await createMailTransporter();
+export async function sendTestEmail(recipientEmail: string, customConfig?: Partial<SmtpConfig>) {
+  const { transporter, config } = await createMailTransporter(customConfig);
 
   const timestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
   const html = `
@@ -184,5 +199,5 @@ export async function sendTestEmail(recipientEmail: string) {
     to: recipientEmail,
     subject: `SMTP Test Verification — SS Courier service [${new Date().toLocaleTimeString()}]`,
     html,
-  });
+  }, customConfig);
 }

@@ -5,6 +5,12 @@ import { z } from "zod";
 
 const testEmailSchema = z.object({
   recipientEmail: z.string().email("Please provide a valid recipient email address"),
+  host: z.string().optional(),
+  port: z.union([z.string(), z.number()]).optional(),
+  user: z.string().optional(),
+  pass: z.string().optional(),
+  fromEmail: z.string().optional(),
+  fromName: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -23,10 +29,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { recipientEmail } = parseResult.data;
+    const { recipientEmail, host, port, user, pass, fromEmail, fromName } = parseResult.data;
 
-    // Dispatch real email via identical Nodemailer transport pipeline (€38 + New Feature)
-    const result = await sendTestEmail(recipientEmail);
+    const customConfig: any = {};
+    if (host) customConfig.host = host;
+    if (port) customConfig.port = Number(port);
+    if (user) customConfig.user = user;
+    if (pass) customConfig.pass = pass;
+    if (fromEmail) customConfig.fromEmail = fromEmail;
+    if (fromName) customConfig.fromName = fromName;
+
+    // Dispatch real email via identical Nodemailer transport pipeline
+    const result = await sendTestEmail(recipientEmail, Object.keys(customConfig).length > 0 ? customConfig : undefined);
 
     if (!result.success) {
       return NextResponse.json(

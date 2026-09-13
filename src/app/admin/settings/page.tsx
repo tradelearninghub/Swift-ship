@@ -181,7 +181,7 @@ export default function AdminSettingsPage() {
           user: fields.smtp_user,
           from_email: fields.smtp_from_email,
           from_name: fields.smtp_from_name,
-          // Note: password is stored in env, not DB — do not persist here
+          ...(fields.smtp_password ? { pass: fields.smtp_password } : {}),
         };
       } else if (activeGroup === "whatsapp") {
         key = "whatsapp_config";
@@ -244,7 +244,15 @@ export default function AdminSettingsPage() {
       const res = await fetch("/api/admin/settings/test-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipientEmail: email }),
+        body: JSON.stringify({
+          recipientEmail: email,
+          host: fields.smtp_host,
+          port: fields.smtp_port,
+          user: fields.smtp_user,
+          pass: fields.smtp_password || undefined,
+          fromEmail: fields.smtp_from_email,
+          fromName: fields.smtp_from_name,
+        }),
       });
       const data = await res.json();
       if (res.ok && data.success) {

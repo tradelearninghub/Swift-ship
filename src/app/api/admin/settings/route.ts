@@ -44,10 +44,29 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "key and value required" }, { status: 400 });
     }
 
+    let valueToStore = value;
+    if (key === "smtp_config") {
+      try {
+        const parsed = typeof value === "string" ? JSON.parse(value) : { ...value };
+        if (!parsed.pass) {
+          const existing = await prisma.setting.findUnique({ where: { key } });
+          if (existing?.value) {
+            const existingParsed = typeof existing.value === "string" ? JSON.parse(existing.value as string) : existing.value;
+            if (existingParsed?.pass) {
+              parsed.pass = existingParsed.pass;
+            }
+          }
+        }
+        valueToStore = typeof value === "string" ? JSON.stringify(parsed) : parsed;
+      } catch (e) {
+        // fallback to value
+      }
+    }
+
     const updated = await prisma.setting.upsert({
       where: { key },
-      update: { value, group: group || "general" },
-      create: { key, group: group || "general", value },
+      update: { value: valueToStore, group: group || "general" },
+      create: { key, group: group || "general", value: valueToStore },
     });
 
     // Activity log

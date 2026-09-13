@@ -7,8 +7,10 @@ import { ShiprocketAdapter } from "./shiprocket";
 import { XpressBeesAdapter } from "./xpressbees";
 import { GenericRestAdapter } from "./genericRest";
 import { MockManualAdapter } from "./mock";
+import { InHouseCourierAdapter } from "./inhouse";
 
 const adapters: Record<string, ICourierAdapter> = {
+  IN_HOUSE: new InHouseCourierAdapter(),
   DELHIVERY: new DelhiveryAdapter(),
   BLUEDART: new BlueDartAdapter(),
   DTDC: new DTDCAdapter(),
@@ -21,6 +23,7 @@ const adapters: Record<string, ICourierAdapter> = {
 export function getCourierAdapter(code: string): ICourierAdapter {
   const upper = (code || "").toUpperCase();
   if (adapters[upper]) return adapters[upper];
+  if (upper === "IN_HOUSE" || upper.includes("INHOUSE")) return adapters["IN_HOUSE"];
   if (upper.startsWith("GENERIC")) return adapters["GENERIC_REST"];
   return adapters["MANUAL"];
 }
@@ -32,6 +35,7 @@ export function getAllSupportedAdapters(): {
   isAggregator?: boolean;
 }[] {
   return [
+    { code: "IN_HOUSE", name: "SS Courier In-House Delivery (Self Fleet)", type: "PREBUILT", isAggregator: false },
     { code: "DELHIVERY", name: "Delhivery", type: "PREBUILT", isAggregator: false },
     { code: "DTDC", name: "DTDC Express", type: "PREBUILT", isAggregator: false },
     { code: "SHIPROCKET", name: "Shiprocket (Aggregator)", type: "PREBUILT", isAggregator: true },

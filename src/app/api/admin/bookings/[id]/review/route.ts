@@ -294,7 +294,7 @@ export async function POST(
           }
 
           if (!awb) {
-            const prefix = (partner.code || "SWF").substring(0, 3).toUpperCase();
+            const prefix = partner.code === "IN_HOUSE" ? "SSC-" : `${(partner.code || "SSC").substring(0, 3).toUpperCase()}`;
             awb = `${prefix}${Math.floor(10000000 + Math.random() * 90000000)}`;
           }
 

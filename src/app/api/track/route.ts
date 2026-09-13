@@ -25,11 +25,15 @@ export async function GET(req: NextRequest) {
 
     // Option 1 & 2: Search by AWB or Booking Number / Order ID (Direct Lookup)
     if (query) {
+      const qTrimmed = query.trim();
+      const qUpper = qTrimmed.toUpperCase();
       const shipment = await prisma.shipment.findFirst({
         where: {
           OR: [
-            { awb: query },
-            { booking: { booking_number: query } },
+            { awb: qTrimmed },
+            { awb: qUpper },
+            { booking: { booking_number: qTrimmed } },
+            { booking: { booking_number: qUpper } },
           ],
         },
         include: {
@@ -46,7 +50,12 @@ export async function GET(req: NextRequest) {
       if (!shipment) {
         // Check if there is an intake booking without a shipment assigned yet
         const bookingOnly = await prisma.booking.findFirst({
-          where: { booking_number: query },
+          where: {
+            OR: [
+              { booking_number: qTrimmed },
+              { booking_number: qUpper },
+            ],
+          },
           include: { parcels: true },
         });
 

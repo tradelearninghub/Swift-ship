@@ -11,20 +11,53 @@ export async function GET(req: NextRequest) {
     }
 
     try {
+      // Ensure In-House Courier partner exists
+      await prisma.courierPartner.upsert({
+        where: { code: "IN_HOUSE" },
+        update: {
+          name: "SS Courier In-House Delivery (Self Fleet)",
+          capability_shipment_api: true,
+          capability_tracking_api: true,
+          capability_label_api: true,
+          status: "ACTIVE",
+        },
+        create: {
+          id: "partner-in-house",
+          name: "SS Courier In-House Delivery (Self Fleet)",
+          code: "IN_HOUSE",
+          status: "ACTIVE",
+          capability_shipment_api: true,
+          capability_tracking_api: true,
+          capability_label_api: true,
+        },
+      }).catch(() => {});
+
       const dbCouriers = await prisma.courierPartner.findMany({
         include: {
           configurations: true,
         },
+        orderBy: { code: "asc" },
       });
 
       if (dbCouriers && dbCouriers.length > 0) {
+        // Sort so IN_HOUSE is always first
+        dbCouriers.sort((a, b) => (a.code === "IN_HOUSE" ? -1 : b.code === "IN_HOUSE" ? 1 : 0));
         return NextResponse.json({ couriers: dbCouriers });
       }
     } catch {
       // Database not active or empty, fall back to mock
     }
 
-    return NextResponse.json({ couriers: MOCK_COURIER_PARTNERS });
+    const inHouseMock = {
+      id: "partner-in-house",
+      name: "SS Courier In-House Delivery (Self Fleet)",
+      code: "IN_HOUSE",
+      status: "ACTIVE",
+      capability_shipment_api: true,
+      capability_tracking_api: true,
+      capability_label_api: true,
+    };
+    return NextResponse.json({ couriers: [inHouseMock, ...MOCK_COURIER_PARTNERS] });
   } catch (error: any) {
     return NextResponse.json(
       { error: "Failed to fetch courier partners", details: error.message },
