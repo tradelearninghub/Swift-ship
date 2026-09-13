@@ -101,6 +101,7 @@ export async function GET(req: NextRequest) {
               channel: "EMAIL",
               subject: item.subject,
               body: item.body,
+              sender_email: "support@sscourierservice.in",
               is_active: true,
             },
           });
