@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { StateView } from "@/components/ui/StateView";
 import { ReceiptLabelModal } from "@/components/ui/ReceiptLabelModal";
-import { MOCK_BOOKINGS, MockBooking } from "@/lib/mockData";
 import { formatPaiseToRupees, formatGramsToKg } from "@/lib/utils";
+import { formatDateTimeIST } from "@/lib/datetime";
 import {
   Search,
   Plus,
@@ -16,25 +16,51 @@ import {
   Eye,
   ArrowRight,
   Package,
-  Layers,
   CheckCircle2,
   Printer,
+  RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 
 export default function CustomerBookingsPage() {
-  const [viewState, setViewState] = useState<"populated" | "loading" | "empty" | "error">("populated");
+  const [viewState, setViewState] = useState<"populated" | "loading" | "empty" | "error">("loading");
+  const [bookings, setBookings] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [selectedForLabel, setSelectedForLabel] = useState<MockBooking | null>(null);
+  const [selectedForLabel, setSelectedForLabel] = useState<any | null>(null);
 
-  const filteredBookings = MOCK_BOOKINGS.filter((b) => {
+  const fetchBookings = useCallback(async () => {
+    setViewState("loading");
+    try {
+      const res = await fetch("/api/bookings?limit=100");
+      if (!res.ok) throw new Error("Failed to fetch bookings");
+      const data = await res.json();
+      const list = data.bookings || [];
+      setBookings(list);
+      setViewState(list.length === 0 ? "empty" : "populated");
+    } catch (err) {
+      console.error("Failed to load bookings", err);
+      setViewState("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
+  const filteredBookings = bookings.filter((b) => {
+    const q = searchQuery.toLowerCase();
     const matchesSearch =
-      b.booking_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.receiver_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.shipment?.awb?.toLowerCase().includes(searchQuery.toLowerCase());
+      !searchQuery ||
+      b.booking_number?.toLowerCase().includes(q) ||
+      b.receiver_name?.toLowerCase().includes(q) ||
+      b.receiver_city?.toLowerCase().includes(q) ||
+      b.shipment?.awb?.toLowerCase().includes(q);
 
     const matchesStatus =
-      statusFilter === "ALL" || b.status === statusFilter || b.shipment?.status === statusFilter;
+      statusFilter === "ALL" ||
+      b.status === statusFilter ||
+      b.shipment?.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -49,36 +75,10 @@ export default function CustomerBookingsPage() {
             View all past and active parcel bookings, track shipments, and review payment status.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {/* State Switcher for visual inspection */}
-          <div className="hidden lg:flex items-center gap-1 bg-surface-base p-1 rounded-lg border border-border-default text-[11px]">
-            <span className="text-text-muted px-2 font-semibold">State:</span>
-            <button
-              onClick={() => setViewState("populated")}
-              className={`px-2 py-0.5 rounded ${viewState === "populated" ? "bg-brand-primary text-white" : "text-text-secondary"}`}
-            >
-              Populated
-            </button>
-            <button
-              onClick={() => setViewState("loading")}
-              className={`px-2 py-0.5 rounded ${viewState === "loading" ? "bg-brand-primary text-white" : "text-text-secondary"}`}
-            >
-              Loading
-            </button>
-            <button
-              onClick={() => setViewState("empty")}
-              className={`px-2 py-0.5 rounded ${viewState === "empty" ? "bg-brand-primary text-white" : "text-text-secondary"}`}
-            >
-              Empty
-            </button>
-            <button
-              onClick={() => setViewState("error")}
-              className={`px-2 py-0.5 rounded ${viewState === "error" ? "bg-brand-primary text-white" : "text-text-secondary"}`}
-            >
-              Error
-            </button>
-          </div>
-
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={fetchBookings}>
+            <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
+          </Button>
           <Link href="/book">
             <Button variant="accent" size="sm">
               <Plus className="w-4 h-4 mr-1" /> New Booking
@@ -93,7 +93,7 @@ export default function CustomerBookingsPage() {
           <div className="relative w-full md:w-80">
             <input
               type="text"
-              placeholder="Search by ID, receiver, or AWB..."
+              placeholder="Search by ID, receiver, city, or AWB..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-9 pl-9 pr-4 text-xs bg-surface-subtle border border-border-default rounded-lg focus:border-brand-primary focus:outline-none"
@@ -101,18 +101,17 @@ export default function CustomerBookingsPage() {
             <Search className="w-4 h-4 text-text-muted absolute left-3 top-2.5" />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            <span className="text-xs text-text-muted flex items-center gap-1 font-semibold">
-              <Filter className="w-3.5 h-3.5" /> Filter Status:
-            </span>
-            {["ALL", "REQUESTED", "UNDER_REVIEW", "IN_TRANSIT", "DELIVERED"].map((st) => (
+          <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+            <Filter className="w-3.5 h-3.5 text-text-muted shrink-0" />
+            <span className="text-xs font-semibold text-text-muted shrink-0">Filter:</span>
+            {["ALL", "REQUESTED", "UNDER_REVIEW", "APPROVED", "IN_TRANSIT", "DELIVERED", "RTO"].map((st) => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                className={`px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
                   statusFilter === st
-                    ? "bg-brand-primary text-white shadow-sm"
-                    : "bg-surface-subtle text-text-secondary hover:text-text-primary border border-border-default"
+                    ? "bg-brand-primary text-white"
+                    : "bg-surface-subtle text-text-secondary hover:bg-slate-200"
                 }`}
               >
                 {st.replace(/_/g, " ")}
@@ -122,125 +121,136 @@ export default function CustomerBookingsPage() {
         </div>
       </Card>
 
-      {/* Bookings Data Table wrapped in StateView */}
+      {/* Main Content Table / StateView */}
       <Card>
         <StateView
           state={viewState}
           emptyTitle="No bookings found"
-          emptyDescription="You haven't placed any bookings matching this criteria yet."
-          emptyAction={
-            <Link href="/book">
-              <Button variant="accent" size="sm">
-                <Plus className="w-4 h-4 mr-1" /> Create First Booking
-              </Button>
-            </Link>
+          emptyDescription={
+            searchQuery || statusFilter !== "ALL"
+              ? "No consignments match your search and filter criteria."
+              : "You have not submitted any delivery bookings yet."
           }
-          onRetry={() => setViewState("populated")}
+          emptyAction={
+            searchQuery || statusFilter !== "ALL" ? undefined : (
+              <Link href="/book">
+                <Button variant="primary" size="sm">
+                  <Plus className="w-4 h-4 mr-1" /> Book a Parcel
+                </Button>
+              </Link>
+            )
+          }
+          onRetry={fetchBookings}
         >
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-surface-subtle border-b border-border-default uppercase text-text-muted">
-                <tr>
-                  <th className="px-6 py-3 font-semibold">Booking ID</th>
-                  <th className="px-6 py-3 font-semibold">Date</th>
-                  <th className="px-6 py-3 font-semibold">Receiver & Route</th>
-                  <th className="px-6 py-3 font-semibold">Weight</th>
-                  <th className="px-6 py-3 font-semibold">Payment / Charge</th>
-                  <th className="px-6 py-3 font-semibold">Courier / AWB</th>
-                  <th className="px-6 py-3 font-semibold">Status</th>
-                  <th className="px-6 py-3 font-semibold text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-default">
-                {filteredBookings.map((b) => {
-                  const parcel = b.parcels[0];
-                  const weightGrams =
-                    parcel?.verified_weight_grams ?? parcel?.submitted_weight_grams ?? 0;
+          {filteredBookings.length === 0 ? (
+            <div className="py-12 text-center text-xs text-text-muted">
+              <Package className="w-8 h-8 mx-auto mb-2 text-text-muted/60" />
+              <p className="font-semibold text-text-primary">No matching records</p>
+              <p className="mt-0.5">Try adjusting your search terms or filter.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-surface-subtle border-b border-border-default text-xs uppercase text-text-muted">
+                  <tr>
+                    <th className="px-6 py-3 font-semibold">Booking ID / Date</th>
+                    <th className="px-6 py-3 font-semibold">Recipient & Destination</th>
+                    <th className="px-6 py-3 font-semibold">Courier / AWB</th>
+                    <th className="px-6 py-3 font-semibold">Weight & Valuation</th>
+                    <th className="px-6 py-3 font-semibold">Amount / Mode</th>
+                    <th className="px-6 py-3 font-semibold">Status</th>
+                    <th className="px-6 py-3 font-semibold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-default">
+                  {filteredBookings.map((b) => {
+                    const trackingToken = b.shipment?.tracking_token || b.shipment?.awb || b.booking_number;
+                    const parcel = b.parcels?.[0];
+                    const weightGrams = parcel?.verified_weight_grams ?? parcel?.submitted_weight_grams ?? 0;
+                    const amountPaise = b.final_total_paise || b.charges?.total || b.estimated_total_paise || 0;
 
-                  return (
-                    <tr key={b.id} className="hover:bg-surface-subtle transition-colors">
-                      <td className="px-6 py-4 font-mono font-bold text-brand-primary">
-                        {b.booking_number}
-                      </td>
-                      <td className="px-6 py-4 text-text-secondary">
-                        {new Date(b.created_at).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-text-primary">{b.receiver_name}</div>
-                        <div className="text-[11px] text-text-muted">
-                          {b.sender_city} → {b.receiver_city}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-mono">
-                        {formatGramsToKg(weightGrams)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-text-primary">
-                          {b.payment_type === "COD" ? (
-                            <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
-                              COD: {formatPaiseToRupees(b.cod_amount)}
-                            </span>
-                          ) : (
-                            <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
-                              Prepaid
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[11px] text-text-muted mt-0.5">
-                          Shipping:{" "}
-                          {b.charges
-                            ? formatPaiseToRupees(b.charges.total)
-                            : "Pending review"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {b.shipment ? (
-                          <div>
-                            <div className="font-medium text-text-primary">
-                              {b.shipment.courier_name}
-                            </div>
-                            <div className="font-mono text-[11px] text-brand-primary">
-                              {b.shipment.awb}
-                            </div>
+                    return (
+                      <tr key={b.id} className="hover:bg-surface-subtle transition-colors">
+                        <td className="px-6 py-4">
+                          <Link href={`/customer/bookings/${b.id}`} className="font-mono font-bold text-brand-primary hover:underline">
+                            {b.booking_number}
+                          </Link>
+                          <div className="text-[10px] text-text-muted font-sans font-normal">
+                            {formatDateTimeIST(b.created_at)}
                           </div>
-                        ) : (
-                          <span className="text-slate-400 italic">Pending Assignment</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <StatusBadge status={b.shipment?.status || b.status} />
-                      </td>
-                      <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedForLabel(b)}
-                        >
-                          <Printer className="w-3.5 h-3.5 mr-1" /> Print Slip
-                        </Button>
-                        <Link href={`/customer/bookings/${b.booking_number}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-3.5 h-3.5 mr-1" /> View
-                          </Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="font-medium text-text-primary">{b.receiver_name}</div>
+                          <div className="text-xs text-text-secondary">
+                            {b.receiver_city}{b.receiver_state ? `, ${b.receiver_state}` : ""}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {b.shipment ? (
+                            <div>
+                              <div className="font-mono text-xs font-semibold text-text-primary">
+                                {b.shipment.awb || "Pending AWB"}
+                              </div>
+                              <div className="text-[11px] text-text-muted">
+                                {b.shipment.courier_partner?.name || "In-House"}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-text-muted">Awaiting Review</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-xs font-medium text-text-primary">
+                            {weightGrams > 0 ? formatGramsToKg(weightGrams) : "—"}
+                          </div>
+                          {parcel?.declared_value > 0 && (
+                            <div className="text-[10px] text-text-muted">
+                              Val: ₹{Math.round(parcel.declared_value / 100)}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-text-primary">
+                            {amountPaise > 0 ? formatPaiseToRupees(amountPaise) : "Pending"}
+                          </div>
+                          <div className="text-[10px] text-text-muted uppercase">
+                            {b.payment_type === "COD" ? `COD (₹${Math.round(b.cod_amount / 100)})` : "Prepaid"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <StatusBadge status={b.shipment?.status || b.status} />
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link href={`/track/${trackingToken}`}>
+                              <Button variant="outline" size="sm" title="Track Live">
+                                Track <ExternalLink className="w-3 h-3 ml-1" />
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Print Shipping Label"
+                              onClick={() => setSelectedForLabel(b)}
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </StateView>
       </Card>
 
-      {/* Booking Slip / Shipping Label Modal */}
+      {/* Label Modal */}
       {selectedForLabel && (
         <ReceiptLabelModal
-          isOpen={!!selectedForLabel}
+          isOpen={Boolean(selectedForLabel)}
           onClose={() => setSelectedForLabel(null)}
           booking={selectedForLabel}
         />

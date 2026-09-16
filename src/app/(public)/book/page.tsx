@@ -828,40 +828,141 @@ export default function BookParcelPage() {
                 </div>
               )}
 
-              {/* Booking Summary Card */}
-              <div className="bg-surface-subtle p-4 rounded-xl border border-border-default space-y-3 text-xs">
-                <div className="font-bold text-sm text-text-primary">
-                  Summary Review
+              {/* Comprehensive Booking Verification Review */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="font-bold text-sm text-text-primary flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-brand-primary" /> Review All Booking Details Before Submitting
+                  </div>
+                  <span className="text-[11px] text-text-muted">Verify both addresses and parcel specs</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-text-muted">Sender:</span>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Sender (Pickup) Full Address Card */}
+                  <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-2 text-xs">
+                    <div className="flex items-center justify-between border-b border-border-default pb-2">
+                      <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                        <User className="w-3.5 h-3.5 text-brand-primary" /> 1. Sender (Pickup Address)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(1)}
+                        className="text-[11px] text-brand-primary font-semibold hover:underline"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    <div className="font-bold text-sm text-text-primary">{formData.sender_name || "—"}</div>
+                    <div className="text-text-secondary leading-relaxed">
+                      {formData.sender_address || "—"}
+                    </div>
+                    {formData.sender_landmark && (
+                      <div className="text-[11px] text-text-muted">
+                        <span className="font-semibold text-text-secondary">Landmark:</span> {formData.sender_landmark}
+                      </div>
+                    )}
                     <div className="font-semibold text-text-primary">
-                      {formData.sender_name || "—"} ({formData.sender_city || "—"})
+                      {formData.sender_city}
+                      {formData.sender_district ? `, ${formData.sender_district}` : ""}
+                      {formData.sender_state ? `, ${formData.sender_state}` : ""} - {formData.sender_pincode}
+                    </div>
+                    <div className="text-text-muted pt-1 border-t border-border-default/60 space-y-0.5">
+                      <div><span className="font-medium text-text-secondary">Mobile:</span> +91 {formData.sender_mobile || "—"}</div>
+                      {formData.sender_email && (
+                        <div><span className="font-medium text-text-secondary">Email:</span> {formData.sender_email}</div>
+                      )}
                     </div>
                   </div>
-                  <div>
-                    <span className="text-text-muted">Receiver:</span>
+
+                  {/* Receiver (Delivery) Full Address Card */}
+                  <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-2 text-xs">
+                    <div className="flex items-center justify-between border-b border-border-default pb-2">
+                      <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                        <MapPin className="w-3.5 h-3.5 text-brand-accent" /> 2. Receiver (Delivery Address)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(2)}
+                        className="text-[11px] text-brand-primary font-semibold hover:underline"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    <div className="font-bold text-sm text-text-primary">{formData.receiver_name || "—"}</div>
+                    <div className="text-text-secondary leading-relaxed">
+                      {formData.receiver_address || "—"}
+                    </div>
+                    {formData.receiver_landmark && (
+                      <div className="text-[11px] text-text-muted">
+                        <span className="font-semibold text-text-secondary">Landmark:</span> {formData.receiver_landmark}
+                      </div>
+                    )}
                     <div className="font-semibold text-text-primary">
-                      {formData.receiver_name || "—"} ({formData.receiver_city || "—"})
+                      {formData.receiver_city}
+                      {formData.receiver_district ? `, ${formData.receiver_district}` : ""}
+                      {formData.receiver_state ? `, ${formData.receiver_state}` : ""} - {formData.receiver_pincode}
+                    </div>
+                    <div className="text-text-muted pt-1 border-t border-border-default/60 space-y-0.5">
+                      <div><span className="font-medium text-text-secondary">Mobile:</span> +91 {formData.receiver_mobile || "—"}</div>
+                      {formData.receiver_email && (
+                        <div><span className="font-medium text-text-secondary">Email:</span> {formData.receiver_email}</div>
+                      )}
                     </div>
                   </div>
-                  <div>
-                    <span className="text-text-muted">Parcel Weight / Size:</span>
-                    <div className="font-semibold text-text-primary">
-                      {formData.weight_kg ? `${formData.weight_kg} kg` : "—"} (
-                      {formData.length_cm && formData.width_cm && formData.height_cm
-                        ? `${formData.length_cm}x${formData.width_cm}x${formData.height_cm} cm`
-                        : "—"}
-                      )
+                </div>
+
+                {/* Parcel Metrics & Payment Snapshot */}
+                <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-2 text-xs">
+                  <div className="flex items-center justify-between border-b border-border-default pb-2">
+                    <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                      <Package className="w-3.5 h-3.5 text-emerald-600" /> 3. Parcel & Commercial Summary
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(3)}
+                      className="text-[11px] text-brand-primary font-semibold hover:underline"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                    <div>
+                      <span className="text-text-muted block">Category:</span>
+                      <span className="font-medium text-text-primary">{formData.parcel_type || "Standard Parcel"}</span>
+                    </div>
+                    <div>
+                      <span className="text-text-muted block">Weight:</span>
+                      <span className="font-mono font-bold text-text-primary">{formData.weight_kg ? `${formData.weight_kg} kg` : "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-text-muted block">Dimensions (L×W×H):</span>
+                      <span className="font-mono text-text-primary">
+                        {formData.length_cm && formData.width_cm && formData.height_cm
+                          ? `${formData.length_cm} × ${formData.width_cm} × ${formData.height_cm} cm`
+                          : "—"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-text-muted block">Declared Value:</span>
+                      <span className="font-semibold text-text-primary">
+                        {formData.declared_value_rupees ? `₹${formData.declared_value_rupees}` : "—"}
+                      </span>
                     </div>
                   </div>
-                  <div>
-                    <span className="text-text-muted">Payment Mode:</span>
-                    <div className="font-semibold text-text-primary">
-                      {formData.payment_type === "COD"
-                        ? `COD (₹${formData.cod_amount_rupees || 0})`
-                        : "Prepaid"}
+                  {formData.description && (
+                    <div className="pt-2 border-t border-border-default/60">
+                      <span className="text-text-muted">Contents Description: </span>
+                      <span className="text-text-secondary font-medium">{formData.description}</span>
+                    </div>
+                  )}
+                  <div className="pt-2 border-t border-border-default/60 flex items-center justify-between">
+                    <div>
+                      <span className="text-text-muted">Selected Payment Mode: </span>
+                      <span className="font-bold text-text-primary">
+                        {formData.payment_type === "COD"
+                          ? `Cash on Delivery (COD — ₹${formData.cod_amount_rupees || 0} to collect)`
+                          : "Prepaid (Freight charged to Shipper)"}
+                      </span>
                     </div>
                   </div>
                 </div>

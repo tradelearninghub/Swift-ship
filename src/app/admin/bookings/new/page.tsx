@@ -605,6 +605,41 @@ export default function AdminNewBookingPage() {
           </div>
         </Card>
 
+        {/* Live Booking Review Summary */}
+        <Card className="p-4 bg-slate-50 border border-slate-200 space-y-3 text-xs">
+          <div className="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Verify Consignment Before Allocation
+            </span>
+            <span className="text-[11px] text-slate-500 font-normal">Check sender and receiver coordinates</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-white rounded-lg border border-slate-200 space-y-1">
+              <span className="font-bold text-slate-800 text-[11px] block">Sender (Pickup):</span>
+              <div className="font-semibold text-slate-900">{formData.sender_name || "—"} (+91 {formData.sender_mobile || "—"})</div>
+              <div className="text-slate-600 leading-relaxed">{formData.sender_address || "—"}</div>
+              {formData.sender_landmark && (
+                <div className="text-[11px] text-slate-500"><span className="font-medium">Landmark:</span> {formData.sender_landmark}</div>
+              )}
+              <div className="text-slate-800 font-medium">
+                {formData.sender_city}{formData.sender_district ? `, ${formData.sender_district}` : ""}, {formData.sender_state} - {formData.sender_pincode}
+              </div>
+            </div>
+
+            <div className="p-3 bg-white rounded-lg border border-slate-200 space-y-1">
+              <span className="font-bold text-slate-800 text-[11px] block">Receiver (Delivery):</span>
+              <div className="font-semibold text-slate-900">{formData.receiver_name || "—"} (+91 {formData.receiver_mobile || "—"})</div>
+              <div className="text-slate-600 leading-relaxed">{formData.receiver_address || "—"}</div>
+              {formData.receiver_landmark && (
+                <div className="text-[11px] text-slate-500"><span className="font-medium">Landmark:</span> {formData.receiver_landmark}</div>
+              )}
+              <div className="text-slate-800 font-medium">
+                {formData.receiver_city}{formData.receiver_district ? `, ${formData.receiver_district}` : ""}, {formData.receiver_state} - {formData.receiver_pincode}
+              </div>
+            </div>
+          </div>
+        </Card>
+
         <div className="flex items-center justify-end gap-3 pt-2">
           <Link href="/admin/bookings">
             <Button variant="outline" size="sm" type="button">

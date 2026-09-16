@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status");
     const search = searchParams.get("search");
     const customer_id = searchParams.get("customer_id");
+    const id = searchParams.get("id");
     const limit = parseInt(searchParams.get("limit") || "50");
 
     const whereClause: any = {};
@@ -21,18 +22,26 @@ export async function GET(req: NextRequest) {
       whereClause.customer_id = customer_id;
     }
 
-    if (status && status !== "ALL") {
-      whereClause.status = status;
-    }
-
-    if (search) {
+    if (id) {
       whereClause.OR = [
-        { booking_number: { contains: search } },
-        { receiver_name: { contains: search } },
-        { sender_city: { contains: search } },
-        { receiver_city: { contains: search } },
-        { shipment: { awb: { contains: search } } },
+        { id: id },
+        { booking_number: id },
+        { booking_number: id.toUpperCase() },
       ];
+    } else {
+      if (status && status !== "ALL") {
+        whereClause.status = status;
+      }
+
+      if (search) {
+        whereClause.OR = [
+          { booking_number: { contains: search } },
+          { receiver_name: { contains: search } },
+          { sender_city: { contains: search } },
+          { receiver_city: { contains: search } },
+          { shipment: { awb: { contains: search } } },
+        ];
+      }
     }
 
     const bookings = await prisma.booking.findMany({
@@ -45,8 +54,8 @@ export async function GET(req: NextRequest) {
           include: {
             courier_partner: true,
             tracking_events: {
-              orderBy: { occurred_at: "desc" },
-              take: 1,
+              orderBy: { occurred_at: id ? "asc" : "desc" },
+              ...(id ? {} : { take: 1 }),
             },
           },
         },
