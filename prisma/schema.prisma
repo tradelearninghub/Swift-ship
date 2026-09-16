@@ -261,18 +261,21 @@ model Customer {
 }
 
 model CustomerAddress {
-  id          String   @id @default(uuid())
-  customer_id String
-  label       String
-  address     String   @db.Text
-  landmark    String?
-  city        String
-  district    String?
-  state       String
-  pincode     String
-  is_default  Boolean  @default(false)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id             String   @id @default(uuid())
+  customer_id    String
+  label          String
+  contact_name   String?
+  contact_mobile String?
+  contact_email  String?
+  address        String   @db.Text
+  landmark       String?
+  city           String
+  district       String?
+  state          String
+  pincode        String
+  is_default     Boolean  @default(false)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
   customer Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
 

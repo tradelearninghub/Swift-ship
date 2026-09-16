@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
   X,
+  BookMarked,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { SignOutButton } from "@/components/SignOutButton";
@@ -30,8 +31,9 @@ export default function CustomerLayout({
     { href: "/customer", label: "Dashboard", icon: LayoutDashboard },
     { href: "/book", label: "New Booking", icon: PlusCircle, highlight: true },
     { href: "/customer/bookings", label: "Booking History", icon: PackageCheck },
+    { href: "/customer/addresses", label: "Address Book", icon: BookMarked },
     { href: "/track", label: "Track Shipment", icon: Search },
-    { href: "/customer/profile", label: "Profile & Addresses", icon: User },
+    { href: "/customer/profile", label: "Profile & Account", icon: User },
     { href: "/customer/notifications", label: "Notifications", icon: Bell },
   ];
 

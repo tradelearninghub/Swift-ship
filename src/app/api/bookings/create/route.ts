@@ -42,6 +42,12 @@ const BookingCreateSchema = z.object({
   // Payment
   payment_type: z.enum(["PREPAID", "COD"]),
   cod_amount_paise: z.number().int().nonnegative().default(0),
+
+  // Address Book persistence (§Customer Saved Address Book)
+  save_sender_address: z.boolean().optional(),
+  sender_address_label: z.string().optional(),
+  save_receiver_address: z.boolean().optional(),
+  receiver_address_label: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -176,6 +182,75 @@ export async function POST(req: NextRequest) {
           },
         },
       });
+
+      // Persist Sender Address to Address Book if requested
+      if (data.save_sender_address && customerId) {
+        try {
+          const existingSenderAddr = await tx.customerAddress.findFirst({
+            where: {
+              customer_id: customerId,
+              address: data.sender_address.trim(),
+              pincode: data.sender_pincode.trim(),
+            },
+          });
+          if (!existingSenderAddr) {
+            const hasDefault = await tx.customerAddress.count({
+              where: { customer_id: customerId, is_default: true },
+            });
+            await tx.customerAddress.create({
+              data: {
+                customer_id: customerId,
+                label: data.sender_address_label?.trim() || `${data.sender_city} Pickup`,
+                contact_name: data.sender_name.trim(),
+                contact_mobile: data.sender_mobile.trim(),
+                contact_email: data.sender_email?.trim() || null,
+                address: data.sender_address.trim(),
+                landmark: data.sender_landmark?.trim() || null,
+                city: data.sender_city.trim(),
+                district: data.sender_district?.trim() || null,
+                state: data.sender_state.trim(),
+                pincode: data.sender_pincode.trim(),
+                is_default: hasDefault === 0,
+              },
+            });
+          }
+        } catch (addrErr) {
+          console.warn("Could not save sender address to address book:", addrErr);
+        }
+      }
+
+      // Persist Receiver Address to Address Book if requested
+      if (data.save_receiver_address && customerId) {
+        try {
+          const existingReceiverAddr = await tx.customerAddress.findFirst({
+            where: {
+              customer_id: customerId,
+              address: data.receiver_address.trim(),
+              pincode: data.receiver_pincode.trim(),
+            },
+          });
+          if (!existingReceiverAddr) {
+            await tx.customerAddress.create({
+              data: {
+                customer_id: customerId,
+                label: data.receiver_address_label?.trim() || `${data.receiver_name} (${data.receiver_city})`,
+                contact_name: data.receiver_name.trim(),
+                contact_mobile: data.receiver_mobile.trim(),
+                contact_email: data.receiver_email?.trim() || null,
+                address: data.receiver_address.trim(),
+                landmark: data.receiver_landmark?.trim() || null,
+                city: data.receiver_city.trim(),
+                district: data.receiver_district?.trim() || null,
+                state: data.receiver_state.trim(),
+                pincode: data.receiver_pincode.trim(),
+                is_default: false,
+              },
+            });
+          }
+        } catch (addrErr) {
+          console.warn("Could not save receiver address to address book:", addrErr);
+        }
+      }
 
       return { booking, parcel };
     });

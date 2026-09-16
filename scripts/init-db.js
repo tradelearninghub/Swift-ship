@@ -155,6 +155,9 @@ async function runSchemaSelfHealing(prisma) {
     { table: "bookings", column: "receiver_district", definition: "VARCHAR(191) NULL" },
     { table: "customer_addresses", column: "landmark", definition: "VARCHAR(191) NULL" },
     { table: "customer_addresses", column: "district", definition: "VARCHAR(191) NULL" },
+    { table: "customer_addresses", column: "contact_name", definition: "VARCHAR(191) NULL" },
+    { table: "customer_addresses", column: "contact_mobile", definition: "VARCHAR(191) NULL" },
+    { table: "customer_addresses", column: "contact_email", definition: "VARCHAR(191) NULL" },
     { table: "notification_templates", column: "sender_email", definition: "VARCHAR(191) NULL" },
   ];
 

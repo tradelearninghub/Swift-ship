@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -14,6 +14,8 @@ import {
   AlertCircle,
   ArrowRight,
   ArrowLeft,
+  BookMarked,
+  BookmarkCheck,
 } from "lucide-react";
 import { INDIAN_STATES_AND_UTS } from "@/lib/geo";
 
@@ -24,6 +26,16 @@ export default function BookParcelPage() {
   const [generatedBookingId, setGeneratedBookingId] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [apiError, setApiError] = useState<string | null>(null);
+
+  // Address Book Integration
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [selectedSenderAddrId, setSelectedSenderAddrId] = useState("");
+  const [selectedReceiverAddrId, setSelectedReceiverAddrId] = useState("");
+  const [saveSenderAddress, setSaveSenderAddress] = useState(false);
+  const [senderAddressLabel, setSenderAddressLabel] = useState("");
+  const [saveReceiverAddress, setSaveReceiverAddress] = useState(false);
+  const [receiverAddressLabel, setReceiverAddressLabel] = useState("");
 
   // Form State — Starts clean and empty per user requirements
   const [formData, setFormData] = useState({
@@ -62,6 +74,95 @@ export default function BookParcelPage() {
     payment_type: "PREPAID",
     cod_amount_rupees: "",
   });
+
+  // Load authenticated customer details & address book on mount
+  useEffect(() => {
+    async function loadAddressBook() {
+      try {
+        const authRes = await fetch("/api/auth/me");
+        if (authRes.ok) {
+          const authData = await authRes.json();
+          if (authData.user) {
+            setIsLoggedIn(true);
+            const addrRes = await fetch("/api/customer/addresses");
+            if (addrRes.ok) {
+              const addrData = await addrRes.json();
+              setSavedAddresses(addrData.addresses || []);
+            }
+          }
+        }
+      } catch (e) {
+        // Guest user browsing unauthenticated
+      }
+    }
+    loadAddressBook();
+  }, []);
+
+  const handleSelectSenderAddress = (addrId: string) => {
+    setSelectedSenderAddrId(addrId);
+    if (!addrId) return;
+    const addr = savedAddresses.find((a) => a.id === addrId);
+    if (addr) {
+      setFormData((prev) => ({
+        ...prev,
+        sender_name: addr.contact_name || prev.sender_name,
+        sender_mobile: addr.contact_mobile || prev.sender_mobile,
+        sender_email: addr.contact_email || prev.sender_email,
+        sender_address: addr.address,
+        sender_landmark: addr.landmark || "",
+        sender_city: addr.city,
+        sender_district: addr.district || "",
+        sender_state: addr.state,
+        sender_pincode: addr.pincode,
+      }));
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.sender_name;
+        delete next.sender_mobile;
+        delete next.sender_email;
+        delete next.sender_address;
+        delete next.sender_landmark;
+        delete next.sender_city;
+        delete next.sender_district;
+        delete next.sender_state;
+        delete next.sender_pincode;
+        return next;
+      });
+    }
+  };
+
+  const handleSelectReceiverAddress = (addrId: string) => {
+    setSelectedReceiverAddrId(addrId);
+    if (!addrId) return;
+    const addr = savedAddresses.find((a) => a.id === addrId);
+    if (addr) {
+      setFormData((prev) => ({
+        ...prev,
+        receiver_name: addr.contact_name || prev.receiver_name,
+        receiver_mobile: addr.contact_mobile || prev.receiver_mobile,
+        receiver_email: addr.contact_email || prev.receiver_email,
+        receiver_address: addr.address,
+        receiver_landmark: addr.landmark || "",
+        receiver_city: addr.city,
+        receiver_district: addr.district || "",
+        receiver_state: addr.state,
+        receiver_pincode: addr.pincode,
+      }));
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.receiver_name;
+        delete next.receiver_mobile;
+        delete next.receiver_email;
+        delete next.receiver_address;
+        delete next.receiver_landmark;
+        delete next.receiver_city;
+        delete next.receiver_district;
+        delete next.receiver_state;
+        delete next.receiver_pincode;
+        return next;
+      });
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -268,6 +369,10 @@ export default function BookParcelPage() {
           formData.payment_type === "COD"
             ? Math.round(parseFloat(formData.cod_amount_rupees || "0") * 100)
             : 0,
+        save_sender_address: saveSenderAddress,
+        sender_address_label: senderAddressLabel.trim() || undefined,
+        save_receiver_address: saveReceiverAddress,
+        receiver_address_label: receiverAddressLabel.trim() || undefined,
       };
 
       const res = await fetch("/api/bookings/create", {
@@ -409,10 +514,64 @@ export default function BookParcelPage() {
           {/* STEP 1: SENDER DETAILS */}
           {currentStep === 1 && (
             <div className="p-6 sm:p-8 space-y-6">
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-brand-primary" />
-                <h3 className="text-lg font-bold text-text-primary">Sender Information</h3>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <User className="w-5 h-5 text-brand-primary" />
+                  <h3 className="text-lg font-bold text-text-primary">Sender Information</h3>
+                </div>
+                {isLoggedIn && savedAddresses.length > 0 && (
+                  <span className="text-xs text-brand-primary font-semibold flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
+                    <BookMarked className="w-3.5 h-3.5" /> Address Book Enabled
+                  </span>
+                )}
               </div>
+
+              {/* Saved Address Auto-Fill Dropdown for Logged-In Users */}
+              {isLoggedIn && savedAddresses.length > 0 ? (
+                <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/50 border border-blue-200 rounded-xl p-3.5 space-y-2 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-brand-primary flex items-center gap-1.5">
+                      <BookMarked className="w-4 h-4 text-brand-accent" />
+                      Choose from Saved Addresses ({savedAddresses.length})
+                    </label>
+                    <Link
+                      href="/customer/addresses"
+                      target="_blank"
+                      className="text-[11px] text-brand-primary hover:underline font-medium"
+                    >
+                      Manage Address Book ↗
+                    </Link>
+                  </div>
+                  <select
+                    value={selectedSenderAddrId}
+                    onChange={(e) => handleSelectSenderAddress(e.target.value)}
+                    className="w-full h-10 px-3 py-1.5 text-xs bg-white border border-blue-300 rounded-lg text-text-primary focus:ring-2 focus:ring-brand-primary/30 font-medium"
+                  >
+                    <option value="">-- Click to select an address and auto-populate --</option>
+                    {savedAddresses.map((addr) => (
+                      <option key={addr.id} value={addr.id}>
+                        {addr.label} {addr.is_default ? "★ (Default)" : ""}: {addr.address}, {addr.city} ({addr.pincode})
+                        {addr.contact_name ? ` — ${addr.contact_name}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedSenderAddrId && (
+                    <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1 animate-in fade-in">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Sender details auto-filled from Address Book
+                    </div>
+                  )}
+                </div>
+              ) : !isLoggedIn ? (
+                <div className="text-xs text-text-secondary bg-surface-subtle p-3 rounded-xl border border-border-default flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1.5">
+                    <BookMarked className="w-4 h-4 text-brand-accent shrink-0" />
+                    <span>Have frequent pickup hubs? <strong>Sign in</strong> to save and 1-click auto-fill addresses.</span>
+                  </span>
+                  <Link href="/login" className="text-brand-primary font-bold hover:underline shrink-0 text-xs">
+                    Sign In →
+                  </Link>
+                </div>
+              ) : null}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
@@ -520,16 +679,88 @@ export default function BookParcelPage() {
                   required
                 />
               </div>
+
+              {/* Option to Save Sender Address to Address Book */}
+              {isLoggedIn && (
+                <div className="pt-3 border-t border-border-default/60 space-y-2 bg-surface-subtle/50 p-3 rounded-xl">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saveSenderAddress}
+                      onChange={(e) => setSaveSenderAddress(e.target.checked)}
+                      className="w-4 h-4 rounded text-brand-primary focus:ring-brand-primary border-border-default"
+                    />
+                    <span className="flex items-center gap-1.5">
+                      <BookmarkCheck className="w-3.5 h-3.5 text-brand-primary" />
+                      Save this pickup address to my Address Book for future bookings
+                    </span>
+                  </label>
+                  {saveSenderAddress && (
+                    <div className="pl-6 pt-1 max-w-sm animate-in fade-in">
+                      <Input
+                        label="Address Label / Nickname"
+                        value={senderAddressLabel}
+                        onChange={(e) => setSenderAddressLabel(e.target.value)}
+                        placeholder="e.g. Head Office, Jaipur Hub"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
           {/* STEP 2: RECEIVER DETAILS */}
           {currentStep === 2 && (
             <div className="p-6 sm:p-8 space-y-6">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-brand-accent" />
-                <h3 className="text-lg font-bold text-text-primary">Receiver / Destination Information</h3>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-brand-accent" />
+                  <h3 className="text-lg font-bold text-text-primary">Receiver / Destination Information</h3>
+                </div>
+                {isLoggedIn && savedAddresses.length > 0 && (
+                  <span className="text-xs text-brand-primary font-semibold flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
+                    <BookMarked className="w-3.5 h-3.5" /> Address Book Enabled
+                  </span>
+                )}
               </div>
+
+              {/* Saved Address Auto-Fill Dropdown for Receiver */}
+              {isLoggedIn && savedAddresses.length > 0 && (
+                <div className="bg-gradient-to-r from-orange-50/80 to-amber-50/50 border border-orange-200 rounded-xl p-3.5 space-y-2 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-brand-accent flex items-center gap-1.5">
+                      <BookMarked className="w-4 h-4 text-brand-primary" />
+                      Choose from Saved Addresses ({savedAddresses.length})
+                    </label>
+                    <Link
+                      href="/customer/addresses"
+                      target="_blank"
+                      className="text-[11px] text-brand-primary hover:underline font-medium"
+                    >
+                      Manage Address Book ↗
+                    </Link>
+                  </div>
+                  <select
+                    value={selectedReceiverAddrId}
+                    onChange={(e) => handleSelectReceiverAddress(e.target.value)}
+                    className="w-full h-10 px-3 py-1.5 text-xs bg-white border border-orange-300 rounded-lg text-text-primary focus:ring-2 focus:ring-brand-accent/30 font-medium"
+                  >
+                    <option value="">-- Click to select an address and auto-populate --</option>
+                    {savedAddresses.map((addr) => (
+                      <option key={addr.id} value={addr.id}>
+                        {addr.label} {addr.is_default ? "★ (Default)" : ""}: {addr.address}, {addr.city} ({addr.pincode})
+                        {addr.contact_name ? ` — ${addr.contact_name}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedReceiverAddrId && (
+                    <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1 animate-in fade-in">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Receiver details auto-filled from Address Book
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
@@ -637,6 +868,34 @@ export default function BookParcelPage() {
                   required
                 />
               </div>
+
+              {/* Option to Save Receiver Address to Address Book */}
+              {isLoggedIn && (
+                <div className="pt-3 border-t border-border-default/60 space-y-2 bg-surface-subtle/50 p-3 rounded-xl">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saveReceiverAddress}
+                      onChange={(e) => setSaveReceiverAddress(e.target.checked)}
+                      className="w-4 h-4 rounded text-brand-primary focus:ring-brand-primary border-border-default"
+                    />
+                    <span className="flex items-center gap-1.5">
+                      <BookmarkCheck className="w-3.5 h-3.5 text-brand-accent" />
+                      Save this delivery address to my Address Book for future bookings
+                    </span>
+                  </label>
+                  {saveReceiverAddress && (
+                    <div className="pl-6 pt-1 max-w-sm animate-in fade-in">
+                      <Input
+                        label="Address Label / Nickname"
+                        value={receiverAddressLabel}
+                        onChange={(e) => setReceiverAddressLabel(e.target.value)}
+                        placeholder="e.g. Client - Sharma Ent, Mom's House"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -872,6 +1131,13 @@ export default function BookParcelPage() {
                         <div><span className="font-medium text-text-secondary">Email:</span> {formData.sender_email}</div>
                       )}
                     </div>
+                    {saveSenderAddress && (
+                      <div className="pt-1.5">
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                          <BookmarkCheck className="w-3 h-3 text-emerald-600" /> Will save to Address Book ({senderAddressLabel || "Pickup"})
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Receiver (Delivery) Full Address Card */}
@@ -908,6 +1174,13 @@ export default function BookParcelPage() {
                         <div><span className="font-medium text-text-secondary">Email:</span> {formData.receiver_email}</div>
                       )}
                     </div>
+                    {saveReceiverAddress && (
+                      <div className="pt-1.5">
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                          <BookmarkCheck className="w-3 h-3 text-emerald-600" /> Will save to Address Book ({receiverAddressLabel || "Delivery"})
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

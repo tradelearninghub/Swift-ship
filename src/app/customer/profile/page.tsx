@@ -43,12 +43,16 @@ export default function CustomerProfilePage() {
   });
 
   useEffect(() => {
-    async function loadProfile() {
+    async function loadData() {
       setLoading(true);
       try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
+        const [authRes, addrRes] = await Promise.all([
+          fetch("/api/auth/me"),
+          fetch("/api/customer/addresses"),
+        ]);
+
+        if (authRes.ok) {
+          const data = await authRes.json();
           if (data.user) {
             setProfile({
               name: data.user.name || "",
@@ -59,13 +63,18 @@ export default function CustomerProfilePage() {
             });
           }
         }
+
+        if (addrRes.ok) {
+          const data = await addrRes.json();
+          setSavedAddresses(data.addresses || []);
+        }
       } catch (e) {
-        console.error("Failed to load user profile", e);
+        console.error("Failed to load user profile or addresses", e);
       } finally {
         setLoading(false);
       }
     }
-    loadProfile();
+    loadData();
   }, []);
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -74,31 +83,52 @@ export default function CustomerProfilePage() {
     setTimeout(() => setIsSaved(false), 2500);
   };
 
-  const handleAddAddress = (e: React.FormEvent) => {
+  const handleAddAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAddr.address.trim() || !newAddr.pincode.trim()) return;
 
-    const item: SavedAddress = {
-      ...newAddr,
-      id: `addr-${Date.now()}`,
-      is_default: savedAddresses.length === 0 ? true : newAddr.is_default,
-    };
-    setSavedAddresses((prev) => [...prev, item]);
-    setIsAddingAddress(false);
-    setNewAddr({
-      label: "Branch / Warehouse",
-      address: "",
-      landmark: "",
-      city: "Jaipur",
-      district: "",
-      state: "Rajasthan",
-      pincode: "",
-      is_default: false,
-    });
+    try {
+      const res = await fetch("/api/customer/addresses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newAddr,
+          is_default: savedAddresses.length === 0 ? true : newAddr.is_default,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setSavedAddresses((prev) => [data.address, ...prev]);
+        setIsAddingAddress(false);
+        setNewAddr({
+          label: "Branch / Warehouse",
+          address: "",
+          landmark: "",
+          city: "Jaipur",
+          district: "",
+          state: "Rajasthan",
+          pincode: "",
+          is_default: false,
+        });
+      }
+    } catch (e) {
+      console.error("Failed to save address", e);
+    }
   };
 
-  const handleDeleteAddress = (id: string) => {
-    setSavedAddresses((prev) => prev.filter((a) => a.id !== id));
+  const handleDeleteAddress = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this address?")) return;
+    try {
+      const res = await fetch(`/api/customer/addresses/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setSavedAddresses((prev) => prev.filter((a) => a.id !== id));
+      }
+    } catch (e) {
+      console.error("Failed to delete address", e);
+    }
   };
 
   return (
@@ -198,11 +228,19 @@ export default function CustomerProfilePage() {
             <h3 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-brand-accent" /> Saved Addresses ({savedAddresses.length})
             </h3>
-            {!isAddingAddress && (
-              <Button variant="outline" size="sm" onClick={() => setIsAddingAddress(true)}>
-                <Plus className="w-3.5 h-3.5 mr-1" /> Add Address
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              <a
+                href="/customer/addresses"
+                className="text-xs font-semibold text-brand-primary hover:underline"
+              >
+                Manage All →
+              </a>
+              {!isAddingAddress && (
+                <Button variant="outline" size="sm" onClick={() => setIsAddingAddress(true)}>
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Add
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* New Address Form Modal/Box */}

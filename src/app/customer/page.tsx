@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Clock,
   ExternalLink,
+  BookMarked,
 } from "lucide-react";
 import { formatPaiseToRupees } from "@/lib/utils";
 import { formatDateTimeIST } from "@/lib/datetime";
@@ -81,10 +82,15 @@ export default function CustomerDashboardPage() {
             Manage your parcel bookings, monitor active dispatches, and track shipments in real-time.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
             <RefreshCw className={`w-3.5 h-3.5 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
+          <Link href="/customer/addresses">
+            <Button variant="outline" size="sm">
+              <BookMarked className="w-3.5 h-3.5 mr-1 text-brand-primary" /> Address Book
+            </Button>
+          </Link>
           <Link href="/book">
             <Button variant="accent" size="sm">
               <Plus className="w-4 h-4 mr-1.5" /> Book New Parcel
