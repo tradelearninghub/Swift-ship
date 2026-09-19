@@ -39,16 +39,16 @@ export default function AdminBookingReviewPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Admin Verification Form State
-  const [verifiedWeightGrams, setVerifiedWeightGrams] = useState("1000");
-  const [verifiedLengthCm, setVerifiedLengthCm] = useState("20");
-  const [verifiedWidthCm, setVerifiedWidthCm] = useState("15");
-  const [verifiedHeightCm, setVerifiedHeightCm] = useState("10");
+  const [verifiedWeightGrams, setVerifiedWeightGrams] = useState("");
+  const [verifiedLengthCm, setVerifiedLengthCm] = useState("");
+  const [verifiedWidthCm, setVerifiedWidthCm] = useState("");
+  const [verifiedHeightCm, setVerifiedHeightCm] = useState("");
 
   // Manual Shipping Charge State
-  const [shippingChargeRupees, setShippingChargeRupees] = useState("150");
-  const [additionalChargeRupees, setAdditionalChargeRupees] = useState("0");
-  const [discountRupees, setDiscountRupees] = useState("0");
-  const [taxRupees, setTaxRupees] = useState("27");
+  const [shippingChargeRupees, setShippingChargeRupees] = useState("");
+  const [additionalChargeRupees, setAdditionalChargeRupees] = useState("");
+  const [discountRupees, setDiscountRupees] = useState("");
+  const [taxRupees, setTaxRupees] = useState("");
   const [selectedCourier, setSelectedCourier] = useState("");
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -88,32 +88,30 @@ export default function AdminBookingReviewPage() {
         const parcel = b.parcels && b.parcels[0];
         if (parcel) {
           setVerifiedWeightGrams(
-            (parcel.verified_weight_grams || parcel.submitted_weight_grams || 1000).toString()
+            (parcel.verified_weight_grams || parcel.submitted_weight_grams || "").toString()
           );
           setVerifiedLengthCm(
-            (parcel.verified_length_cm || parcel.submitted_length_cm || 20).toString()
+            (parcel.verified_length_cm || parcel.submitted_length_cm || "").toString()
           );
           setVerifiedWidthCm(
-            (parcel.verified_width_cm || parcel.submitted_width_cm || 15).toString()
+            (parcel.verified_width_cm || parcel.submitted_width_cm || "").toString()
           );
           setVerifiedHeightCm(
-            (parcel.verified_height_cm || parcel.submitted_height_cm || 10).toString()
+            (parcel.verified_height_cm || parcel.submitted_height_cm || "").toString()
           );
         }
 
         if (b.charges) {
-          setShippingChargeRupees((b.charges.shipping_charge / 100).toString());
-          setAdditionalChargeRupees((b.charges.additional_charge / 100).toString());
-          setDiscountRupees((b.charges.discount / 100).toString());
-          setTaxRupees((b.charges.tax / 100).toString());
+          setShippingChargeRupees(b.charges.shipping_charge != null ? (b.charges.shipping_charge / 100).toString() : "");
+          setAdditionalChargeRupees(b.charges.additional_charge != null ? (b.charges.additional_charge / 100).toString() : "");
+          setDiscountRupees(b.charges.discount != null ? (b.charges.discount / 100).toString() : "");
+          setTaxRupees(b.charges.tax != null ? (b.charges.tax / 100).toString() : "");
         }
 
         const courierList = cData.couriers || [];
         setCouriers(courierList);
         if (b.shipment?.courier_partner_id) {
           setSelectedCourier(b.shipment.courier_partner_id);
-        } else if (courierList.length > 0) {
-          setSelectedCourier(courierList[0].id);
         }
       } catch (err: any) {
         setErrorMsg(err.message || "Failed to load booking details");
@@ -548,6 +546,7 @@ export default function AdminBookingReviewPage() {
                 onChange={(e) => setSelectedCourier(e.target.value)}
                 className="w-full h-10 px-3 text-xs bg-surface-base border border-border-default rounded-lg focus:ring-1 focus:ring-brand-primary font-medium"
               >
+                <option value="">Select Dispatch Method / Carrier</option>
                 {couriers.map((c) => {
                   const isInHouse = c.code === "IN_HOUSE";
                   return (

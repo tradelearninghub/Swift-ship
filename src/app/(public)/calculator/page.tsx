@@ -20,31 +20,49 @@ import {
 import { calculateShippingQuote, CalculationResult } from "@/lib/rate-card";
 
 export default function RateCalculatorPage() {
-  const [originPincode, setOriginPincode] = useState("302003");
-  const [destPincode, setDestPincode] = useState("110001");
-  const [weightKg, setWeightKg] = useState("1.0");
-  const [lengthCm, setLengthCm] = useState("20");
-  const [widthCm, setWidthCm] = useState("15");
-  const [heightCm, setHeightCm] = useState("10");
+  const [originPincode, setOriginPincode] = useState("");
+  const [destPincode, setDestPincode] = useState("");
+  const [weightKg, setWeightKg] = useState("");
+  const [lengthCm, setLengthCm] = useState("");
+  const [widthCm, setWidthCm] = useState("");
+  const [heightCm, setHeightCm] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [result, setResult] = useState<CalculationResult | null>(null);
 
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanOrigin = originPincode.replace(/\D/g, "");
     const cleanDest = destPincode.replace(/\D/g, "");
+
+    if (cleanOrigin.length !== 6) {
+      setErrorMsg("Please enter a valid 6-digit Indian origin pincode.");
+      return;
+    }
     if (cleanDest.length !== 6) {
       setErrorMsg("Please enter a valid 6-digit Indian destination pincode.");
+      return;
+    }
+    const w = parseFloat(weightKg);
+    if (!w || w <= 0) {
+      setErrorMsg("Please enter a valid parcel weight in KG (e.g. 0.5, 1.0).");
+      return;
+    }
+    const l = parseFloat(lengthCm);
+    const wi = parseFloat(widthCm);
+    const h = parseFloat(heightCm);
+    if (!l || l <= 0 || !wi || wi <= 0 || !h || h <= 0) {
+      setErrorMsg("Please enter valid length, width, and height dimensions in CM.");
       return;
     }
     setErrorMsg("");
 
     const quote = calculateShippingQuote({
-      originPincode,
+      originPincode: cleanOrigin,
       destinationPincode: cleanDest,
-      weightKg: parseFloat(weightKg) || 0.5,
-      lengthCm: parseFloat(lengthCm) || 10,
-      widthCm: parseFloat(widthCm) || 10,
-      heightCm: parseFloat(heightCm) || 10,
+      weightKg: w,
+      lengthCm: l,
+      widthCm: wi,
+      heightCm: h,
     });
 
     setResult(quote);
@@ -87,12 +105,15 @@ export default function RateCalculatorPage() {
                         type="text"
                         maxLength={6}
                         value={originPincode}
-                        onChange={(e) => setOriginPincode(e.target.value.replace(/\D/g, ""))}
-                        placeholder="302003 (Jaipur)"
-                        className="w-full h-9 px-3 bg-surface-subtle border border-border-default rounded-lg font-mono text-xs focus:border-brand-primary focus:outline-none"
+                        onChange={(e) => {
+                          setOriginPincode(e.target.value.replace(/\D/g, ""));
+                          setErrorMsg("");
+                        }}
+                        placeholder="e.g. 302003"
+                        className="w-full h-9 px-3 bg-white border border-border-default rounded-lg font-mono text-xs focus:border-brand-primary focus:outline-none"
                         required
                       />
-                      <span className="text-[10px] text-text-muted">Jaipur Central Hub</span>
+                      <span className="text-[10px] text-text-muted">6-digit pickup pincode</span>
                     </div>
                     <div className="space-y-1">
                       <label className="font-semibold text-text-secondary flex items-center gap-1">
@@ -110,7 +131,7 @@ export default function RateCalculatorPage() {
                         className="w-full h-9 px-3 bg-white border border-border-default rounded-lg font-mono text-xs focus:border-brand-primary focus:outline-none"
                         required
                       />
-                      <span className="text-[10px] text-text-muted">Any 6-digit Indian Pincode</span>
+                      <span className="text-[10px] text-text-muted">6-digit delivery pincode</span>
                     </div>
                   </div>
 
@@ -128,8 +149,11 @@ export default function RateCalculatorPage() {
                       step="0.1"
                       min="0.05"
                       value={weightKg}
-                      onChange={(e) => setWeightKg(e.target.value)}
-                      placeholder="e.g. 1.0"
+                      onChange={(e) => {
+                        setWeightKg(e.target.value);
+                        setErrorMsg("");
+                      }}
+                      placeholder="e.g. 0.5 or 2.0"
                       className="w-full h-9 px-3 bg-white border border-border-default rounded-lg font-mono text-xs focus:border-brand-primary focus:outline-none"
                       required
                     />

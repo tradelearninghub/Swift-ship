@@ -5,13 +5,16 @@ import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { StateView } from "@/components/ui/StateView";
-import { CreditCard, RefreshCw } from "lucide-react";
+import { CreditCard, RefreshCw, Receipt } from "lucide-react";
 import { formatPaiseToRupees } from "@/lib/utils";
+import { PaymentReceiptModal } from "@/components/ui/PaymentReceiptModal";
 
 export default function AdminPaymentsPage() {
   const [viewState, setViewState] = useState<"populated" | "loading" | "empty" | "error">("loading");
   const [bookings, setBookings] = useState<any[]>([]);
   const [totals, setTotals] = useState({ invoiced: 0, paid: 0, pending: 0 });
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
   const fetchPayments = useCallback(async () => {
     setViewState("loading");
@@ -111,7 +114,15 @@ export default function AdminPaymentsPage() {
                       <StatusBadge status="PAID" />
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedBooking(b);
+                          setIsReceiptModalOpen(true);
+                        }}
+                      >
+                        <Receipt className="w-3.5 h-3.5 mr-1.5" />
                         Receipt
                       </Button>
                     </td>
@@ -122,6 +133,18 @@ export default function AdminPaymentsPage() {
           </div>
         </StateView>
       </Card>
+
+      {/* Payment Receipt Modal */}
+      {selectedBooking && (
+        <PaymentReceiptModal
+          isOpen={isReceiptModalOpen}
+          onClose={() => {
+            setIsReceiptModalOpen(false);
+            setSelectedBooking(null);
+          }}
+          booking={selectedBooking}
+        />
+      )}
     </div>
   );
 }

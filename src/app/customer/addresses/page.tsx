@@ -45,15 +45,15 @@ export interface CustomerAddress {
 }
 
 const EMPTY_FORM = {
-  label: "Office",
+  label: "",
   contact_name: "",
   contact_mobile: "",
   contact_email: "",
   address: "",
   landmark: "",
-  city: "Jaipur",
-  district: "Jaipur",
-  state: "Rajasthan",
+  city: "",
+  district: "",
+  state: "",
   pincode: "",
   is_default: false,
 };
@@ -571,7 +571,9 @@ export default function CustomerAddressBookPage() {
                 value={formData.state}
                 onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                 className="w-full h-10 px-3 py-2 text-xs bg-surface-base border border-border-default rounded-lg focus:ring-1 focus:ring-brand-primary"
+                required
               >
+                <option value="">Select State / UT</option>
                 {INDIAN_STATES_AND_UTS.map((st) => (
                   <option key={st} value={st}>
                     {st}

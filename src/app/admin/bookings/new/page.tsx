@@ -48,7 +48,7 @@ export default function AdminNewBookingPage() {
     sender_landmark: "",
     sender_city: "",
     sender_district: "",
-    sender_state: "Rajasthan",
+    sender_state: "",
     sender_pincode: "",
     receiver_name: "",
     receiver_mobile: "",
@@ -56,7 +56,7 @@ export default function AdminNewBookingPage() {
     receiver_landmark: "",
     receiver_city: "",
     receiver_district: "",
-    receiver_state: "Rajasthan",
+    receiver_state: "",
     receiver_pincode: "",
     description: "",
     weight_kg: "",
@@ -77,10 +77,6 @@ export default function AdminNewBookingPage() {
           const data = await res.json();
           if (data.couriers && data.couriers.length > 0) {
             setCouriers(data.couriers);
-            setFormData((prev) => ({
-              ...prev,
-              courier_partner_id: prev.courier_partner_id || data.couriers[0].id,
-            }));
           }
         }
       } catch (e) {
@@ -125,6 +121,13 @@ export default function AdminNewBookingPage() {
     setErrorMsg(null);
 
     try {
+      if (!formData.sender_state) {
+        throw new Error("Please select a Sender State / UT.");
+      }
+      if (!formData.receiver_state) {
+        throw new Error("Please select a Receiver State / UT.");
+      }
+
       const codPaise = Math.round(parseFloat(formData.cod_amount_rupees || "0") * 100);
       const isCod = codPaise > 0;
 
@@ -256,7 +259,7 @@ export default function AdminNewBookingPage() {
                 sender_landmark: "",
                 sender_city: "",
                 sender_district: "",
-                sender_state: "Rajasthan",
+                sender_state: "",
                 sender_pincode: "",
                 receiver_name: "",
                 receiver_mobile: "",
@@ -264,7 +267,7 @@ export default function AdminNewBookingPage() {
                 receiver_landmark: "",
                 receiver_city: "",
                 receiver_district: "",
-                receiver_state: "Rajasthan",
+                receiver_state: "",
                 receiver_pincode: "",
                 description: "",
                 weight_kg: "",
@@ -272,7 +275,7 @@ export default function AdminNewBookingPage() {
                 width_cm: "",
                 height_cm: "",
                 declared_value_rupees: "",
-                courier_partner_id: couriers[0]?.id || "",
+                courier_partner_id: "",
                 shipping_charge_rupees: "",
                 cod_amount_rupees: "",
               });
@@ -408,6 +411,7 @@ export default function AdminNewBookingPage() {
                   className="w-full h-9 px-2 text-xs bg-surface-subtle border border-border-default rounded-lg focus:border-brand-primary focus:outline-none"
                   required
                 >
+                  <option value="">Select State / UT</option>
                   {INDIAN_STATES_AND_UTS.map((s) => (
                     <option key={s} value={s}>
                       {s}
@@ -494,6 +498,7 @@ export default function AdminNewBookingPage() {
                   className="w-full h-9 px-2 text-xs bg-surface-subtle border border-border-default rounded-lg focus:border-brand-primary focus:outline-none"
                   required
                 >
+                  <option value="">Select State / UT</option>
                   {INDIAN_STATES_AND_UTS.map((s) => (
                     <option key={s} value={s}>
                       {s}
@@ -578,6 +583,7 @@ export default function AdminNewBookingPage() {
                 className="w-full h-9 px-3 text-xs bg-surface-subtle border border-border-default rounded-lg focus:border-brand-primary focus:outline-none"
                 required
               >
+                <option value="">Select Courier Partner</option>
                 {couriers.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.code})

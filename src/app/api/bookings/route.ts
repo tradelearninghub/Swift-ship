@@ -50,6 +50,7 @@ export async function GET(req: NextRequest) {
         customer: true,
         parcels: true,
         charges: true,
+        payments: true,
         shipment: {
           include: {
             courier_partner: true,

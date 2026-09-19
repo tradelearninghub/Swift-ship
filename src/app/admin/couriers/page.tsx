@@ -81,20 +81,20 @@ export default function AdminCouriersPage() {
   const [shiprocketEmail, setShiprocketEmail] = useState("");
   const [shiprocketPassword, setShiprocketPassword] = useState("");
   const [shiprocketPreferredCourier, setShiprocketPreferredCourier] = useState("AUTO_BEST_RATE");
-  const [shiprocketPickupLocation, setShiprocketPickupLocation] = useState("Primary Hub");
+  const [shiprocketPickupLocation, setShiprocketPickupLocation] = useState("");
 
   const [xpressbeesAppKey, setXpressbeesAppKey] = useState("");
   const [xpressbeesSecretKey, setXpressbeesSecretKey] = useState("");
 
   // Generic REST State
-  const [genericBaseUrl, setGenericBaseUrl] = useState("https://api.example-carrier.com/v1");
+  const [genericBaseUrl, setGenericBaseUrl] = useState("");
   const [genericAuthMethod, setGenericAuthMethod] = useState<"API_KEY_HEADER" | "BEARER_TOKEN" | "BASIC_AUTH">("API_KEY_HEADER");
-  const [genericAuthHeaderName, setGenericAuthHeaderName] = useState("X-API-Key");
+  const [genericAuthHeaderName, setGenericAuthHeaderName] = useState("");
   const [genericAuthHeaderValue, setGenericAuthHeaderValue] = useState("");
-  const [genericCreatePath, setGenericCreatePath] = useState("/shipments/create");
-  const [genericAwbPath, setGenericAwbPath] = useState("data.waybill_no");
-  const [genericTrackPath, setGenericTrackPath] = useState("/shipments/{awb}/track");
-  const [genericStatusPath, setGenericStatusPath] = useState("data.status");
+  const [genericCreatePath, setGenericCreatePath] = useState("");
+  const [genericAwbPath, setGenericAwbPath] = useState("");
+  const [genericTrackPath, setGenericTrackPath] = useState("");
+  const [genericStatusPath, setGenericStatusPath] = useState("");
 
   // Capabilities Switches (§21)
   const [capShipment, setCapShipment] = useState(true);

@@ -68,7 +68,7 @@ export default function AdminSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Test email state
-  const [testRecipientEmail, setTestRecipientEmail] = useState("admin@sscourierservice.in");
+  const [testRecipientEmail, setTestRecipientEmail] = useState("");
   const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
   const [testEmailResult, setTestEmailResult] = useState<{ success: boolean; message: string } | null>(null);
 
@@ -1039,7 +1039,7 @@ export default function AdminSettingsPage() {
                           type="email"
                           value={testRecipientEmail}
                           onChange={(e) => setTestRecipientEmail(e.target.value)}
-                          placeholder="recipient@example.com"
+                          placeholder="Enter recipient email address"
                           className="flex-1 h-9 px-3 text-xs bg-surface-subtle border border-border-default rounded-lg focus:border-brand-primary focus:outline-none"
                         />
                         <Button

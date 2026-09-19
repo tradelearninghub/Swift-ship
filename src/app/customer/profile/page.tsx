@@ -32,12 +32,12 @@ export default function CustomerProfilePage() {
   const [isSaved, setIsSaved] = useState(false);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [newAddr, setNewAddr] = useState<Omit<SavedAddress, "id">>({
-    label: "Primary Office / Home",
+    label: "",
     address: "",
     landmark: "",
-    city: "Jaipur",
+    city: "",
     district: "",
-    state: "Rajasthan",
+    state: "",
     pincode: "",
     is_default: false,
   });
@@ -102,12 +102,12 @@ export default function CustomerProfilePage() {
         setSavedAddresses((prev) => [data.address, ...prev]);
         setIsAddingAddress(false);
         setNewAddr({
-          label: "Branch / Warehouse",
+          label: "",
           address: "",
           landmark: "",
-          city: "Jaipur",
+          city: "",
           district: "",
-          state: "Rajasthan",
+          state: "",
           pincode: "",
           is_default: false,
         });
@@ -299,7 +299,9 @@ export default function CustomerProfilePage() {
                       value={newAddr.state}
                       onChange={(e) => setNewAddr({ ...newAddr, state: e.target.value })}
                       className="w-full h-9 px-2 text-xs bg-surface-base border border-border-default rounded-lg focus:border-brand-primary"
+                      required
                     >
+                      <option value="">Select State / UT</option>
                       {INDIAN_STATES_AND_UTS.map((st) => (
                         <option key={st} value={st}>
                           {st}
