@@ -23,6 +23,7 @@ export interface CompanyProfileSettings {
   x_url?: string;
   linkedin_url?: string;
   youtube_url?: string;
+  whatsapp_url?: string;
 }
 
 export const DEFAULT_COMPANY_PROFILE: CompanyProfileSettings = {
@@ -31,6 +32,7 @@ export const DEFAULT_COMPANY_PROFILE: CompanyProfileSettings = {
   support_email: "support@sscourierservice.in",
   support_phones: ["8000151117", "7689987368"],
   whatsapp: "8000151117",
+  whatsapp_url: "https://wa.me/918000151117",
   address: "Shop No 4, 5th Crossing, Padmavati School, Ghee Walo Ka Rasta, Johri Bazar",
   landmark: "Near Padmavati School",
   city: "Jaipur",

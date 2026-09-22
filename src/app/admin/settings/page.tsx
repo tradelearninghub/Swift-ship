@@ -106,6 +106,7 @@ export default function AdminSettingsPage() {
     x_url: "",
     linkedin_url: "",
     youtube_url: "",
+    whatsapp_url: "",
     // SMTP
     smtp_host: "smtp.hostinger.com",
     smtp_port: "465",
@@ -168,6 +169,7 @@ export default function AdminSettingsPage() {
           if (cp.x_url) next.x_url = cp.x_url;
           if (cp.linkedin_url) next.linkedin_url = cp.linkedin_url;
           if (cp.youtube_url) next.youtube_url = cp.youtube_url;
+          if (cp.whatsapp_url) next.whatsapp_url = cp.whatsapp_url;
         }
         if (map.smtp_config) {
           const sc = map.smtp_config;
@@ -280,6 +282,7 @@ export default function AdminSettingsPage() {
           x_url: fields.x_url.trim() || fields.twitter_url.trim(),
           linkedin_url: fields.linkedin_url.trim(),
           youtube_url: fields.youtube_url.trim(),
+          whatsapp_url: fields.whatsapp_url.trim(),
         };
       } else if (activeGroup === "smtp") {
         key = "smtp_config";
@@ -970,6 +973,14 @@ export default function AdminSettingsPage() {
                           value={fields.youtube_url}
                           onChange={(e) => setField("youtube_url", e.target.value)}
                           placeholder="https://youtube.com/@your-channel"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Input
+                          label="WhatsApp Direct Chat Link or Number"
+                          value={fields.whatsapp_url}
+                          onChange={(e) => setField("whatsapp_url", e.target.value)}
+                          placeholder="e.g. https://wa.me/918000151117 (or 10-digit number; defaults to company WhatsApp number)"
                         />
                       </div>
                     </div>

@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { MobileNav } from "@/components/MobileNav";
 import { getCompanyProfile } from "@/lib/settings";
+import { WhatsAppFloatingButton } from "@/components/ui/WhatsAppFloatingButton";
 
 export default async function PublicLayout({
   children,
@@ -11,6 +12,53 @@ export default async function PublicLayout({
   const profile = await getCompanyProfile();
   const phone1 = profile.support_phones[0] || "8000151117";
   const phone2 = profile.support_phones[1] || "7689987368";
+
+  // Normalized WhatsApp link
+  const waNumber = (profile.whatsapp || "8000151117").replace(/\D/g, "").replace(/^91/, "");
+  const defaultWaLink = `https://wa.me/91${waNumber}?text=${encodeURIComponent(
+    `Hello ${profile.company_name || "SS Courier service"}, I would like to inquire about courier services.`
+  )}`;
+  const whatsappUrl = profile.whatsapp_url?.trim() || (profile.whatsapp?.trim() ? defaultWaLink : undefined);
+
+  // Complete Social Channels (Filtered to configured channels only)
+  const socialList = [
+    {
+      url: profile.facebook_url?.trim(),
+      icon: "fab fa-facebook-f",
+      hover: "hover:bg-[#1877F2]",
+      label: "Facebook",
+    },
+    {
+      url: profile.instagram_url?.trim(),
+      icon: "fab fa-instagram",
+      hover: "hover:bg-[#E4405F]",
+      label: "Instagram",
+    },
+    {
+      url: (profile.x_url || profile.twitter_url)?.trim(),
+      isSvg: true,
+      hover: "hover:bg-black",
+      label: "X (formerly Twitter)",
+    },
+    {
+      url: profile.linkedin_url?.trim(),
+      icon: "fab fa-linkedin-in",
+      hover: "hover:bg-[#0A66C2]",
+      label: "LinkedIn",
+    },
+    {
+      url: profile.youtube_url?.trim(),
+      icon: "fab fa-youtube",
+      hover: "hover:bg-[#FF0000]",
+      label: "YouTube",
+    },
+    {
+      url: whatsappUrl,
+      icon: "fab fa-whatsapp",
+      hover: "hover:bg-[#25D366]",
+      label: "WhatsApp",
+    },
+  ].filter((s) => Boolean(s.url));
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-[#222]">
@@ -30,8 +78,8 @@ export default async function PublicLayout({
               </a>
             </span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="hidden md:inline">
+          <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+            <span className="hidden lg:inline">
               <i className="fas fa-clock"></i> 24/7 Support
             </span>
             <Link href="/track" className="hover:text-[#FF6B00] transition-colors">
@@ -41,6 +89,34 @@ export default async function PublicLayout({
             <Link href="/login" className="hover:text-[#FF6B00] transition-colors">
               Customer Login
             </Link>
+
+            {/* Header Social Icons */}
+            {socialList.length > 0 && (
+              <>
+                <span className="opacity-40 hidden sm:inline">•</span>
+                <div className="hidden sm:flex items-center gap-1.5">
+                  {socialList.map((s, idx) => (
+                    <a
+                      key={idx}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`w-6 h-6 rounded-full bg-white/10 ${s.hover} text-white flex items-center justify-center transition-all text-[11px] hover:scale-110`}
+                      title={s.label}
+                      aria-label={s.label}
+                    >
+                      {s.isSvg ? (
+                        <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                      ) : (
+                        <i className={s.icon}></i>
+                      )}
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -91,6 +167,7 @@ export default async function PublicLayout({
               phones={[phone1, phone2]}
               email={profile.support_email}
               address={`${profile.address}, ${profile.city}, ${profile.state} ${profile.pincode}`}
+              socials={socialList}
             />
           </div>
         </div>
@@ -117,71 +194,34 @@ export default async function PublicLayout({
               </div>
 
               {/* Social Media Links — ONLY render if configured in Admin (§4) */}
-              {(() => {
-                const socialList = [
-                  {
-                    url: profile.facebook_url?.trim(),
-                    icon: "fab fa-facebook-f",
-                    hover: "hover:bg-[#1877F2]",
-                    label: "Facebook",
-                  },
-                  {
-                    url: profile.instagram_url?.trim(),
-                    icon: "fab fa-instagram",
-                    hover: "hover:bg-[#E4405F]",
-                    label: "Instagram",
-                  },
-                  {
-                    url: (profile.x_url || profile.twitter_url)?.trim(),
-                    isSvg: true,
-                    hover: "hover:bg-black",
-                    label: "X (formerly Twitter)",
-                  },
-                  {
-                    url: profile.linkedin_url?.trim(),
-                    icon: "fab fa-linkedin-in",
-                    hover: "hover:bg-[#0A66C2]",
-                    label: "LinkedIn",
-                  },
-                  {
-                    url: profile.youtube_url?.trim(),
-                    icon: "fab fa-youtube",
-                    hover: "hover:bg-[#FF0000]",
-                    label: "YouTube",
-                  },
-                ].filter((s) => Boolean(s.url));
-
-                if (socialList.length === 0) return null;
-
-                return (
-                  <div className="pt-3">
-                    <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2.5">
-                      Follow Us Online
-                    </p>
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      {socialList.map((s, idx) => (
-                        <a
-                          key={idx}
-                          href={s.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`w-8 h-8 rounded-full bg-white/10 ${s.hover} text-white flex items-center justify-center transition-all text-xs shadow-sm`}
-                          title={s.label}
-                          aria-label={s.label}
-                        >
-                          {s.isSvg ? (
-                            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                            </svg>
-                          ) : (
-                            <i className={s.icon}></i>
-                          )}
-                        </a>
-                      ))}
-                    </div>
+              {socialList.length > 0 && (
+                <div className="pt-3">
+                  <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2.5">
+                    Follow Us & Chat
+                  </p>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    {socialList.map((s, idx) => (
+                      <a
+                        key={idx}
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`w-8 h-8 rounded-full bg-white/10 ${s.hover} text-white flex items-center justify-center transition-all text-xs shadow-sm`}
+                        title={s.label}
+                        aria-label={s.label}
+                      >
+                        {s.isSvg ? (
+                          <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                          </svg>
+                        ) : (
+                          <i className={s.icon}></i>
+                        )}
+                      </a>
+                    ))}
                   </div>
-                );
-              })()}
+                </div>
+              )}
             </div>
 
             {/* Section 2 — Quick Links (6 canonical links matching header nav) */}
@@ -303,6 +343,22 @@ export default async function PublicLayout({
                     </span>
                   </p>
                 </div>
+
+                {/* Direct WhatsApp Support Corner Button in Footer */}
+                {whatsappUrl && (
+                  <div className="pt-2">
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-semibold text-xs transition-all shadow-sm hover:shadow-md hover:scale-102 group"
+                      title="Chat on WhatsApp"
+                    >
+                      <i className="fab fa-whatsapp text-base group-hover:scale-110 transition-transform"></i>
+                      <span>WhatsApp Support (+91 {waNumber})</span>
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -345,6 +401,14 @@ export default async function PublicLayout({
           </div>
         </div>
       </footer>
+
+      {/* Floating Corner WhatsApp Support Button */}
+      <WhatsAppFloatingButton
+        whatsappNumber={profile.whatsapp}
+        whatsappUrl={whatsappUrl}
+        companyName={profile.company_name}
+      />
     </div>
   );
 }
+

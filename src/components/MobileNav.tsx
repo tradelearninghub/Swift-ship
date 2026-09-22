@@ -22,11 +22,20 @@ import {
   Compass,
 } from "lucide-react";
 
+export interface MobileNavSocialItem {
+  url?: string;
+  icon?: string;
+  isSvg?: boolean;
+  hover?: string;
+  label: string;
+}
+
 interface MobileNavProps {
   phones?: string[];
   email?: string;
   address?: string;
   customTrigger?: React.ReactNode;
+  socials?: MobileNavSocialItem[];
 }
 
 export function MobileNav({
@@ -34,6 +43,7 @@ export function MobileNav({
   email = "support@sscourierservice.in",
   address = "Shop No 4, 5th Crossing, Padmavati School, Ghee Walo Ka Rasta, Johri Bazar, Jaipur 302003",
   customTrigger,
+  socials = [],
 }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -210,6 +220,36 @@ export function MobileNav({
                   <span className="truncate">{email}</span>
                 </a>
               </div>
+
+              {/* Mobile Social Links */}
+              {socials && socials.length > 0 && (
+                <div className="pt-3 mt-2 border-t border-slate-100 px-3">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                    Follow Us & Chat
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {socials.map((s, idx) => (
+                      <a
+                        key={idx}
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`w-8 h-8 rounded-full bg-slate-100 ${s.hover || "hover:bg-[#002B49]"} text-slate-700 hover:text-white flex items-center justify-center transition-all text-xs shadow-xs`}
+                        title={s.label}
+                        aria-label={s.label}
+                      >
+                        {s.isSvg ? (
+                          <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                          </svg>
+                        ) : (
+                          <i className={s.icon || "fas fa-share-alt"}></i>
+                        )}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer Notice */}
