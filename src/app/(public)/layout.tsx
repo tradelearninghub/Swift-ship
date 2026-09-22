@@ -60,42 +60,72 @@ export default async function PublicLayout({
     },
   ].filter((s) => Boolean(s.url));
 
+  const otherSocials = socialList.filter((s) => s.label !== "WhatsApp");
+
   return (
     <div className="flex flex-col min-h-screen bg-white text-[#222]">
       {/* 1. TOP BAR */}
       <div className="top-bar">
         <div className="main-container">
-          <div className="flex items-center gap-4 flex-wrap">
-            <span>
-              <i className="fas fa-phone-alt"></i>{" "}
-              <a href={`tel:+91${phone1.replace(/^\+91/, "").trim()}`}>+91 {phone1.replace(/^\+91/, "").trim()}</a> /{" "}
-              <a href={`tel:+91${phone2.replace(/^\+91/, "").trim()}`}>+91 {phone2.replace(/^\+91/, "").trim()}</a>
+          {/* Left: Contact Info */}
+          <div className="flex items-center gap-4 sm:gap-6 flex-wrap text-xs text-slate-300">
+            <span className="info-item flex items-center">
+              <i className="fas fa-phone-alt"></i>
+              <a href={`tel:+91${phone1.replace(/^\+91/, "").trim()}`} className="hover:text-white transition-colors">
+                +91 {phone1.replace(/^\+91/, "").trim()}
+              </a>
+              <span className="mx-1 text-slate-500">/</span>
+              <a href={`tel:+91${phone2.replace(/^\+91/, "").trim()}`} className="hover:text-white transition-colors">
+                +91 {phone2.replace(/^\+91/, "").trim()}
+              </a>
             </span>
-            <span className="hidden sm:inline">
-              <i className="fas fa-envelope"></i>{" "}
-              <a href={`mailto:${profile.support_email}`}>
+            <span className="info-item hidden md:flex items-center">
+              <i className="fas fa-envelope"></i>
+              <a href={`mailto:${profile.support_email}`} className="hover:text-white transition-colors">
                 {profile.support_email}
               </a>
             </span>
           </div>
-          <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-            <span className="hidden lg:inline">
-              <i className="fas fa-clock"></i> 24/7 Support
+
+          {/* Right: Support, Tracking, Login, WhatsApp & Socials */}
+          <div className="flex items-center gap-3 sm:gap-4 text-xs">
+            <span className="hidden lg:flex items-center gap-1.5 text-slate-300">
+              <i className="fas fa-headset text-[#FF6B00]"></i> 24/7 Support
             </span>
-            <Link href="/track" className="hover:text-[#FF6B00] transition-colors">
-              Tracking
+            <span className="w-px h-3.5 bg-white/20 hidden lg:inline"></span>
+            <Link href="/track" className="text-slate-300 hover:text-[#FF6B00] transition-colors flex items-center gap-1.5">
+              <i className="fas fa-search-location text-[#FF6B00]"></i>
+              <span>Tracking</span>
             </Link>
-            <span className="opacity-40">•</span>
-            <Link href="/login" className="hover:text-[#FF6B00] transition-colors">
-              Customer Login
+            <span className="w-px h-3.5 bg-white/20"></span>
+            <Link href="/login" className="text-slate-300 hover:text-[#FF6B00] transition-colors flex items-center gap-1.5 font-medium">
+              <i className="fas fa-user-circle text-slate-400"></i>
+              <span>Customer Login</span>
             </Link>
 
-            {/* Header Social Icons */}
-            {socialList.length > 0 && (
+            {/* Direct WhatsApp Quick Chat Pill */}
+            {whatsappUrl && (
               <>
-                <span className="opacity-40 hidden sm:inline">•</span>
+                <span className="w-px h-3.5 bg-white/20 hidden sm:inline"></span>
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[11px] font-bold shadow-xs transition-all hover:scale-105"
+                  title="Chat on WhatsApp"
+                >
+                  <i className="fab fa-whatsapp text-xs !text-white !mr-0"></i>
+                  <span className="hidden sm:inline">WhatsApp</span>
+                </a>
+              </>
+            )}
+
+            {/* Other Social Icons */}
+            {otherSocials.length > 0 && (
+              <>
+                <span className="w-px h-3.5 bg-white/20 hidden sm:inline"></span>
                 <div className="hidden sm:flex items-center gap-1.5">
-                  {socialList.map((s, idx) => (
+                  {otherSocials.map((s, idx) => (
                     <a
                       key={idx}
                       href={s.url}
@@ -110,7 +140,7 @@ export default async function PublicLayout({
                           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                         </svg>
                       ) : (
-                        <i className={s.icon}></i>
+                        <i className={`${s.icon} !text-white !mr-0`}></i>
                       )}
                     </a>
                   ))}
@@ -124,8 +154,18 @@ export default async function PublicLayout({
       {/* NAVBAR */}
       <nav className="navbar">
         <div className="main-container">
-          <Link href="/" className="logo">
-            SS Courier<span> services</span>
+          <Link href="/" className="flex items-center gap-3 group text-decoration-none py-1">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#002B49] via-[#003860] to-[#001b2e] flex items-center justify-center text-white shadow-md shadow-[#002B49]/15 group-hover:scale-105 transition-transform duration-200 shrink-0">
+              <i className="fas fa-shipping-fast text-[#FF6B00] text-lg !mr-0"></i>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-black text-xl sm:text-2xl tracking-tight text-[#002B49] leading-tight flex items-center gap-1.5">
+                SS COURIER
+              </span>
+              <span className="text-[10px] font-bold text-[#FF6B00] tracking-[0.22em] uppercase leading-none">
+                SERVICES PVT. LTD.
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Unified Nav Links */}
@@ -152,16 +192,24 @@ export default async function PublicLayout({
               <Link href="/contact">Contact</Link>
             </li>
             <li>
-              <Link href="/book" className="btn btn-primary">
-                Book a Parcel
+              <Link
+                href="/book"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B00] to-[#ff8533] hover:from-[#e56000] hover:to-[#ff6b00] text-white font-bold text-sm shadow-md shadow-orange-500/20 hover:shadow-lg hover:shadow-orange-500/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <i className="fas fa-box-open text-xs !mr-0"></i>
+                <span>Book a Parcel</span>
               </Link>
             </li>
           </ul>
 
           {/* Mobile Quick Action & Side Drawer Trigger */}
           <div className="lg:hidden flex items-center gap-2">
-            <Link href="/book" className="btn btn-primary text-xs py-2 px-3">
-              Book a Parcel
+            <Link
+              href="/book"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#FF6B00] text-white font-bold text-xs shadow-sm hover:bg-[#e05e00] transition-colors"
+            >
+              <i className="fas fa-box-open text-xs !mr-0"></i>
+              <span>Book</span>
             </Link>
             <MobileNav
               phones={[phone1, phone2]}

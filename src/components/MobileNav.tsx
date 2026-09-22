@@ -107,13 +107,14 @@ export function MobileNav({
           <div className="relative ml-auto w-full max-w-xs sm:max-w-sm bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-250">
             {/* Header */}
             <div className="p-4 bg-[#002B49] text-white flex items-center justify-between border-b border-white/10">
-              <div className="flex items-center gap-2 font-bold text-lg">
-                <div className="w-8 h-8 rounded-lg bg-[#FF6B00] flex items-center justify-center text-white">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#FF6B00] flex items-center justify-center text-white shrink-0">
                   <Truck className="w-4 h-4" />
                 </div>
-                <span>
-                  SS Courier<span className="text-[#FF6B00]"> services</span>
-                </span>
+                <div className="flex flex-col">
+                  <span className="font-bold text-base leading-tight tracking-tight">SS COURIER</span>
+                  <span className="text-[9px] font-bold text-[#FF6B00] tracking-[0.2em] uppercase leading-none">SERVICES PVT. LTD.</span>
+                </div>
               </div>
               <button
                 type="button"
