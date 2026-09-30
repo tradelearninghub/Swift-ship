@@ -539,7 +539,7 @@ export default function AdminNewBookingPage() {
       )}
 
       {/* 2. CUSTOMER ASSOCIATION (§4) — Shared for both Domestic and International */}
-      <Card className="p-5 space-y-4 border border-slate-200 shadow-xs">
+      <Card className="p-5 space-y-4 border border-slate-200 shadow-xs overflow-visible relative z-30">
         <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 pb-3">
           <div className="font-bold text-xs uppercase tracking-wider text-brand-primary flex items-center gap-1.5">
             <UserPlus className="w-4 h-4" /> Customer Association (§4, §8, §9)
@@ -590,9 +590,9 @@ export default function AdminNewBookingPage() {
           </div>
         ) : (
           /* Customer Search Box */
-          <div className="relative" ref={searchDropdownRef}>
+          <div className="relative z-30" ref={searchDropdownRef}>
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
               <input
                 type="text"
                 value={customerSearchQuery}
@@ -610,7 +610,7 @@ export default function AdminNewBookingPage() {
 
             {/* Search Results Dropdown */}
             {showCustomerDropdown && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-20 max-h-60 overflow-y-auto divide-y divide-slate-100 animate-in fade-in duration-150">
+              <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 max-h-72 overflow-y-auto divide-y divide-slate-100 animate-in fade-in duration-150">
                 {customerSearchResults.length > 0 ? (
                   customerSearchResults.map((cust) => (
                     <div
