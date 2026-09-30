@@ -52,7 +52,7 @@ For per-staff-member permission grants beyond their role default: `user_id`, `pe
 | created_at / updated_at | datetime | |
 
 ### `customer_addresses`
-`id`, `customer_id`, `label` (Home/Office/etc.), `address`, `landmark` (optional text), `city`, `district`, `state`, `pincode`, `is_default` (boolean).
+`id`, `customer_id`, `label` (Home/Office/Warehouse/Receiver), `source` (`CUSTOMER` | `ADMIN` — **[NEW Round 10]** Admin-added addresses are hidden from customer self-service portal), `type` (`SENDER` | `RECEIVER` | `GENERAL`), `contact_name`, `contact_mobile`, `contact_email`, `country` (default 'India'), `address` (Text), `address_line_2`, `address_line_3`, `landmark` (optional text), `city`, `district`, `state`, `pincode`, `is_default` (boolean).
 
 ---
 
@@ -65,14 +65,20 @@ For per-staff-member permission grants beyond their role default: `user_id`, `pe
 | booking_number | string, unique | human-readable, e.g. BK-1025 |
 | customer_id | fk → customers.id | |
 | source | enum(CUSTOMER, STAFF, ADMIN) | §13 |
+| shipment_mode | string | **[NEW Round 10]** DOMESTIC or INTERNATIONAL |
+| currency | string | **[NEW Round 10]** INR or USD (Domestic = INR only) |
+| exchange_rate | float | **[NEW Round 10]** USD to INR reference exchange rate (default 1.0 / configured) |
+| total_inr_paise | int | **[NEW Round 10]** Total amount normalized to INR paise for reports |
 | created_by | fk → users.id | |
 | status | enum(DRAFT, REQUESTED, UNDER_REVIEW, APPROVED, REJECTED, CANCELLED) | §17 |
 | payment_type | enum(PREPAID, COD) | |
 | cod_amount | int (paise) | 0 if prepaid |
 | — sender snapshot — | | |
-| sender_name, sender_mobile, sender_email, sender_address, sender_landmark, sender_city, sender_district, sender_state, sender_pincode | | frozen at booking time |
+| sender_name, sender_mobile, sender_email, sender_country, sender_address, sender_address_2, sender_address_3, sender_landmark, sender_city, sender_district, sender_state, sender_pincode | | frozen at booking time |
 | — receiver snapshot — | | |
-| receiver_name, receiver_mobile, receiver_email, receiver_address, receiver_landmark, receiver_city, receiver_district, receiver_state, receiver_pincode | | frozen at booking time |
+| receiver_name, receiver_mobile, receiver_email, receiver_country, receiver_address, receiver_address_2, receiver_address_3, receiver_landmark, receiver_city, receiver_district, receiver_state, receiver_pincode | | frozen at booking time |
+| — international customs & invoice snapshot — | | **[NEW Round 10]** |
+| invoice_number, invoice_date, service_type, ioss_number | string, nullable | Commercial invoice & customs declaration metadata |
 | rejection_reason | string, nullable | |
 | reviewed_by | fk → users.id, nullable | |
 | reviewed_at | datetime, nullable | |
@@ -89,9 +95,12 @@ One row per parcel in the booking (supports multi-parcel bookings even though v1
 | booking_id | fk → bookings.id | |
 | parcel_type | string | |
 | description | string | |
+| currency | string | **[NEW Round 10]** INR or USD |
 | — customer submitted — | | |
 | submitted_weight_grams, submitted_length_cm, submitted_width_cm, submitted_height_cm | int | §15 |
-| declared_value | int (paise) | |
+| declared_value | int | paise (INR) or cents (USD) |
+| declared_value_inr | int | **[NEW Round 10]** Declared value in INR paise |
+| line_items | json, nullable | **[NEW Round 10]** Array of `{ name, sku, quantity, unit_price, hsn_code, tax_rate, total }` |
 | — admin verified — | | |
 | verified_weight_grams, verified_length_cm, verified_width_cm, verified_height_cm | int, nullable | filled during review |
 | verified_by | fk → users.id, nullable | |
@@ -102,13 +111,23 @@ One row per parcel in the booking (supports multi-parcel bookings even though v1
 |---|---|---|
 | id | uuid/pk | |
 | booking_id | fk → bookings.id, unique | one charge breakdown per booking |
-| shipping_charge | int (paise) | §16 |
-| additional_charge | int (paise) | |
-| discount | int (paise) | |
-| tax | int (paise) | |
-| total | int (paise) | generated/validated = sum of the above |
+| currency | string | **[NEW Round 10]** INR or USD |
+| exchange_rate | float | **[NEW Round 10]** Applied exchange rate |
+| shipping_charge | int | paise or cents in selected currency |
+| additional_charge | int | paise or cents |
+| discount | int | paise or cents |
+| tax | int | paise or cents |
+| total | int | generated/validated = sum of the above in selected currency |
+| total_inr | int | **[NEW Round 10]** Total normalized to INR paise |
 | set_by | fk → users.id | |
 | set_at | datetime | |
+
+---
+
+## Settings & Reference Rates **[NEW Round 10]**
+- `usd_to_inr_rate`: Admin-configurable setting for reference USD-to-INR conversion (stored in `settings` table with key `usd_to_inr_rate`). Allows manual rate adjustment without hardcoded values.
+
+---
 
 ---
 

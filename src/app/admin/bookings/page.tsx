@@ -309,8 +309,13 @@ export default function AdminBookingsPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-medium text-text-primary">
-                          {b.sender_city} → {b.receiver_city}
+                        <div className="font-medium text-text-primary flex items-center gap-1.5 flex-wrap">
+                          <span>{b.sender_city} → {b.receiver_city}</span>
+                          {b.shipment_mode === "INTERNATIONAL" && (
+                            <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">
+                              🌐 {b.receiver_country || "Intl"}
+                            </span>
+                          )}
                         </div>
                         <div className="text-[11px] text-text-muted">
                           To: {b.receiver_name}
@@ -335,7 +340,16 @@ export default function AdminBookingsPage() {
                       </td>
                       <td className="px-4 py-3 font-mono font-bold">
                         {b.charges ? (
-                          formatPaiseToRupees(b.charges.total)
+                          b.currency === "USD" ? (
+                            <div>
+                              <div className="text-text-primary">${(b.charges.total / 100).toFixed(2)} USD</div>
+                              <div className="text-[10px] text-text-muted font-normal">
+                                ≈ ₹{(Math.round((b.charges.total_inr || (b.charges.total * (b.exchange_rate || 84.0))) / 100)).toLocaleString("en-IN")}
+                              </div>
+                            </div>
+                          ) : (
+                            formatPaiseToRupees(b.charges.total)
+                          )
                         ) : (
                           <span className="text-amber-600 font-normal italic">Unset</span>
                         )}

@@ -264,10 +264,15 @@ model CustomerAddress {
   id             String   @id @default(uuid())
   customer_id    String
   label          String
+  source         String   @default("CUSTOMER") // CUSTOMER | ADMIN
+  type           String   @default("GENERAL")  // SENDER | RECEIVER | GENERAL
   contact_name   String?
   contact_mobile String?
   contact_email  String?
+  country        String   @default("India")
   address        String   @db.Text
+  address_line_2 String?
+  address_line_3 String?
   landmark       String?
   city           String
   district       String?
@@ -280,6 +285,7 @@ model CustomerAddress {
   customer Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
 
   @@index([customer_id])
+  @@index([source])
   @@map("customer_addresses")
 }
 
@@ -292,6 +298,10 @@ model Booking {
   booking_number   String        @unique
   customer_id      String
   source           BookingSource @default(CUSTOMER)
+  shipment_mode    String        @default("DOMESTIC") // DOMESTIC | INTERNATIONAL
+  currency         String        @default("INR")      // INR | USD
+  exchange_rate    Float         @default(1.0)
+  total_inr_paise  Int           @default(0)
   created_by       String
   status           BookingStatus @default(REQUESTED)
   payment_type     PaymentType   @default(PREPAID)
@@ -301,7 +311,10 @@ model Booking {
   sender_name      String
   sender_mobile    String
   sender_email     String?
+  sender_country   String        @default("India")
   sender_address   String        @db.Text
+  sender_address_2 String?
+  sender_address_3 String?
   sender_landmark  String?
   sender_city      String
   sender_district  String?
@@ -309,15 +322,24 @@ model Booking {
   sender_pincode   String
 
   // Receiver Snapshot
-  receiver_name     String
-  receiver_mobile   String
-  receiver_email    String?
-  receiver_address  String        @db.Text
-  receiver_landmark String?
-  receiver_city     String
-  receiver_district String?
-  receiver_state    String
-  receiver_pincode  String
+  receiver_name      String
+  receiver_mobile    String
+  receiver_email     String?
+  receiver_country   String        @default("India")
+  receiver_address   String        @db.Text
+  receiver_address_2 String?
+  receiver_address_3 String?
+  receiver_landmark  String?
+  receiver_city      String
+  receiver_district  String?
+  receiver_state     String
+  receiver_pincode   String
+
+  // International Commercial / Customs Details
+  invoice_number   String?
+  invoice_date     String?
+  service_type     String?
+  ioss_number      String?
 
   rejection_reason String?       @db.Text
   reviewed_by      String?
@@ -345,13 +367,18 @@ model BookingParcel {
   booking_id             String
   parcel_type            String
   description            String    @db.Text
+  currency               String    @default("INR") // INR | USD
   
   // Customer Submitted
   submitted_weight_grams Int
   submitted_length_cm    Int
   submitted_width_cm     Int
   submitted_height_cm    Int
-  declared_value         Int       @default(0) // paise
+  declared_value         Int       @default(0) // paise or cents depending on currency
+  declared_value_inr     Int       @default(0) // always in INR paise
+
+  // International Line Items (JSON array)
+  line_items             Json?
 
   // Admin Verified
   verified_weight_grams  Int?
@@ -373,11 +400,14 @@ model BookingParcel {
 model BookingCharge {
   id                String   @id @default(uuid())
   booking_id        String   @unique
-  shipping_charge   Int      @default(0) // paise
-  additional_charge Int      @default(0) // paise
-  discount          Int      @default(0) // paise
-  tax               Int      @default(0) // paise
-  total             Int      @default(0) // paise
+  currency          String   @default("INR") // INR | USD
+  exchange_rate     Float    @default(1.0)
+  shipping_charge   Int      @default(0) // paise or cents
+  additional_charge Int      @default(0) // paise or cents
+  discount          Int      @default(0) // paise or cents
+  tax               Int      @default(0) // paise or cents
+  total             Int      @default(0) // paise or cents
+  total_inr         Int      @default(0) // always in paise
   set_by            String
   set_at            DateTime @default(now())
   created_at        DateTime @default(now())

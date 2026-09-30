@@ -26,6 +26,8 @@ import {
   AlertCircle,
   Trash2,
   MapPin,
+  Globe,
+  FileCheck,
 } from "lucide-react";
 
 export default function AdminBookingReviewPage() {
@@ -269,6 +271,23 @@ export default function AdminBookingReviewPage() {
   }
 
   const parcel = booking.parcels && booking.parcels[0];
+  const isInternational = booking.shipment_mode === "INTERNATIONAL";
+  const currency = booking.currency || "INR";
+  const currSymbol = currency === "USD" ? "$" : "₹";
+  const exRate = booking.exchange_rate || 84.0;
+
+  let lineItems: any[] = [];
+  if (parcel?.line_items) {
+    if (typeof parcel.line_items === "string") {
+      try {
+        lineItems = JSON.parse(parcel.line_items);
+      } catch (e) {
+        lineItems = [];
+      }
+    } else if (Array.isArray(parcel.line_items)) {
+      lineItems = parcel.line_items;
+    }
+  }
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
@@ -281,11 +300,20 @@ export default function AdminBookingReviewPage() {
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Review Queue
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold font-mono text-text-primary">
               Review Consignment #{booking.booking_number}
             </h1>
             <StatusBadge status={isApproved ? "APPROVED" : booking.status} />
+            {isInternational ? (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1">
+                <Globe className="w-3.5 h-3.5" /> International ({currency})
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
+                Domestic (INR)
+              </span>
+            )}
           </div>
         </div>
 
@@ -376,29 +404,137 @@ export default function AdminBookingReviewPage() {
           {/* Sender & Receiver Snapshots */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card className="p-4 space-y-2 text-xs">
-              <div className="font-bold text-xs uppercase tracking-wider text-brand-primary border-b border-border-default pb-1">
-                Sender Snapshot (Origin)
+              <div className="font-bold text-xs uppercase tracking-wider text-brand-primary border-b border-border-default pb-1 flex justify-between items-center">
+                <span>Sender Snapshot (Origin)</span>
+                {booking.sender_country && (
+                  <span className="text-[10px] text-text-muted font-normal uppercase">
+                    {booking.sender_country}
+                  </span>
+                )}
               </div>
               <div className="font-bold text-sm text-text-primary">{booking.sender_name}</div>
-              <div className="text-text-secondary">{booking.sender_address}</div>
+              <div className="text-text-secondary">
+                <div>{booking.sender_address}</div>
+                {booking.sender_address_line_2 && <div>{booking.sender_address_line_2}</div>}
+                {booking.sender_address_line_3 && <div>{booking.sender_address_line_3}</div>}
+              </div>
               <div className="font-semibold text-text-primary">
                 {booking.sender_city}, {booking.sender_state} - {booking.sender_pincode}
+                {booking.sender_country && booking.sender_country !== "IN" && booking.sender_country !== "India" && `, ${booking.sender_country}`}
               </div>
               <div className="font-mono text-text-muted">Ph: {booking.sender_mobile}</div>
+              {booking.sender_email && <div className="text-[11px] text-text-muted">{booking.sender_email}</div>}
             </Card>
 
             <Card className="p-4 space-y-2 text-xs">
-              <div className="font-bold text-xs uppercase tracking-wider text-brand-accent border-b border-border-default pb-1">
-                Receiver Snapshot (Destination)
+              <div className="font-bold text-xs uppercase tracking-wider text-brand-accent border-b border-border-default pb-1 flex justify-between items-center">
+                <span>Receiver Snapshot (Destination)</span>
+                {booking.receiver_country && (
+                  <span className="text-[10px] text-brand-accent font-bold uppercase">
+                    {booking.receiver_country}
+                  </span>
+                )}
               </div>
               <div className="font-bold text-sm text-text-primary">{booking.receiver_name}</div>
-              <div className="text-text-secondary">{booking.receiver_address}</div>
+              <div className="text-text-secondary">
+                <div>{booking.receiver_address}</div>
+                {booking.receiver_address_line_2 && <div>{booking.receiver_address_line_2}</div>}
+                {booking.receiver_address_line_3 && <div>{booking.receiver_address_line_3}</div>}
+              </div>
               <div className="font-semibold text-text-primary">
                 {booking.receiver_city}, {booking.receiver_state} - {booking.receiver_pincode}
+                {booking.receiver_country && `, ${booking.receiver_country}`}
               </div>
               <div className="font-mono text-text-muted">Ph: {booking.receiver_mobile}</div>
+              {booking.receiver_email && <div className="text-[11px] text-text-muted">{booking.receiver_email}</div>}
             </Card>
           </div>
+
+          {/* International Customs & Invoice Details */}
+          {(isInternational || lineItems.length > 0 || booking.invoice_number) && (
+            <Card>
+              <CardHeader className="py-3 bg-surface-subtle flex flex-row items-center justify-between">
+                <CardTitle className="text-xs uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+                  <FileCheck className="w-4 h-4 text-brand-primary" /> International Customs & Commercial Invoice
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  {currency === "USD" && (
+                    <span className="text-[11px] font-mono bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-semibold">
+                      Ref Rate: 1 USD = ₹{exRate.toFixed(2)}
+                    </span>
+                  )}
+                  {booking.service_type && (
+                    <span className="text-[11px] font-semibold text-text-secondary bg-slate-200 px-2 py-0.5 rounded uppercase">
+                      {booking.service_type}
+                    </span>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4 text-xs">
+                {/* Invoice metadata bar */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-surface-subtle border border-border-default rounded-xl">
+                  <div>
+                    <span className="text-[10px] text-text-muted uppercase font-bold block">Invoice No:</span>
+                    <span className="font-mono font-semibold text-text-primary">{booking.invoice_number || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-text-muted uppercase font-bold block">Invoice Date:</span>
+                    <span className="font-mono font-semibold text-text-primary">{booking.invoice_date || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-text-muted uppercase font-bold block">IOSS / Tax ID:</span>
+                    <span className="font-mono font-semibold text-text-primary">{booking.ioss_number || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-text-muted uppercase font-bold block">Declared Total:</span>
+                    <span className="font-mono font-bold text-brand-primary">
+                      {currency === "USD"
+                        ? `$${((parcel?.declared_value || 0) / 100).toFixed(2)} USD (≈ ₹${(((parcel?.declared_value || 0) / 100) * exRate).toFixed(2)})`
+                        : formatPaiseToRupees(parcel?.declared_value || 0)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Line Items Table */}
+                {lineItems.length > 0 && (
+                  <div className="border border-border-default rounded-xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-surface-subtle border-b border-border-default font-semibold text-text-muted uppercase text-[10px]">
+                          <tr>
+                            <th className="p-2.5">Item Description</th>
+                            <th className="p-2.5">SKU / Code</th>
+                            <th className="p-2.5 text-center">Qty</th>
+                            <th className="p-2.5 text-right">Unit Price ({currSymbol})</th>
+                            <th className="p-2.5">HSN Code</th>
+                            <th className="p-2.5 text-center">Tax %</th>
+                            <th className="p-2.5 text-right">Item Total ({currSymbol})</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border-default">
+                          {lineItems.map((item, idx) => (
+                            <tr key={idx} className="hover:bg-surface-subtle/50">
+                              <td className="p-2.5 font-medium text-text-primary">{item.name || "—"}</td>
+                              <td className="p-2.5 font-mono text-text-secondary">{item.sku || "—"}</td>
+                              <td className="p-2.5 text-center font-mono">{item.quantity || 1}</td>
+                              <td className="p-2.5 text-right font-mono">
+                                {currSymbol}{parseFloat(item.unit_price || 0).toFixed(2)}
+                              </td>
+                              <td className="p-2.5 font-mono text-text-secondary">{item.hsn_code || "—"}</td>
+                              <td className="p-2.5 text-center font-mono">{item.tax_rate || 0}%</td>
+                              <td className="p-2.5 text-right font-mono font-bold text-text-primary">
+                                {currSymbol}{parseFloat(item.total || 0).toFixed(2)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Weight & Dimension Verification (§15) */}
           <Card>
@@ -481,47 +617,71 @@ export default function AdminBookingReviewPage() {
           <Card>
             <CardHeader className="py-3 bg-surface-subtle flex flex-row items-center justify-between">
               <CardTitle className="text-xs uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-                <Calculator className="w-4 h-4 text-emerald-600" /> Manual Shipping Charge Breakdown
+                <Calculator className="w-4 h-4 text-emerald-600" /> Manual Shipping Charge Breakdown ({currency})
               </CardTitle>
-              <span className="text-xs font-mono font-bold text-brand-primary">
-                Total: {formatPaiseToRupees(totalPaise)}
-              </span>
+              <div className="text-right">
+                <span className="text-xs font-mono font-bold text-brand-primary block">
+                  {currency === "USD" ? (
+                    <>
+                      ${totalRupees.toFixed(2)} USD{" "}
+                      <span className="text-[11px] text-text-muted font-normal">
+                        (≈ ₹{(totalRupees * exRate).toFixed(2)} INR)
+                      </span>
+                    </>
+                  ) : (
+                    `Total: ${formatPaiseToRupees(totalPaise)}`
+                  )}
+                </span>
+              </div>
             </CardHeader>
             <CardContent className="p-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <Input
-                  label="Shipping Charge (₹)"
+                  label={`Shipping Charge (${currSymbol})`}
                   type="number"
+                  step="0.01"
                   value={shippingChargeRupees}
                   onChange={(e) => setShippingChargeRupees(e.target.value)}
                 />
                 <Input
-                  label="Additional Charge (₹)"
+                  label={`Additional Charge (${currSymbol})`}
                   type="number"
+                  step="0.01"
                   value={additionalChargeRupees}
                   onChange={(e) => setAdditionalChargeRupees(e.target.value)}
                 />
                 <Input
-                  label="Discount (₹)"
+                  label={`Discount (${currSymbol})`}
                   type="number"
+                  step="0.01"
                   value={discountRupees}
                   onChange={(e) => setDiscountRupees(e.target.value)}
                 />
                 <Input
-                  label="GST / Tax (₹)"
+                  label={`GST / Tax (${currSymbol})`}
                   type="number"
+                  step="0.01"
                   value={taxRupees}
                   onChange={(e) => setTaxRupees(e.target.value)}
                 />
               </div>
 
               {/* Charge Formula Summary */}
-              <div className="mt-4 p-3 bg-surface-subtle border border-border-default rounded-xl flex items-center justify-between text-xs font-mono">
+              <div className="mt-4 p-3 bg-surface-subtle border border-border-default rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs font-mono gap-2">
                 <span className="text-text-muted">
-                  ₹{numShipping} + ₹{numAdd} + ₹{numTax} - ₹{numDisc}
+                  {currSymbol}{numShipping.toFixed(2)} + {currSymbol}{numAdd.toFixed(2)} + {currSymbol}{numTax.toFixed(2)} - {currSymbol}{numDisc.toFixed(2)}
                 </span>
                 <span className="font-bold text-sm text-text-primary">
-                  Calculated Total: ₹{totalRupees.toFixed(2)} ({totalPaise} paise)
+                  {currency === "USD" ? (
+                    <>
+                      Calculated Total: ${totalRupees.toFixed(2)} USD{" "}
+                      <span className="text-emerald-700 font-semibold text-xs ml-1">
+                        (≈ ₹{(totalRupees * exRate).toFixed(2)} INR @ ₹{exRate}/$)
+                      </span>
+                    </>
+                  ) : (
+                    `Calculated Total: ₹${totalRupees.toFixed(2)} (${totalPaise} paise)`
+                  )}
                 </span>
               </div>
             </CardContent>

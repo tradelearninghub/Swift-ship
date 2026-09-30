@@ -191,11 +191,18 @@ export async function POST(
     }
 
     // Process APPROVAL
-    const totalPaise =
+    const bookingCurrency = booking.currency || "INR";
+    const exchangeRate = booking.exchange_rate || 1.0;
+
+    const totalSelected =
       (data.shipping_charge_paise || 0) +
       (data.additional_charge_paise || 0) +
       (data.tax_paise || 0) -
       (data.discount_paise || 0);
+
+    const totalInrPaise = bookingCurrency === "USD"
+      ? Math.round(totalSelected * exchangeRate)
+      : totalSelected;
 
     const result = await prisma.$transaction(async (tx) => {
       // 1. Update parcel verified metrics
@@ -221,20 +228,26 @@ export async function POST(
         await tx.bookingCharge.upsert({
           where: { booking_id: booking.id },
           update: {
+            currency: bookingCurrency,
+            exchange_rate: exchangeRate,
             shipping_charge: data.shipping_charge_paise || 0,
             additional_charge: data.additional_charge_paise || 0,
             discount: data.discount_paise || 0,
             tax: data.tax_paise || 0,
-            total: totalPaise,
+            total: totalSelected,
+            total_inr: totalInrPaise,
             set_by: actorId,
           },
           create: {
             booking_id: booking.id,
+            currency: bookingCurrency,
+            exchange_rate: exchangeRate,
             shipping_charge: data.shipping_charge_paise || 0,
             additional_charge: data.additional_charge_paise || 0,
             discount: data.discount_paise || 0,
             tax: data.tax_paise || 0,
-            total: totalPaise,
+            total: totalSelected,
+            total_inr: totalInrPaise,
             set_by: actorId,
           },
         });
@@ -247,6 +260,7 @@ export async function POST(
           status: "APPROVED",
           reviewed_by: actorId,
           reviewed_at: new Date(),
+          total_inr_paise: totalInrPaise,
         },
       });
 
@@ -382,7 +396,8 @@ export async function POST(
           entity_id: booking.id,
           after: {
             status: "APPROVED",
-            charges_total: totalPaise,
+            charges_total: totalSelected,
+            charges_total_inr: totalInrPaise,
             courier_partner_id: partnerIdToUse,
             shipment_id: shipmentRecord?.id,
           },

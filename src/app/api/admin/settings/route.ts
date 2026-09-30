@@ -15,6 +15,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ setting: setting?.value || null });
     }
 
+    // Public info for currency / forex exchange rate
+    if (group === "currency" || group === "forex") {
+      const settings = await prisma.setting.findMany({
+        where: { group: { in: ["currency", "forex"] } },
+      });
+      const rateSetting = await prisma.setting.findFirst({
+        where: { key: "usd_to_inr_rate" },
+      });
+      const all = [...settings];
+      if (rateSetting && !all.some((s) => s.key === "usd_to_inr_rate")) {
+        all.push(rateSetting);
+      }
+      return NextResponse.json({ settings: all });
+    }
+
     if (!session || !hasPermission(session, "settings.view")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }

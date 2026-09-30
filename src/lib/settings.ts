@@ -76,3 +76,20 @@ export async function getCompanyProfile(): Promise<CompanyProfileSettings> {
   }
   return DEFAULT_COMPANY_PROFILE;
 }
+
+export const DEFAULT_USD_TO_INR_RATE = 84.0;
+
+export async function getUsdToInrRate(): Promise<number> {
+  try {
+    const setting = await prisma.setting.findFirst({
+      where: { key: "usd_to_inr_rate" },
+    });
+    if (setting && setting.value) {
+      const val = typeof setting.value === "string" ? parseFloat(setting.value) : Number(setting.value);
+      if (!isNaN(val) && val > 0) return val;
+    }
+  } catch (error) {
+    // fallback
+  }
+  return DEFAULT_USD_TO_INR_RATE;
+}

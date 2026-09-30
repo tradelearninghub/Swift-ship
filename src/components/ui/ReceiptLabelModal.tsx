@@ -256,6 +256,11 @@ export function ReceiptLabelModal({
                     <span className="bg-amber-300 px-1 py-0.2 rounded font-black font-mono">
                       {booking.receiver_pincode}
                     </span>
+                    {booking.receiver_country && (
+                      <span className="ml-1 uppercase text-slate-900 font-extrabold">
+                        ({booking.receiver_country})
+                      </span>
+                    )}
                   </div>
                   <div className="text-[10px] font-bold font-mono text-slate-900 pt-0.5">
                     Mobile: {booking.receiver_mobile}
@@ -502,6 +507,11 @@ export function ReceiptLabelModal({
                         <span className="bg-yellow-200 px-1 py-0.5 rounded font-black font-mono">
                           {booking.receiver_pincode}
                         </span>
+                        {booking.receiver_country && (
+                          <span className="ml-1 uppercase text-slate-900 font-extrabold">
+                            ({booking.receiver_country})
+                          </span>
+                        )}
                       </div>
                       <div className="font-mono font-bold text-slate-900">Ph: {booking.receiver_mobile}</div>
                     </div>

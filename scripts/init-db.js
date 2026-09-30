@@ -159,6 +159,36 @@ async function runSchemaSelfHealing(prisma) {
     { table: "customer_addresses", column: "contact_mobile", definition: "VARCHAR(191) NULL" },
     { table: "customer_addresses", column: "contact_email", definition: "VARCHAR(191) NULL" },
     { table: "notification_templates", column: "sender_email", definition: "VARCHAR(191) NULL" },
+
+    // Round 10 - International, Currency, and Address Book columns
+    { table: "customer_addresses", column: "source", definition: "VARCHAR(20) NOT NULL DEFAULT 'CUSTOMER'" },
+    { table: "customer_addresses", column: "type", definition: "VARCHAR(20) NOT NULL DEFAULT 'GENERAL'" },
+    { table: "customer_addresses", column: "country", definition: "VARCHAR(100) NOT NULL DEFAULT 'India'" },
+    { table: "customer_addresses", column: "address_line_2", definition: "VARCHAR(191) NULL" },
+    { table: "customer_addresses", column: "address_line_3", definition: "VARCHAR(191) NULL" },
+
+    { table: "bookings", column: "shipment_mode", definition: "VARCHAR(20) NOT NULL DEFAULT 'DOMESTIC'" },
+    { table: "bookings", column: "currency", definition: "VARCHAR(10) NOT NULL DEFAULT 'INR'" },
+    { table: "bookings", column: "exchange_rate", definition: "DOUBLE NOT NULL DEFAULT 1.0" },
+    { table: "bookings", column: "total_inr_paise", definition: "INT NOT NULL DEFAULT 0" },
+    { table: "bookings", column: "sender_country", definition: "VARCHAR(100) NOT NULL DEFAULT 'India'" },
+    { table: "bookings", column: "sender_address_2", definition: "VARCHAR(191) NULL" },
+    { table: "bookings", column: "sender_address_3", definition: "VARCHAR(191) NULL" },
+    { table: "bookings", column: "receiver_country", definition: "VARCHAR(100) NOT NULL DEFAULT 'India'" },
+    { table: "bookings", column: "receiver_address_2", definition: "VARCHAR(191) NULL" },
+    { table: "bookings", column: "receiver_address_3", definition: "VARCHAR(191) NULL" },
+    { table: "bookings", column: "invoice_number", definition: "VARCHAR(191) NULL" },
+    { table: "bookings", column: "invoice_date", definition: "VARCHAR(191) NULL" },
+    { table: "bookings", column: "service_type", definition: "VARCHAR(100) NULL" },
+    { table: "bookings", column: "ioss_number", definition: "VARCHAR(191) NULL" },
+
+    { table: "booking_parcels", column: "currency", definition: "VARCHAR(10) NOT NULL DEFAULT 'INR'" },
+    { table: "booking_parcels", column: "declared_value_inr", definition: "INT NOT NULL DEFAULT 0" },
+    { table: "booking_parcels", column: "line_items", definition: "JSON NULL" },
+
+    { table: "booking_charges", column: "currency", definition: "VARCHAR(10) NOT NULL DEFAULT 'INR'" },
+    { table: "booking_charges", column: "exchange_rate", definition: "DOUBLE NOT NULL DEFAULT 1.0" },
+    { table: "booking_charges", column: "total_inr", definition: "INT NOT NULL DEFAULT 0" },
   ];
 
   for (const col of columnsToAdd) {

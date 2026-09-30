@@ -18,8 +18,11 @@ import {
   BookmarkCheck,
 } from "lucide-react";
 import { INDIAN_STATES_AND_UTS } from "@/lib/geo";
+import { ShipmentModeSelector, ShipmentMode } from "@/components/booking/ShipmentModeSelector";
+import { InternationalBookingForm } from "@/components/booking/InternationalBookingForm";
 
 export default function BookParcelPage() {
+  const [shipmentMode, setShipmentMode] = useState<ShipmentMode>("DOMESTIC");
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -468,8 +471,15 @@ export default function BookParcelPage() {
         </p>
       </div>
 
-      {/* Stepper Header */}
-      <div className="grid grid-cols-4 gap-2 text-center text-xs font-semibold">
+      {/* 0. ENTRY POINT — TWO CLEAR BUTTONS (§1) */}
+      <ShipmentModeSelector mode={shipmentMode} onChange={setShipmentMode} />
+
+      {shipmentMode === "INTERNATIONAL" ? (
+        <InternationalBookingForm savedAddresses={savedAddresses} />
+      ) : (
+        <>
+          {/* Stepper Header */}
+          <div className="grid grid-cols-4 gap-2 text-center text-xs font-semibold">
         {[
           { step: 1, label: "Sender" },
           { step: 2, label: "Receiver" },
@@ -1307,6 +1317,8 @@ export default function BookParcelPage() {
           </CardFooter>
         </form>
       </Card>
+      </>
+      )}
     </div>
   );
 }

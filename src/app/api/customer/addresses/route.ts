@@ -4,26 +4,27 @@ import { getSessionUser } from "@/lib/auth";
 import { z } from "zod";
 
 const AddressInputSchema = z.object({
+  customer_id: z.string().optional(),
   label: z.string().min(1, "Address label is required (e.g., Office, Home, Warehouse)"),
+  source: z.enum(["CUSTOMER", "ADMIN"]).optional(),
+  type: z.enum(["SENDER", "RECEIVER", "GENERAL"]).optional(),
   contact_name: z.string().optional().nullable(),
-  contact_mobile: z
-    .string()
-    .regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit Indian mobile number")
-    .optional()
-    .nullable()
-    .or(z.literal("")),
+  contact_mobile: z.string().optional().nullable().or(z.literal("")),
   contact_email: z
     .string()
     .email("Invalid email address format")
     .optional()
     .nullable()
     .or(z.literal("")),
-  address: z.string().min(5, "Street address must be at least 5 characters"),
+  country: z.string().optional().default("India"),
+  address: z.string().min(3, "Street address is required"),
+  address_line_2: z.string().optional().nullable(),
+  address_line_3: z.string().optional().nullable(),
   landmark: z.string().optional().nullable(),
-  city: z.string().min(2, "City is required"),
+  city: z.string().min(1, "City is required"),
   district: z.string().optional().nullable(),
-  state: z.string().min(2, "State is required"),
-  pincode: z.string().regex(/^\d{6}$/, "Pincode must be a 6-digit Indian postal code"),
+  state: z.string().min(1, "State is required"),
+  pincode: z.string().min(1, "Postal / ZIP Code is required"),
   is_default: z.boolean().optional().default(false),
 });
 
@@ -63,10 +64,24 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
     }
 
-    const customer = await resolveCustomer(session.id, session.mobile, session.name, session.email);
+    const roleUpper = (session.role || "").toUpperCase();
+    const isStaffOrAdmin = roleUpper === "SUPER_ADMIN" || roleUpper === "ADMIN" || roleUpper === "STAFF";
+
+    const requestedCustomerId = req.nextUrl.searchParams.get("customer_id");
+    const addressWhere: any = {};
+
+    if (isStaffOrAdmin && requestedCustomerId) {
+      // Admin/Staff querying a customer's address book: return BOTH CUSTOMER & ADMIN added addresses (§5)
+      addressWhere.customer_id = requestedCustomerId;
+    } else {
+      // Customer self-service portal: only return addresses with source = "CUSTOMER" (§5)
+      const customer = await resolveCustomer(session.id, session.mobile, session.name, session.email);
+      addressWhere.customer_id = customer.id;
+      addressWhere.source = "CUSTOMER";
+    }
 
     const addresses = await prisma.customerAddress.findMany({
-      where: { customer_id: customer.id },
+      where: addressWhere,
       orderBy: [
         { is_default: "desc" },
         { updated_at: "desc" },
@@ -90,6 +105,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
     }
 
+    const roleUpper = (session.role || "").toUpperCase();
+    const isStaffOrAdmin = roleUpper === "SUPER_ADMIN" || roleUpper === "ADMIN" || roleUpper === "STAFF";
+
     const body = await req.json();
     const validation = AddressInputSchema.safeParse(body);
 
@@ -100,12 +118,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const customer = await resolveCustomer(session.id, session.mobile, session.name, session.email);
     const data = validation.data;
+    let targetCustomerId: string;
+
+    if (isStaffOrAdmin && data.customer_id) {
+      targetCustomerId = data.customer_id;
+    } else {
+      const customer = await resolveCustomer(session.id, session.mobile, session.name, session.email);
+      targetCustomerId = customer.id;
+    }
+
+    // Determine source: If added by staff/admin, mark as ADMIN (§5), else CUSTOMER
+    const addressSource = isStaffOrAdmin ? (data.source || "ADMIN") : "CUSTOMER";
 
     // Check existing count
     const existingCount = await prisma.customerAddress.count({
-      where: { customer_id: customer.id },
+      where: { customer_id: targetCustomerId },
     });
 
     // Make default if it's the first address or requested
@@ -114,19 +142,24 @@ export async function POST(req: NextRequest) {
     const result = await prisma.$transaction(async (tx) => {
       if (shouldBeDefault) {
         await tx.customerAddress.updateMany({
-          where: { customer_id: customer.id },
+          where: { customer_id: targetCustomerId },
           data: { is_default: false },
         });
       }
 
       return tx.customerAddress.create({
         data: {
-          customer_id: customer.id,
+          customer_id: targetCustomerId,
           label: data.label.trim(),
+          source: addressSource,
+          type: data.type || "GENERAL",
           contact_name: data.contact_name?.trim() || null,
           contact_mobile: data.contact_mobile?.trim() || null,
           contact_email: data.contact_email?.trim() || null,
+          country: data.country?.trim() || "India",
           address: data.address.trim(),
+          address_line_2: data.address_line_2?.trim() || null,
+          address_line_3: data.address_line_3?.trim() || null,
           landmark: data.landmark?.trim() || null,
           city: data.city.trim(),
           district: data.district?.trim() || null,

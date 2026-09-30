@@ -180,9 +180,17 @@ export default function CustomerBookingsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="font-medium text-text-primary">{b.receiver_name}</div>
+                          <div className="font-medium text-text-primary flex items-center gap-1.5 flex-wrap">
+                            <span>{b.receiver_name}</span>
+                            {b.shipment_mode === "INTERNATIONAL" && (
+                              <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[9px] font-bold px-1.5 py-0.2 rounded uppercase">
+                                🌐 {b.receiver_country || "Intl"}
+                              </span>
+                            )}
+                          </div>
                           <div className="text-xs text-text-secondary">
                             {b.receiver_city}{b.receiver_state ? `, ${b.receiver_state}` : ""}
+                            {b.shipment_mode === "INTERNATIONAL" && b.receiver_country ? `, ${b.receiver_country}` : ""}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -205,13 +213,15 @@ export default function CustomerBookingsPage() {
                           </div>
                           {parcel?.declared_value > 0 && (
                             <div className="text-[10px] text-text-muted">
-                              Val: ₹{Math.round(parcel.declared_value / 100)}
+                              Val: {b.currency === "USD" ? `$${(parcel.declared_value / 100).toFixed(2)} USD` : `₹${Math.round(parcel.declared_value / 100)}`}
                             </div>
                           )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="font-semibold text-text-primary">
-                            {amountPaise > 0 ? formatPaiseToRupees(amountPaise) : "Pending"}
+                            {amountPaise > 0 ? (
+                              b.currency === "USD" ? `$${(amountPaise / 100).toFixed(2)} USD` : formatPaiseToRupees(amountPaise)
+                            ) : "Pending"}
                           </div>
                           <div className="text-[10px] text-text-muted uppercase">
                             {b.payment_type === "COD" ? `COD (₹${Math.round(b.cod_amount / 100)})` : "Prepaid"}

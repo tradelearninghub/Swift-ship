@@ -27,6 +27,7 @@ import {
   Check,
   Power,
   Navigation,
+  DollarSign,
 } from "lucide-react";
 
 interface SettingRow {
@@ -61,7 +62,7 @@ interface NotificationTemplateItem {
 
 export default function AdminSettingsPage() {
   const [activeGroup, setActiveGroup] = useState<
-    "company" | "templates" | "social" | "smtp" | "whatsapp" | "sms" | "security"
+    "company" | "templates" | "social" | "smtp" | "whatsapp" | "sms" | "security" | "currency"
   >("company");
   const [isSaving, setIsSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -129,6 +130,8 @@ export default function AdminSettingsPage() {
     sec_mobile_pin_cap: "10 req / min",
     sec_max_declared_value: "500000",
     sec_session_timeout: "60 Minutes",
+    // Currency & Forex
+    usd_to_inr_rate: "84.00",
   });
 
   const setField = (key: string, value: string) =>
@@ -197,6 +200,9 @@ export default function AdminSettingsPage() {
           if (sec.mobile_pin_cap) next.sec_mobile_pin_cap = sec.mobile_pin_cap;
           if (sec.max_declared_value) next.sec_max_declared_value = sec.max_declared_value;
           if (sec.session_timeout) next.sec_session_timeout = sec.session_timeout;
+        }
+        if (map.usd_to_inr_rate !== undefined) {
+          next.usd_to_inr_rate = String(map.usd_to_inr_rate);
         }
         return next;
       });
@@ -311,6 +317,10 @@ export default function AdminSettingsPage() {
           sender_id: fields.sms_sender_id,
           entity_id: fields.sms_entity_id,
         };
+      } else if (activeGroup === "currency") {
+        key = "usd_to_inr_rate";
+        group = "currency";
+        value = parseFloat(fields.usd_to_inr_rate) || 84.0;
       } else {
         key = "security_config";
         group = "security";
@@ -447,6 +457,7 @@ export default function AdminSettingsPage() {
     { key: "whatsapp" as const, label: "WhatsApp Gateway", icon: MessageSquare },
     { key: "sms" as const, label: "SMS Provider", icon: Phone },
     { key: "security" as const, label: "Security & Policies", icon: Shield },
+    { key: "currency" as const, label: "Currency & Forex (USD)", icon: DollarSign },
   ];
 
   // Dynamic variable insertion helper
@@ -1175,6 +1186,66 @@ export default function AdminSettingsPage() {
                         value={fields.sec_session_timeout}
                         onChange={(e) => setField("sec_session_timeout", e.target.value)}
                       />
+                    </div>
+                  </div>
+                )}
+
+                {/* CURRENCY & FOREX CONFIG */}
+                {activeGroup === "currency" && (
+                  <div className="space-y-4">
+                    <div className="border-b border-border-default pb-3">
+                      <h3 className="font-bold text-sm text-text-primary">Currency & Forex Reference Rate</h3>
+                      <p className="text-xs text-text-muted mt-0.5">
+                        Define the reference exchange rate for converting International bookings priced in USD to Indian Rupee (INR) equivalents.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Input
+                          label="1 USD in INR (Reference Exchange Rate)"
+                          type="number"
+                          step="0.01"
+                          min="1"
+                          value={fields.usd_to_inr_rate}
+                          onChange={(e) => setField("usd_to_inr_rate", e.target.value)}
+                          placeholder="e.g. 84.00"
+                          required
+                        />
+                        <p className="text-[11px] text-text-muted">
+                          Default is 84.00. This rate is used across public & admin booking wizards and customs declaration reviews.
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-brand-primary/5 border border-brand-primary/20 rounded-xl space-y-2">
+                        <div className="text-xs font-bold text-brand-primary uppercase tracking-wide">
+                          Live Forex Conversion Preview
+                        </div>
+                        <div className="text-xs text-text-secondary space-y-1">
+                          <div className="flex justify-between">
+                            <span>$10.00 USD:</span>
+                            <span className="font-mono font-bold text-text-primary">
+                              ₹{((parseFloat(fields.usd_to_inr_rate) || 84.0) * 10).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>$50.00 USD:</span>
+                            <span className="font-mono font-bold text-text-primary">
+                              ₹{((parseFloat(fields.usd_to_inr_rate) || 84.0) * 50).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>$100.00 USD:</span>
+                            <span className="font-mono font-bold text-text-primary">
+                              ₹{((parseFloat(fields.usd_to_inr_rate) || 84.0) * 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 leading-relaxed">
+                      <strong>Policy Note:</strong> Domestic bookings always transact in INR (₹). International bookings can declare customs and freight in either INR or USD. When USD is chosen, the INR equivalent (paise) is automatically calculated and stored using this reference rate.
                     </div>
                   </div>
                 )}
