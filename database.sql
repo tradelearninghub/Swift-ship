@@ -577,8 +577,8 @@ INSERT INTO `courier_partners` (`id`, `name`, `code`, `website`, `support_contac
 ('cp-xpressbees', 'XpressBees', 'XPRESSBEES', 'https://www.xpressbees.com', '+91 20 4911 1900', 'ACTIVE', 0, 1, 0, 0, 0, NOW(3), NOW(3))
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `website` = VALUES(`website`);
 
--- Seed Default Company Profile Setting
-INSERT INTO `settings` (`id`, `group`, `key`, `value`, `updated_at`) VALUES
+-- Seed Default Company Profile Setting (SAFEGUARD: INSERT IGNORE to never overwrite admin configurations)
+INSERT IGNORE INTO `settings` (`id`, `group`, `key`, `value`, `updated_at`) VALUES
 (
   'setting-company-profile',
   'company_profile',
@@ -600,11 +600,10 @@ INSERT INTO `settings` (`id`, `group`, `key`, `value`, `updated_at`) VALUES
     'longitude', 75.8267
   ),
   NOW(3)
-)
-ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `updated_at` = NOW(3);
+);
 
--- Seed Indicative Rate Cards (§65a)
-INSERT INTO `rate_cards` (`id`, `courier_code`, `courier_name`, `service_type`, `zone`, `zone_title`, `base_weight_grams`, `base_rate_paise`, `additional_weight_grams`, `additional_rate_paise`, `min_transit_days`, `max_transit_days`, `is_active`) VALUES
+-- Seed Indicative Rate Cards (§65a) (SAFEGUARD: INSERT IGNORE to preserve customized rates)
+INSERT IGNORE INTO `rate_cards` (`id`, `courier_code`, `courier_name`, `service_type`, `zone`, `zone_title`, `base_weight_grams`, `base_rate_paise`, `additional_weight_grams`, `additional_rate_paise`, `min_transit_days`, `max_transit_days`, `is_active`) VALUES
 ('rc-del-zone-a', 'DELHIVERY', 'Delhivery Express Air', 'EXPRESS', 'ZONE_A', 'Zone A — Intra-City Jaipur', 500, 5000, 500, 3000, 1, 1, 1),
 ('rc-del-zone-b', 'DELHIVERY', 'Delhivery Express Air', 'EXPRESS', 'ZONE_B', 'Zone B — Intra-State (Rajasthan)', 500, 7500, 500, 4000, 1, 2, 1),
 ('rc-del-zone-c', 'DELHIVERY', 'Delhivery Express Air', 'EXPRESS', 'ZONE_C', 'Zone C — Metro Corridors', 500, 11000, 500, 6000, 2, 3, 1),
@@ -614,7 +613,6 @@ INSERT INTO `rate_cards` (`id`, `courier_code`, `courier_name`, `service_type`, 
 ('rc-dtdc-zone-b', 'DTDC', 'DTDC Standard Surface', 'SURFACE', 'ZONE_B', 'Zone B — Intra-State (Rajasthan)', 500, 6000, 1000, 3500, 2, 3, 1),
 ('rc-dtdc-zone-c', 'DTDC', 'DTDC Standard Surface', 'SURFACE', 'ZONE_C', 'Zone C — Metro Corridors', 500, 8500, 1000, 4500, 3, 5, 1),
 ('rc-dtdc-zone-d', 'DTDC', 'DTDC Standard Surface', 'SURFACE', 'ZONE_D', 'Zone D — Rest of India', 500, 10500, 1000, 5500, 4, 6, 1),
-('rc-dtdc-zone-e', 'DTDC', 'DTDC Standard Surface', 'SURFACE', 'ZONE_E', 'Zone E — Special Remote Zones', 500, 14000, 1000, 7500, 5, 7, 1)
-ON DUPLICATE KEY UPDATE `base_rate_paise` = VALUES(`base_rate_paise`), `additional_rate_paise` = VALUES(`additional_rate_paise`);
+('rc-dtdc-zone-e', 'DTDC', 'DTDC Standard Surface', 'SURFACE', 'ZONE_E', 'Zone E — Special Remote Zones', 500, 14000, 1000, 7500, 5, 7, 1);
 
 SET FOREIGN_KEY_CHECKS = 1;

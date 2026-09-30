@@ -10,12 +10,11 @@ const { seedAdmin, ensureEnvFile } = require("./seed-admin");
 // Ensure environment variables and .env exist
 ensureEnvFile();
 
+const DEFAULT_DATABASE_URL =
+  "mysql://u905414804_sscouriers:SS%40Couriers26@127.0.0.1:3306/u905414804_sscouriers?connection_limit=5";
+
 async function initDatabase() {
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) {
-    console.log("[DB-INIT] ⚠️  DATABASE_URL is not set in environment. Skipping database auto-init.");
-    return;
-  }
+  const dbUrl = process.env.DATABASE_URL || DEFAULT_DATABASE_URL;
 
   console.log("[DB-INIT] Checking database connectivity...");
 
@@ -41,18 +40,26 @@ async function initDatabase() {
     await prisma.$connect();
     console.log("[DB-INIT] Connected to database successfully.");
 
-    // 2. Check if tables exist
+    // 2. SAFEGUARD: Check if tables exist before doing ANY initial schema execution
     let tablesExist = false;
     try {
-      const userCount = await prisma.user.count();
-      tablesExist = true;
-      console.log(`[DB-INIT] Found existing tables. Total users in DB: ${userCount}`);
+      const tables = await prisma.$queryRawUnsafe("SHOW TABLES;");
+      if (Array.isArray(tables) && tables.length > 0) {
+        tablesExist = true;
+        console.log(`[DB-INIT] 🛡️ Safeguard: Found ${tables.length} existing tables in database. Schema is active.`);
+      }
     } catch (err) {
-      tablesExist = false;
+      try {
+        const userCount = await prisma.user.count();
+        tablesExist = true;
+        console.log(`[DB-INIT] 🛡️ Safeguard: Found existing users table with ${userCount} users.`);
+      } catch (err2) {
+        tablesExist = false;
+      }
     }
 
     if (!tablesExist) {
-      console.log("[DB-INIT] Tables do not exist yet. Executing full schema creation from database.sql...");
+      console.log("[DB-INIT] Tables do not exist yet. Executing initial schema creation from database.sql...");
       const sqlFilePath = path.resolve(process.cwd(), "database.sql");
       if (fs.existsSync(sqlFilePath)) {
         const sqlContent = fs.readFileSync(sqlFilePath, "utf-8");
