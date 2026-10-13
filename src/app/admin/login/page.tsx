@@ -84,7 +84,7 @@ function AdminLoginForm() {
             </div>
             <div className="text-left">
               <span className="font-extrabold text-2xl text-white tracking-tight block">
-                SS Courier <span className="text-brand-primary">service</span>
+                SS International <span className="text-brand-primary">Courier Service</span>
               </span>
               <span className="text-[10px] tracking-wider uppercase font-semibold text-slate-400 block -mt-1">
                 Logistics & Parcel Management

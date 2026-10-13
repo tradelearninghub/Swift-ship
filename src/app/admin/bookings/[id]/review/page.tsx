@@ -711,7 +711,7 @@ export default function AdminBookingReviewPage() {
                   const isInHouse = c.code === "IN_HOUSE";
                   return (
                     <option key={c.id} value={c.id}>
-                      {isInHouse ? "🏢 [IN-HOUSE] SS Courier Self Fleet (Manual Milestones)" : `🌐 [3RD PARTY] ${c.name}`}
+                      {isInHouse ? "🏢 [IN-HOUSE] SS International Courier Self Fleet (Manual Milestones)" : `🌐 [3RD PARTY] ${c.name}`}
                     </option>
                   );
                 })}
@@ -720,7 +720,7 @@ export default function AdminBookingReviewPage() {
               {couriers.find((c) => c.id === selectedCourier)?.code === "IN_HOUSE" ? (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-1.5 text-xs text-blue-900">
                   <div className="font-bold flex items-center gap-1.5 text-blue-800">
-                    <Truck className="w-4 h-4" /> SS Courier In-House Delivery Selected
+                    <Truck className="w-4 h-4" /> SS International Courier In-House Delivery Selected
                   </div>
                   <p className="text-[11px] text-blue-700 leading-relaxed">
                     • Generates official consignment <strong className="font-mono bg-blue-100 px-1 py-0.5 rounded">SSC-XXXXXXX</strong> AWB.<br />

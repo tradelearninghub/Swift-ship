@@ -1,5 +1,5 @@
 /**
- * SS Courier service — Automated Indicative Pricing Engine (§65a)
+ * SS International Courier Service — Automated Indicative Pricing Engine (§65a)
  * 
  * Provides transparent, indicative shipping rates based on:
  * 1. Origin Pincode (Default: 302003, Jaipur Central Hub)
@@ -281,7 +281,7 @@ export function calculateShippingQuote(params: {
         governingWeightType: governingType,
       },
       disclaimer:
-        "Indicative estimate only. Actual shipping charge is verified and confirmed by SS Courier admin team upon package physical intake (§10 & §16).",
+        "Indicative estimate only. Actual shipping charge is verified and confirmed by SS International Courier Service admin team upon package physical intake (§10 & §16).",
     };
   });
 
@@ -295,6 +295,6 @@ export function calculateShippingQuote(params: {
     chargeableWeightKg: chargeableWt,
     options,
     notice:
-      "Indicative estimate only. Actual charge is finalized by SS Courier operations staff upon physical weighing and verification at the hub.",
+      "Indicative estimate only. Actual charge is finalized by SS International Courier Service operations staff upon physical weighing and verification at the hub.",
   };
 }

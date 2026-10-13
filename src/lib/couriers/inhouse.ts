@@ -9,7 +9,7 @@ import {
 
 export class InHouseCourierAdapter implements ICourierAdapter {
   code = "IN_HOUSE";
-  name = "SS Courier In-House Delivery";
+  name = "SS International Courier In-House Delivery";
   adapterType: CourierAdapterType = "PREBUILT";
   isAggregator = false;
 
@@ -21,7 +21,7 @@ export class InHouseCourierAdapter implements ICourierAdapter {
       authSuccess: true,
       trackingReachable: true,
       responseTimeMs: 5,
-      message: "SS Courier in-house fleet gateway is operational and ready for intake.",
+      message: "SS International Courier in-house fleet gateway is operational and ready for intake.",
     };
   }
 
@@ -38,7 +38,7 @@ export class InHouseCourierAdapter implements ICourierAdapter {
       labelUrl: `/api/labels/${awb}.pdf`,
       routingCode: `SSC-HUB-${(input.receiver.pincode || "302001").slice(0, 3)}`,
       rawResponse: {
-        network: "In-House SS Courier Fleet",
+        network: "In-House SS International Courier Fleet",
         orderNumber: input.bookingNumber,
         awb,
         status: "Manifested",
@@ -58,12 +58,12 @@ export class InHouseCourierAdapter implements ICourierAdapter {
       events: [
         {
           status: "IN_TRANSIT",
-          rawStatus: "Consignment in transit with SS Courier in-house network",
+          rawStatus: "Consignment in transit with SS International Courier in-house network",
           location: "Regional Sorting Facility",
           occurredAt: new Date(),
         },
       ],
-      rawResponse: { awb, network: "In-House SS Courier Fleet" },
+      rawResponse: { awb, network: "In-House SS International Courier Fleet" },
     };
   }
 

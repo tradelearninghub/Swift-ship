@@ -11,7 +11,7 @@ interface WhatsAppFloatingButtonProps {
 export function WhatsAppFloatingButton({
   whatsappNumber = "8000151117",
   whatsappUrl,
-  companyName = "SS Courier service",
+  companyName = "SS International Courier Service",
 }: WhatsAppFloatingButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -57,7 +57,7 @@ export function WhatsAppFloatingButton({
         href={finalUrl}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Chat with SS Courier on WhatsApp"
+        aria-label="Chat with SS International Courier Service on WhatsApp"
         className="relative w-14 h-14 sm:w-15 sm:h-15 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white flex items-center justify-center shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#25D366]/40 cursor-pointer"
         title="Chat on WhatsApp"
       >

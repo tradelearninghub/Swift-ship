@@ -27,7 +27,7 @@ export interface CompanyProfileSettings {
 }
 
 export const DEFAULT_COMPANY_PROFILE: CompanyProfileSettings = {
-  company_name: "SS Courier service Pvt. Ltd.",
+  company_name: "SS International Courier Service Pvt. Ltd.",
   tagline: "Fast, Safe & Multi-Carrier Courier Logistics",
   support_email: "support@sscourierservice.in",
   support_phones: ["8000151117", "7689987368"],
@@ -61,9 +61,23 @@ export async function getCompanyProfile(): Promise<CompanyProfileSettings> {
 
     if (setting && setting.value) {
       const val = typeof setting.value === "string" ? JSON.parse(setting.value) : (setting.value as any);
+      
+      // Auto-migrate legacy default names to new brand name
+      let companyName = val.company_name;
+      if (
+        !companyName ||
+        companyName === "SS Courier service Pvt. Ltd." ||
+        companyName === "SS Courier Services Pvt. Ltd." ||
+        companyName === "SS Courier service" ||
+        companyName === "SS Courier"
+      ) {
+        companyName = DEFAULT_COMPANY_PROFILE.company_name;
+      }
+
       return {
         ...DEFAULT_COMPANY_PROFILE,
         ...val,
+        company_name: companyName,
         support_phones: Array.isArray(val.support_phones)
           ? val.support_phones
           : val.support_phone

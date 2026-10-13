@@ -14,7 +14,7 @@ export default function AuthLayout({
           <div className="w-10 h-10 rounded-xl bg-brand-primary flex items-center justify-center text-white shadow-md">
             <Truck className="w-6 h-6" />
           </div>
-          <span>SS Courier <span className="text-brand-primary">service</span></span>
+          <span>SS International <span className="text-brand-primary">Courier Service</span></span>
         </Link>
       </div>
 

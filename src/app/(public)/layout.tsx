@@ -4,6 +4,9 @@ import { MobileNav } from "@/components/MobileNav";
 import { getCompanyProfile } from "@/lib/settings";
 import { WhatsAppFloatingButton } from "@/components/ui/WhatsAppFloatingButton";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function PublicLayout({
   children,
 }: {
@@ -16,7 +19,7 @@ export default async function PublicLayout({
   // Normalized WhatsApp link
   const waNumber = (profile.whatsapp || "8000151117").replace(/\D/g, "").replace(/^91/, "");
   const defaultWaLink = `https://wa.me/91${waNumber}?text=${encodeURIComponent(
-    `Hello ${profile.company_name || "SS Courier service"}, I would like to inquire about courier services.`
+    `Hello ${profile.company_name || "SS International Courier Service"}, I would like to inquire about courier services.`
   )}`;
   const whatsappUrl = profile.whatsapp_url?.trim() || (profile.whatsapp?.trim() ? defaultWaLink : undefined);
 
@@ -160,10 +163,10 @@ export default async function PublicLayout({
             </div>
             <div className="flex flex-col">
               <span className="font-black text-xl sm:text-2xl tracking-tight text-[#002B49] leading-tight flex items-center gap-1.5">
-                SS COURIER
+                SS INTERNATIONAL
               </span>
               <span className="text-[10px] font-bold text-[#FF6B00] tracking-[0.22em] uppercase leading-none">
-                SERVICES PVT. LTD.
+                COURIER SERVICE
               </span>
             </div>
           </Link>
@@ -415,7 +418,7 @@ export default async function PublicLayout({
           <div className="copyright pt-6 border-t border-white/10 text-center text-xs text-slate-400">
             <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 leading-relaxed">
               <span>
-                © {new Date().getFullYear()} {profile.company_name || "SS Courier service"}. All rights reserved.
+                © {new Date().getFullYear()} {profile.company_name || "SS International Courier Service"}. All rights reserved.
               </span>
               <span className="hidden sm:inline opacity-40">•</span>
               <span>

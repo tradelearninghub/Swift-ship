@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       await prisma.courierPartner.upsert({
         where: { code: "IN_HOUSE" },
         update: {
-          name: "SS Courier In-House Delivery (Self Fleet)",
+          name: "SS International Courier In-House Delivery (Self Fleet)",
           capability_shipment_api: true,
           capability_tracking_api: true,
           capability_label_api: true,
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
         },
         create: {
           id: "partner-in-house",
-          name: "SS Courier In-House Delivery (Self Fleet)",
+          name: "SS International Courier In-House Delivery (Self Fleet)",
           code: "IN_HOUSE",
           status: "ACTIVE",
           capability_shipment_api: true,
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
 
     const inHouseMock = {
       id: "partner-in-house",
-      name: "SS Courier In-House Delivery (Self Fleet)",
+      name: "SS International Courier In-House Delivery (Self Fleet)",
       code: "IN_HOUSE",
       status: "ACTIVE",
       capability_shipment_api: true,
@@ -156,7 +156,7 @@ export async function DELETE(req: NextRequest) {
     // Protect In-House self fleet partner from deletion
     if (id === "partner-in-house" || id.toLowerCase().includes("in-house") || id.toLowerCase().includes("in_house")) {
       return NextResponse.json(
-        { error: "SS Courier In-House Delivery fleet is a protected system carrier and cannot be deleted." },
+        { error: "SS International Courier In-House Delivery fleet is a protected system carrier and cannot be deleted." },
         { status: 400 }
       );
     }
@@ -173,7 +173,7 @@ export async function DELETE(req: NextRequest) {
 
       if (partner.code === "IN_HOUSE") {
         return NextResponse.json(
-          { error: "SS Courier In-House Delivery fleet is a protected system carrier and cannot be deleted." },
+          { error: "SS International Courier In-House Delivery fleet is a protected system carrier and cannot be deleted." },
           { status: 400 }
         );
       }

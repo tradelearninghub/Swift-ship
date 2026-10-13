@@ -35,7 +35,7 @@ export function getAllSupportedAdapters(): {
   isAggregator?: boolean;
 }[] {
   return [
-    { code: "IN_HOUSE", name: "SS Courier In-House Delivery (Self Fleet)", type: "PREBUILT", isAggregator: false },
+    { code: "IN_HOUSE", name: "SS International Courier In-House Delivery (Self Fleet)", type: "PREBUILT", isAggregator: false },
     { code: "DELHIVERY", name: "Delhivery", type: "PREBUILT", isAggregator: false },
     { code: "DTDC", name: "DTDC Express", type: "PREBUILT", isAggregator: false },
     { code: "SHIPROCKET", name: "Shiprocket (Aggregator)", type: "PREBUILT", isAggregator: true },

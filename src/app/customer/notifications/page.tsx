@@ -43,7 +43,7 @@ export default function CustomerNotificationsPage() {
             list.push({
               id: `sh-${b.shipment.id}`,
               title: `Shipment Allocated — AWB ${b.shipment.awb}`,
-              message: `Carrier ${b.shipment.courier_partner?.name || "SS Courier Fleet"} assigned. Status: ${b.shipment.status.replace(/_/g, " ")}.`,
+              message: `Carrier ${b.shipment.courier_partner?.name || "SS International Courier Fleet"} assigned. Status: ${b.shipment.status.replace(/_/g, " ")}.`,
               timestamp: b.shipment.updated_at || b.shipment.created_at,
               type: b.shipment.status === "DELIVERED" ? "success" : "info",
               link: `/track/${b.shipment.tracking_token || b.shipment.awb}`,

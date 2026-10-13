@@ -84,7 +84,7 @@ export default function AdminSettingsPage() {
   // Form field state
   const [fields, setFields] = useState({
     // Company
-    company_name: "SS Courier service Pvt. Ltd.",
+    company_name: "SS International Courier Service Pvt. Ltd.",
     brand_tagline: "Fast, Safe & Multi-Carrier Courier Logistics",
     support_email: "support@sscourierservice.in",
     support_phone: "8000151117",
@@ -114,7 +114,7 @@ export default function AdminSettingsPage() {
     smtp_user: "support@sscourierservice.in",
     smtp_password: "",
     smtp_from_email: "support@sscourierservice.in",
-    smtp_from_name: "SS Courier service",
+    smtp_from_name: "SS International Courier Service",
     // WhatsApp
     wa_api_url: "https://graph.facebook.com/v19.0",
     wa_phone_number_id: "",

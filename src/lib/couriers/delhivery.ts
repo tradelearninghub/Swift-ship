@@ -103,7 +103,7 @@ export class DelhiveryAdapter implements ICourierAdapter {
   ): Promise<CourierCreateShipmentResult> {
     const startTime = Date.now();
     const token = credentials.api_token || credentials.token;
-    const clientName = credentials.client_name || "SS Courier Express";
+    const clientName = credentials.client_name || "SS International Courier Express";
 
     try {
       const baseUrl = this.getBaseUrl(credentials);

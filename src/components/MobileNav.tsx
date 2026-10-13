@@ -112,8 +112,8 @@ export function MobileNav({
                   <Truck className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-base leading-tight tracking-tight">SS COURIER</span>
-                  <span className="text-[9px] font-bold text-[#FF6B00] tracking-[0.2em] uppercase leading-none">SERVICES PVT. LTD.</span>
+                  <span className="font-bold text-base leading-tight tracking-tight">SS INTERNATIONAL</span>
+                  <span className="text-[9px] font-bold text-[#FF6B00] tracking-[0.2em] uppercase leading-none">COURIER SERVICE</span>
                 </div>
               </div>
               <button
@@ -255,7 +255,7 @@ export function MobileNav({
 
             {/* Footer Notice */}
             <div className="p-4 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-500 text-center">
-              <p className="font-semibold text-slate-700">SS Courier service</p>
+              <p className="font-semibold text-slate-700">SS International Courier Service</p>
               <p className="mt-0.5 truncate text-[10px]">{address}</p>
             </div>
           </div>

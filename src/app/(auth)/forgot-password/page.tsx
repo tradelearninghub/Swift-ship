@@ -116,7 +116,7 @@ export default function ForgotPasswordPage() {
           {step === 1
             ? "Enter your registered email or 10-digit mobile number to receive a verification code"
             : step === 2
-            ? "Create a new strong password for your SS Courier account"
+            ? "Create a new strong password for your SS International Courier account"
             : "Your account password has been updated securely"}
         </p>
       </div>
@@ -227,7 +227,7 @@ export default function ForgotPasswordPage() {
           </div>
           <h3 className="text-lg font-bold text-text-primary">Password Updated Successfully</h3>
           <p className="text-xs text-text-secondary max-w-sm mx-auto">
-            You can now log in to your SS Courier account using your newly set password.
+            You can now log in to your SS International Courier account using your newly set password.
           </p>
           <div className="pt-2">
             <Link href="/login">

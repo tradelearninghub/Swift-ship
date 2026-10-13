@@ -68,7 +68,7 @@ export function PaymentReceiptModal({
   const carrierName =
     booking.shipment?.courier_partner?.name ||
     (booking.shipment?.courier_partner?.code === "IN_HOUSE"
-      ? "SS Courier In-House Fleet"
+      ? "SS International Courier In-House Fleet"
       : "Counter Dispatch Fleet");
 
   const trackingToken = booking.shipment?.tracking_token || bookingNumber.toLowerCase();

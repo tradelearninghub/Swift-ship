@@ -19,9 +19,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: "SS Courier service | Fast & Reliable Multi-Courier Tracking & Booking",
+  title: "SS International Courier Service | Fast & Reliable Multi-Courier Tracking & Booking",
   description:
-    "Fast, reliable multi-courier booking and real-time shipment tracking with verified status updates by SS Courier service.",
+    "Fast, reliable multi-courier booking and real-time shipment tracking with verified status updates by SS International Courier Service.",
 };
 
 export default function RootLayout({

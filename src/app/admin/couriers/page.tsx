@@ -255,7 +255,7 @@ export default function AdminCouriersPage() {
     if (selectedAdapterCode === "DELHIVERY") {
       credentials = {
         api_token: delhiveryToken || "sandbox_token_delhivery_live_test",
-        client_name: delhiveryClient || "SS Courier Express",
+        client_name: delhiveryClient || "SS International Courier Express",
         environment: delhiveryEnv,
       };
     } else if (selectedAdapterCode === "DTDC") {
@@ -340,7 +340,7 @@ export default function AdminCouriersPage() {
     if (selectedAdapterCode === "DELHIVERY") {
       credentials = {
         api_token: delhiveryToken || "live_token_delhivery_cmu",
-        client_name: delhiveryClient || "SS Courier Express",
+        client_name: delhiveryClient || "SS International Courier Express",
         environment: delhiveryEnv,
       };
     } else if (selectedAdapterCode === "DTDC") {
@@ -819,7 +819,7 @@ export default function AdminCouriersPage() {
                         type="text"
                         value={delhiveryClient}
                         onChange={(e) => setDelhiveryClient(e.target.value)}
-                        placeholder="e.g. SS Courier Express"
+                        placeholder="e.g. SS International Courier Express"
                         className="w-full h-8 px-2.5 bg-white border border-border-default rounded-lg text-xs"
                       />
                     </div>

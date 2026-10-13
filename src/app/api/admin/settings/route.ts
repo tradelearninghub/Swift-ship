@@ -12,7 +12,14 @@ export async function GET(req: NextRequest) {
       const setting = await prisma.setting.findFirst({
         where: { key: "company_profile" },
       });
-      return NextResponse.json({ setting: setting?.value || null });
+      return NextResponse.json(
+        { setting: setting?.value || null },
+        {
+          headers: {
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+          },
+        }
+      );
     }
 
     // Public info for currency / forex exchange rate
@@ -27,7 +34,14 @@ export async function GET(req: NextRequest) {
       if (rateSetting && !all.some((s) => s.key === "usd_to_inr_rate")) {
         all.push(rateSetting);
       }
-      return NextResponse.json({ settings: all });
+      return NextResponse.json(
+        { settings: all },
+        {
+          headers: {
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+          },
+        }
+      );
     }
 
     if (!session || !hasPermission(session, "settings.view")) {
@@ -76,6 +90,17 @@ export async function PUT(req: NextRequest) {
       } catch (e) {
         // fallback to value
       }
+    }
+
+    // Merge company_profile so partial updates don't overwrite other fields
+    if (key === "company_profile" && typeof valueToStore === "object" && valueToStore !== null) {
+      try {
+        const existing = await prisma.setting.findUnique({ where: { key } });
+        if (existing?.value) {
+          const existingVal = typeof existing.value === "string" ? JSON.parse(existing.value) : existing.value;
+          valueToStore = { ...existingVal, ...valueToStore };
+        }
+      } catch (e) {}
     }
 
     const updated = await prisma.setting.upsert({

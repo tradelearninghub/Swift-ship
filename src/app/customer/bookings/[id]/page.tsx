@@ -243,7 +243,7 @@ export default function CustomerBookingDetailPage() {
           <div className="space-y-0.5">
             <CardTitle className="text-base">Shipment & Delivery Timeline</CardTitle>
             <p className="text-xs text-text-muted">
-              Handled via {booking.shipment?.courier_partner?.name || "SS Courier Fleet"} • AWB:{" "}
+              Handled via {booking.shipment?.courier_partner?.name || "SS International Courier Fleet"} • AWB:{" "}
               <span className="font-mono font-semibold text-text-primary">
                 {booking.shipment?.awb || "Pending Assignment"}
               </span>

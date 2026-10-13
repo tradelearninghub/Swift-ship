@@ -1,5 +1,5 @@
 /**
- * SS Courier service - Automated Database Initializer
+ * SS International Courier Service - Automated Database Initializer
  * This script runs automatically on 'npm run build' and on 'server.js' startup.
  * It is completely idempotent (safe to run multiple times without duplicating data).
  */
