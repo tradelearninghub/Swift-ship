@@ -16,7 +16,7 @@ const LineItemSchema = z.object({
 
 const BookingCreateSchema = z.object({
   // Shipment Mode & Currency (§1, §3)
-  shipment_mode: z.enum(["DOMESTIC", "INTERNATIONAL"]).optional().default("DOMESTIC"),
+  shipment_mode: z.enum(["DOMESTIC", "INTERNATIONAL"]).optional().default("INTERNATIONAL"),
   currency: z.enum(["INR", "USD"]).optional().default("INR"),
   exchange_rate: z.number().positive().optional(),
 
