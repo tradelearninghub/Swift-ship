@@ -1,63 +1,65 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { Package, Truck, DollarSign, Layers, ShieldCheck, Zap, ArrowRight } from "lucide-react";
+import { Globe, Plane, FileText, ShieldCheck, Clock, Layers, ArrowRight, Package } from "lucide-react";
 
 export default function ServicesPage() {
   const services = [
     {
-      icon: Package,
-      title: "Domestic Parcel Shipping",
+      icon: Globe,
+      title: "Worldwide International Courier",
       description:
-        "Surface and air express parcel delivery to over 19,000 pincodes across India. Ideal for documents, gifts, electronics, and merchandise with complete door-to-door transit handling.",
-      tag: "Popular",
+        "Priority door-to-door express courier connecting India to over 220 countries including USA, UK, Canada, Australia, UAE, Europe, and Asia-Pacific.",
+      tag: "Global Network",
     },
     {
-      icon: DollarSign,
-      title: "Cash on Delivery (COD)",
+      icon: Plane,
+      title: "Commercial Air Freight Cargo",
       description:
-        "End-to-end Cash on Delivery management. We collect payment upon parcel handover to the customer and settle the funds reliably with full UTR batch audit reports.",
-      tag: "E-Commerce",
+        "Consolidated air cargo forwarding for exporters and B2B manufacturers. Multi-box consignments, palletized cargo, and high-volume freight with scheduled flights.",
+      tag: "Air Cargo",
+    },
+    {
+      icon: FileText,
+      title: "Legal & University Documents",
+      description:
+        "Dedicated non-dutiable express transit for educational transcripts, passport applications, legal contracts, and corporate agreements with proof of delivery.",
+      tag: "Express Docs",
     },
     {
       icon: Layers,
-      title: "Multi-Courier Aggregation",
+      title: "Customs & Paperless Invoicing",
       description:
-        "Leverage combined network strength of Delhivery, Blue Dart, DTDC, and XpressBees. Switch between carriers seamlessly based on serviceability and zone transit speed.",
-      tag: "Multi-Carrier",
-    },
-    {
-      icon: Zap,
-      title: "Express Air Delivery",
-      description:
-        "Priority next-day and 48-hour air courier connections between major metro corridors (Delhi, Mumbai, Bengaluru, Chennai, Kolkata, Hyderabad).",
-      tag: "Speed",
+        "Full customs paperwork assistance, commercial invoice generation with itemized HSN codes, and seamless regulatory compliance for international clearance.",
+      tag: "Clearance",
     },
     {
       icon: ShieldCheck,
-      title: "Secured & Insured Transit",
+      title: "Fragile & Valuables Protection",
       description:
-        "Declared value protection and tamper-evident tracking tokens. Full verification of package weight and dimensions before handover.",
-      tag: "Safety",
+        "Specialized multi-layer export packaging, bubble wrap, reinforced cartons, and cargo transit protection for delicate items, textiles, and electronics.",
+      tag: "Secure Transit",
     },
     {
-      icon: Truck,
-      title: "Business & Bulk Accounts",
+      icon: Clock,
+      title: "Priority Air Express (3-5 Days)",
       description:
-        "Bulk CSV uploads, automated GST invoicing, dedicated account managers, and streamlined daily pickup scheduling for high-volume shippers.",
-      tag: "B2B",
+        "Fastest cross-border connection with guaranteed flight allocations, real-time milestone GPS updates, and customs pre-clearance.",
+      tag: "Fast Track",
     },
   ];
 
   return (
-    <div className="max-w-container mx-auto px-4 py-12 space-y-16">
+    <div className="max-w-6xl mx-auto px-4 py-16 space-y-16">
       <div className="text-center max-w-3xl mx-auto space-y-4">
-        <span className="text-xs font-bold uppercase tracking-wider text-brand-primary bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-          Our Shipping Capabilities
+        <span className="text-xs font-bold uppercase tracking-wider text-[#2563EB] bg-blue-50 px-3.5 py-1 rounded-full border border-blue-200">
+          Our Global Shipping Services
         </span>
-        <h1 className="text-display">Complete Logistics & Courier Services</h1>
-        <p className="text-body text-lg">
-          Flexible domestic shipping, express delivery, cash-on-delivery, and multi-carrier routing under one roof.
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
+          International Express &amp; Cargo Solutions
+        </h1>
+        <p className="text-slate-500 text-base sm:text-lg">
+          Fast, secure, and customs-compliant cross-border logistics to over 220 countries worldwide.
         </p>
       </div>
 
@@ -67,24 +69,24 @@ export default function ServicesPage() {
           return (
             <div
               key={idx}
-              className="bg-surface-base p-6 rounded-2xl border border-border-default shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              className="bg-white p-7 rounded-3xl border border-slate-200 shadow-xs hover:shadow-lg transition-all flex flex-col justify-between space-y-5"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-3 py-1 rounded-full">
                     {s.tag}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-text-primary">{s.title}</h3>
-                <p className="text-sm text-text-secondary leading-relaxed">{s.description}</p>
+                <h3 className="text-xl font-bold text-slate-900">{s.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{s.description}</p>
               </div>
 
-              <div className="pt-4 border-t border-border-default">
+              <div className="pt-4 border-t border-slate-100">
                 <Link href="/book">
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button variant="outline" size="sm" className="w-full text-slate-700 hover:text-[#2563EB] border-slate-200">
                     Book This Service <ArrowRight className="w-3.5 h-3.5 ml-1" />
                   </Button>
                 </Link>

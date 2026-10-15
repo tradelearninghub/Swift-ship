@@ -2,17 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* --- RESET & PROFESSIONAL THEME PALETTE (#030164 REGAL NAVY & #2563EB ELECTRIC SAPPHIRE) --- */
+/* --- RESET & PROFESSIONAL MULTI-TONE LOGISTICS PALETTE --- */
 :root {
-  --primary: #030164;      /* Deep Regal Navy Blue */
+  --primary: #0B1536;      /* Deep Midnight Navy (luxury dark accent/hero) */
   --secondary: #2563EB;    /* Electric Sapphire Accent */
-  --light-bg: #F4F7FA;
-  --text-dark: #1E293B;
+  --light-bg: #F8FAFC;
+  --text-dark: #0F172A;
   --text-muted: #64748B;
   --white: #ffffff;
   
-  --brand-primary: #030164;
-  --brand-primary-hover: #02004a;
+  --brand-primary: #0B1536;
+  --brand-primary-hover: #070E24;
   --brand-accent: #2563EB;
   --brand-accent-hover: #1d4ed8;
   
@@ -37,7 +37,7 @@ body {
   color: var(--text-dark);
   background-color: var(--white);
   line-height: 1.6;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-poppins), 'Poppins', sans-serif;
 }
 
 .main-container {
@@ -392,7 +392,7 @@ body {
 
 /* --- 6. STATS COUNTER --- */
 .stats {
-  background: var(--primary);
+  background: #0B1536;
   color: var(--white);
   padding: 60px 0;
   text-align: center;
@@ -418,8 +418,8 @@ body {
 
 /* --- 7. FOOTER --- */
 .site-footer {
-  background: #010036;
-  color: #ccc;
+  background: #070D1B;
+  color: #94a3b8;
   padding: 60px 0 20px;
   font-size: 14px;
 }

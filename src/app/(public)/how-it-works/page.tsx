@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, ShieldCheck, Globe, Plane, Package, FileCheck } from "lucide-react";
 import { getCompanyProfile } from "@/lib/settings";
 
 export default async function HowItWorksPage() {
@@ -11,89 +11,96 @@ export default async function HowItWorksPage() {
   const steps = [
     {
       num: "01",
-      title: "Step 1: Submit Booking Request Online",
+      title: "Step 1: Submit International Consignment Online",
       description:
-        "Enter pickup and delivery address details, parcel category, estimated weight, dimensions (L x W x H), and select your payment mode (Prepaid or Cash on Delivery).",
-      details: ["Instant booking reference ID generated", "Option for single or business bulk dispatch"],
+        "Enter origin and destination address, select target country (across 220+ destinations), specify package dimensions and weight, and fill out your commercial line items.",
+      details: ["Instant online reference generated", "HSN code & customs valuation assistance"],
     },
     {
       num: "02",
-      title: "Step 2: Admin Review & Rate Verification",
+      title: "Step 2: KYC & Export Documentation Review",
       description:
-        "Our logistics team reviews the parcel details, applies weight slab checks, and sets the transparent customer shipping charge.",
-      details: ["Separate submitted vs verified audit metrics", "Accurate pricing with zero hidden surcharges"],
+        "Our export team verifies the sender's KYC (Aadhaar/Passport/GST) and generates paperless customs commercial invoices required by international border authorities.",
+      details: ["Export declaration preparation", "Zero hidden export surcharges"],
     },
     {
       num: "03",
-      title: "Step 3: Multi-Carrier Assignment & AWB Generation",
+      title: "Step 3: Doorstep Parcel Collection in India",
       description:
-        "The system routes the parcel to the optimal courier partner (Delhivery, Blue Dart, DTDC, or XpressBees) and generates the official Air Waybill (AWB) and QR code.",
-      details: ["Unique tamper-proof tracking token", "Thermal barcode label generated automatically"],
+        "A verified courier executive arrives at your doorstep in India to safely collect your parcel and deliver it to our central international processing hub.",
+      details: ["Digital pickup receipt", "Electronic dead vs volumetric weight check"],
     },
     {
       num: "04",
-      title: "Step 4: Doorstep Package Pickup",
+      title: "Step 4: Air Freight Allocation & International AWB",
       description:
-        "A verified courier pickup executive visits your pickup location to collect the parcel and scan it into the regional logistics sorting hub.",
-      details: ["Digital pickup confirmation receipt", "Package weight calibration check"],
+        "Your shipment is booked onto scheduled international cargo flights with global carriers (DHL, FedEx, UPS, Aramex) and assigned an Air Waybill (AWB).",
+      details: ["Direct international tracking number", "Official airline flight manifest integration"],
     },
     {
       num: "05",
-      title: "Step 5: Live Transit Tracking & Alerts",
+      title: "Step 5: Cross-Border Transit & Customs Pre-Clearance",
       description:
-        "Track the package in real-time across regional transit hubs. Both sender and receiver receive SMS and WhatsApp milestone notifications.",
-      details: ["Multi-carrier normalized checkpoint statuses", "Interactive visual shipment timeline"],
+        "Track your package live through overseas air corridors. Milestone updates notify both sender and receiver via WhatsApp and SMS.",
+      details: ["Live flight & border customs updates", "Transparent destination duty assistance"],
     },
     {
       num: "06",
-      title: "Step 6: Secure Doorstep Delivery & COD Settlement",
+      title: "Step 6: Overseas Doorstep Delivery with Proof of Delivery",
       description:
-        "Receiver receives the package after OTP verification or cash collection. For COD orders, funds are reconciled and settled via automated UTR batches.",
-      details: ["Signed electronic Proof of Delivery (e-POD)", "Weekly COD payout reports"],
+        "Your overseas recipient receives the parcel at their doorstep with electronic signature confirmation and instant digital Proof of Delivery (e-POD).",
+      details: ["Signed delivery confirmation", "End-to-end completed milestone receipt"],
     },
   ];
 
   return (
-    <div className="max-w-container mx-auto px-4 py-12 space-y-16">
+    <div className="max-w-6xl mx-auto px-4 py-16 space-y-16">
       <div className="text-center max-w-3xl mx-auto space-y-4">
-        <span className="text-xs font-bold uppercase tracking-wider text-brand-primary bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-          Operational Process
+        <span className="text-xs font-bold uppercase tracking-wider text-[#2563EB] bg-blue-50 px-3.5 py-1 rounded-full border border-blue-200">
+          International Workflow
         </span>
-        <h1 className="text-display">How {companyName} Works</h1>
-        <p className="text-body text-lg">
-          A seamless 6-step lifecycle from online parcel booking to doorstep delivery.
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
+          How {companyName} Works
+        </h1>
+        <p className="text-slate-500 text-base sm:text-lg">
+          A seamless 6-stage process from your doorstep in India to over 220 international destinations.
         </p>
       </div>
 
-      <div className="space-y-8 max-w-4xl mx-auto">
-        {steps.map((step, idx) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {steps.map((s, idx) => (
           <div
             key={idx}
-            className="bg-surface-base p-6 md:p-8 rounded-2xl border border-border-default shadow-sm flex flex-col md:flex-row items-start gap-6 hover:shadow-md transition-shadow"
+            className="bg-white p-7 rounded-3xl border border-slate-200 shadow-xs hover:shadow-lg transition-all flex flex-col justify-between space-y-4"
           >
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 text-brand-primary flex items-center justify-center font-mono font-black text-xl shrink-0">
-              {step.num}
+            <div className="space-y-3">
+              <span className="text-2xl font-black text-[#2563EB] block">{s.num}</span>
+              <h3 className="text-lg font-bold text-slate-900">{s.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">{s.description}</p>
             </div>
-            <div className="space-y-3 flex-1">
-              <h3 className="text-xl font-bold text-text-primary">{step.title}</h3>
-              <p className="text-sm text-text-secondary leading-relaxed">{step.description}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-border-default">
-                {step.details.map((d, dIdx) => (
-                  <div key={dIdx} className="flex items-center gap-2 text-xs font-medium text-slate-700">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>{d}</span>
-                  </div>
-                ))}
-              </div>
+
+            <div className="pt-4 border-t border-slate-100 space-y-2">
+              {s.details.map((d, dIdx) => (
+                <div key={dIdx} className="flex items-center gap-2 text-xs text-slate-600">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>{d}</span>
+                </div>
+              ))}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="text-center pt-8">
+      <div className="bg-[#0B1536] text-white p-8 sm:p-12 rounded-3xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="space-y-2 max-w-xl">
+          <h2 className="text-2xl sm:text-3xl font-black">Ready to Ship Globally?</h2>
+          <p className="text-slate-300 text-sm">
+            Book online in under 2 minutes with paperless customs clearance, transparent rates, and dedicated support.
+          </p>
+        </div>
         <Link href="/book">
-          <Button variant="accent" size="lg" className="shadow-lg">
-            Start Your First Booking <ArrowRight className="w-5 h-5 ml-1.5" />
+          <Button size="lg" className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold px-8 py-3.5 rounded-xl shadow-lg shadow-blue-500/25">
+            Book International Parcel <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </Link>
       </div>

@@ -67,42 +67,44 @@ export default async function PublicLayout({
   const otherSocials = activeSocials.filter((s) => s.label !== "WhatsApp");
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* TOPBAR */}
-      <div className="topbar">
-        <div className="main-container">
-          {/* Left: Contact Info */}
-          <div className="topbar-left flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span className="info-item flex items-center">
-              <i className="fas fa-phone-alt"></i>
+    <div className="flex flex-col min-h-screen bg-white">
+      {/* TOPBAR (Sleek dark announcement & contact bar) */}
+      <div className="bg-[#070D1B] text-slate-300 text-xs py-2 border-b border-slate-800/80">
+        <div className="main-container flex flex-wrap items-center justify-between gap-y-2">
+          {/* Left: Phone & Support Email */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span className="flex items-center gap-1.5 text-slate-300">
+              <i className="fas fa-phone-alt text-[#2563EB] text-[11px]"></i>
               <a href={`tel:+91${phone1.replace(/^\+91/, "").trim()}`} className="hover:text-white transition-colors">
                 +91 {phone1.replace(/^\+91/, "").trim()}
               </a>
-              <span className="mx-1 text-slate-500">/</span>
+              <span className="text-slate-600">/</span>
               <a href={`tel:+91${phone2.replace(/^\+91/, "").trim()}`} className="hover:text-white transition-colors">
                 +91 {phone2.replace(/^\+91/, "").trim()}
               </a>
             </span>
-            <span className="info-item hidden md:flex items-center">
-              <i className="fas fa-envelope"></i>
+            <span className="hidden md:flex items-center gap-1.5 text-slate-300">
+              <i className="fas fa-envelope text-[#2563EB] text-[11px]"></i>
               <a href={`mailto:${profile.support_email}`} className="hover:text-white transition-colors">
                 {profile.support_email}
               </a>
             </span>
           </div>
 
-          {/* Right: Support, Tracking, Login, WhatsApp & Socials */}
-          <div className="flex items-center gap-3 sm:gap-4 text-xs">
-            <span className="hidden lg:flex items-center gap-1.5 text-slate-300">
-              <i className="fas fa-headset text-[#2563EB]"></i> 24/7 Support
-            </span>
-            <span className="w-px h-3.5 bg-white/20 hidden lg:inline"></span>
-            <Link href="/track" className="text-slate-300 hover:text-[#2563EB] transition-colors flex items-center gap-1.5">
+          {/* Center: Special Announcement Pill matching modern reference */}
+          <div className="hidden xl:flex items-center gap-2 text-[11px] text-blue-300 bg-blue-500/10 px-3 py-0.5 rounded-full border border-blue-400/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+            <span>Worldwide Express Network across 220+ Countries • Doorstep Pickup &amp; Customs Clearance</span>
+          </div>
+
+          {/* Right: Tracking, Login & Socials */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link href="/track" className="text-slate-300 hover:text-white transition-colors flex items-center gap-1.5">
               <i className="fas fa-search-location text-[#2563EB]"></i>
-              <span>Tracking</span>
+              <span>Live Tracking</span>
             </Link>
-            <span className="w-px h-3.5 bg-white/20"></span>
-            <Link href="/login" className="text-slate-300 hover:text-[#2563EB] transition-colors flex items-center gap-1.5 font-medium">
+            <span className="w-px h-3.5 bg-slate-700 hidden sm:inline"></span>
+            <Link href="/login" className="text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 font-medium">
               <i className="fas fa-user-circle text-slate-400"></i>
               <span>Customer Login</span>
             </Link>
@@ -110,7 +112,7 @@ export default async function PublicLayout({
             {/* Direct WhatsApp Quick Chat Pill */}
             {whatsappUrl && (
               <>
-                <span className="w-px h-3.5 bg-white/20 hidden sm:inline"></span>
+                <span className="w-px h-3.5 bg-slate-700 hidden sm:inline"></span>
                 <a
                   href={whatsappUrl}
                   target="_blank"
@@ -127,7 +129,7 @@ export default async function PublicLayout({
             {/* Other Social Icons */}
             {otherSocials.length > 0 && (
               <>
-                <span className="w-px h-3.5 bg-white/20 hidden sm:inline"></span>
+                <span className="w-px h-3.5 bg-slate-700 hidden sm:inline"></span>
                 <div className="hidden sm:flex items-center gap-1.5">
                   {otherSocials.map((s, idx) => (
                     <a
@@ -135,7 +137,7 @@ export default async function PublicLayout({
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`w-6 h-6 rounded-full bg-white/10 ${s.hover} text-white flex items-center justify-center transition-all text-[11px] hover:scale-110`}
+                      className={`w-6 h-6 rounded-full bg-slate-800 ${s.hover} text-white flex items-center justify-center transition-all text-[11px] hover:scale-110`}
                       title={s.label}
                       aria-label={s.label}
                     >
@@ -155,15 +157,15 @@ export default async function PublicLayout({
         </div>
       </div>
 
-      {/* NAVBAR */}
-      <nav className="navbar">
-        <div className="main-container">
+      {/* NAVBAR (Crisp white header with dark text and sapphire CTA) */}
+      <nav className="bg-white/95 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100 shadow-xs py-3">
+        <div className="main-container flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group text-decoration-none py-1">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#030164] via-[#080385] to-[#010036] flex items-center justify-center text-white shadow-md shadow-[#030164]/20 group-hover:scale-105 transition-transform duration-200 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#0B1536] border border-slate-800 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform duration-200 shrink-0">
               <i className="fas fa-shipping-fast text-[#2563EB] text-lg !mr-0"></i>
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-xl sm:text-2xl tracking-tight text-[#030164] leading-tight flex items-center gap-1.5">
+              <span className="font-black text-xl sm:text-2xl tracking-tight text-[#0F172A] leading-tight flex items-center gap-1.5">
                 SS INTERNATIONAL
               </span>
               <span className="text-[10px] font-bold text-[#2563EB] tracking-[0.25em] uppercase leading-none">
@@ -173,32 +175,46 @@ export default async function PublicLayout({
           </Link>
 
           {/* Desktop Unified Nav Links */}
-          <ul className="nav-links">
+          <ul className="hidden lg:flex items-center gap-7 list-none m-0 p-0">
             <li>
-              <Link href="/">Home</Link>
+              <Link href="/" className="text-slate-700 hover:text-[#2563EB] font-semibold text-sm transition-colors">
+                Home
+              </Link>
             </li>
             <li>
-              <Link href="/services">Services</Link>
+              <Link href="/services" className="text-slate-700 hover:text-[#2563EB] font-semibold text-sm transition-colors">
+                Services
+              </Link>
             </li>
             <li>
-              <Link href="/track">Tracking</Link>
+              <Link href="/track" className="text-slate-700 hover:text-[#2563EB] font-semibold text-sm transition-colors">
+                Tracking
+              </Link>
             </li>
             <li>
-              <Link href="/calculator">Rate Calculator</Link>
+              <Link href="/calculator" className="text-slate-700 hover:text-[#2563EB] font-semibold text-sm transition-colors">
+                Rate Calculator
+              </Link>
             </li>
             <li>
-              <Link href="/how-it-works">How It Works</Link>
+              <Link href="/how-it-works" className="text-slate-700 hover:text-[#2563EB] font-semibold text-sm transition-colors">
+                How It Works
+              </Link>
             </li>
             <li>
-              <Link href="/about">About Us</Link>
+              <Link href="/about" className="text-slate-700 hover:text-[#2563EB] font-semibold text-sm transition-colors">
+                About Us
+              </Link>
             </li>
             <li>
-              <Link href="/contact">Contact</Link>
+              <Link href="/contact" className="text-slate-700 hover:text-[#2563EB] font-semibold text-sm transition-colors">
+                Contact
+              </Link>
             </li>
             <li>
               <Link
                 href="/book"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#030164] to-[#2563EB] hover:from-[#02004a] hover:to-[#1d4ed8] text-white font-bold text-sm shadow-md shadow-[#030164]/20 hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-sm shadow-md shadow-blue-500/20 hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
               >
                 <i className="fas fa-box-open text-xs !mr-0"></i>
                 <span>Book a Parcel</span>
@@ -227,10 +243,10 @@ export default async function PublicLayout({
       </nav>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 bg-white">{children}</main>
 
-      {/* FOOTER */}
-      <footer className="footer bg-[#030164] text-white pt-12 pb-6 border-t border-white/10">
+      {/* FOOTER (Deep Luxury Midnight #070D1B) */}
+      <footer className="bg-[#070D1B] text-slate-400 pt-16 pb-8 border-t border-slate-800">
         <div className="main-container">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             {/* Section 1 — Brand Story & Identity */}
