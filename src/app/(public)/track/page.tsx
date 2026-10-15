@@ -163,7 +163,7 @@ function TrackingContent() {
         </span>
         <h1 className="text-h1">Track Your Shipment</h1>
         <p className="text-body text-sm">
-          Unified multi-carrier status updates across Delhivery, Blue Dart, DTDC, and XpressBees by SS International Courier Service.
+          Unified multi-carrier status updates across Delhivery, Blue Dart, DTDC, and XpressBees by SS International Courier.
         </p>
       </div>
 

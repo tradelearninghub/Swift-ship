@@ -43,11 +43,11 @@ export default function CustomerLayout({
       <aside className="hidden md:flex w-64 bg-surface-base border-r border-border-default flex-col shrink-0">
         <div className="h-16 px-6 border-b border-border-default flex items-center justify-between">
           <Link href="/customer" className="flex items-center gap-2 font-bold text-lg text-text-primary">
-            <div className="w-8 h-8 rounded-lg bg-[#002B49] flex items-center justify-center text-white">
-              <Truck className="w-4 h-4 text-[#FF6B00]" />
+            <div className="w-8 h-8 rounded-lg bg-[#030164] flex items-center justify-center text-white">
+              <Truck className="w-4 h-4 text-[#2563EB]" />
             </div>
             <span>
-              SS<span className="text-[#FF6B00]"> Customer</span>
+              SS<span className="text-[#2563EB]"> Customer</span>
             </span>
           </Link>
         </div>
@@ -96,9 +96,9 @@ export default function CustomerLayout({
             onClick={() => setMobileDrawerOpen(false)}
           />
           <div className="relative w-4/5 max-w-xs bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
-            <div className="h-16 px-4 border-b border-border-default flex items-center justify-between bg-[#002B49] text-white">
+            <div className="h-16 px-4 border-b border-border-default flex items-center justify-between bg-[#030164] text-white">
               <div className="flex items-center gap-2 font-bold">
-                <Truck className="w-5 h-5 text-[#FF6B00]" />
+                <Truck className="w-5 h-5 text-[#2563EB]" />
                 <span>Customer Portal</span>
               </div>
               <button
@@ -166,7 +166,7 @@ export default function CustomerLayout({
 
           <div className="flex items-center gap-3">
             <Link href="/book">
-              <Button variant="accent" size="sm" className="bg-[#FF6B00] hover:bg-[#e05e00] text-white">
+              <Button variant="accent" size="sm" className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white">
                 <PlusCircle className="w-4 h-4 mr-1" /> Book Parcel
               </Button>
             </Link>

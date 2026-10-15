@@ -689,7 +689,7 @@ export const MOCK_SUPPORT_TICKETS: MockSupportTicket[] = [
 ];
 
 export const MOCK_COMPANY_SETTINGS = {
-  company_name: "SS International Courier Service Pvt. Ltd.",
+  company_name: "SS International Courier Pvt. Ltd.",
   brand_tagline: "Fast, Safe & Multi-Carrier Courier Logistics",
   support_email: "support@sscourierservice.in",
   support_phone: "8000151117, 7689987368",

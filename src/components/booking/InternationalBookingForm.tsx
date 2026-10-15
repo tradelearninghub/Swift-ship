@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Card, CardFooter } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { COUNTRIES, getStatesForCountry } from "@/lib/countries";
 import { INDIAN_STATES_AND_UTS } from "@/lib/geo";
 import {
@@ -19,12 +19,14 @@ import {
   CheckCircle2,
   Truck,
   ArrowRight,
-  ArrowLeft,
   BookMarked,
   BookmarkCheck,
   User,
   CreditCard,
   Loader2,
+  Plane,
+  ShieldCheck,
+  Search,
 } from "lucide-react";
 
 export interface LineItem {
@@ -59,10 +61,7 @@ export function InternationalBookingForm({
   adminCouriers = [],
   onSuccess,
 }: InternationalBookingFormProps) {
-  // 1. Wizard Step State: 1 = Sender, 2 = Receiver, 3 = Parcel & Items, 4 = Review & Confirm
-  const [currentStep, setCurrentStep] = useState<number>(1);
-
-  // Currency State (INR / USD) - attached inline to price fields
+  // Currency State (INR / USD)
   const [currency, setCurrency] = useState<"INR" | "USD">("USD");
   const [exchangeRate, setExchangeRate] = useState<number>(84.0);
 
@@ -149,42 +148,32 @@ export function InternationalBookingForm({
   useEffect(() => {
     async function loadRate() {
       try {
-        const res = await fetch("/api/admin/settings?group=currency");
+        const res = await fetch("/api/admin/settings");
         if (res.ok) {
           const data = await res.json();
-          if (data.settings) {
-            const found = data.settings.find((s: any) => s.key === "usd_to_inr_rate");
-            if (found && found.value) {
-              const val = parseFloat(found.value);
-              if (!isNaN(val) && val > 0) setExchangeRate(val);
-            }
+          if (data.settings?.pricing?.usd_to_inr_rate) {
+            setExchangeRate(Number(data.settings.pricing.usd_to_inr_rate));
           }
         }
       } catch (e) {
-        // Fallback default 84.0
+        // Fallback default is 84.0
       }
     }
     loadRate();
   }, []);
 
-  // Filtered state options for selected receiver country
-  const validReceiverStates = useMemo(() => {
-    return getStatesForCountry(receiverCountry);
+  // Set today's date for invoice by default
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    setInvoiceDate(today);
+  }, []);
+
+  // Available states for selected receiver country
+  const receiverStatesList = useMemo(() => {
+    return getStatesForCountry(receiverCountry) || [];
   }, [receiverCountry]);
 
-  // Reset receiver state if country changes and state is no longer valid
-  const handleCountryChange = (countryName: string) => {
-    setReceiverCountry(countryName);
-    clearError("receiverCountry");
-    const states = getStatesForCountry(countryName);
-    if (states && states.length > 0) {
-      setReceiverState(states[0]);
-    } else {
-      setReceiverState("");
-    }
-  };
-
-  // Helper to clear error for a specific field
+  // Clear errors dynamically as user types
   const clearError = (field: string) => {
     if (errors[field]) {
       setErrors((prev) => {
@@ -195,7 +184,39 @@ export function InternationalBookingForm({
     }
   };
 
-  // Sender address book selection
+  // Indian Pincode Auto-Lookup for Sender
+  useEffect(() => {
+    const pin = senderPincode.replace(/\D/g, "");
+    if (pin.length === 6) {
+      const lookupPin = async () => {
+        try {
+          const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
+              const po = data[0].PostOffice[0];
+              if (!senderDistrict && po.District) setSenderDistrict(po.District);
+              if (!senderCity && (po.Block || po.District || po.Name)) {
+                setSenderCity(po.Block !== "NA" ? po.Block : po.District);
+              }
+              if (!senderState && po.State) {
+                const matched = INDIAN_STATES_AND_UTS.find(
+                  (s) => s.toLowerCase() === po.State.toLowerCase()
+                );
+                if (matched) setSenderState(matched);
+                else setSenderState(po.State);
+              }
+            }
+          }
+        } catch (e) {
+          // Non-blocking
+        }
+      };
+      lookupPin();
+    }
+  }, [senderPincode]);
+
+  // Auto-fill sender from address book selection
   const handleSelectSenderAddress = (addrId: string) => {
     setSelectedSenderAddrId(addrId);
     if (!addrId) return;
@@ -205,13 +226,11 @@ export function InternationalBookingForm({
       if (addr.contact_mobile) setSenderMobile(addr.contact_mobile);
       if (addr.contact_email) setSenderEmail(addr.contact_email);
       setSenderAddress1(addr.address || "");
-      setSenderAddress2(addr.address_line_2 || "");
-      setSenderLandmark(addr.landmark || "");
-      setSenderCity(addr.city || "");
-      setSenderDistrict(addr.district || "");
-      setSenderState(addr.state || "");
-      setSenderPincode(addr.pincode || "");
-      if (addr.country) setSenderCountry(addr.country);
+      if (addr.landmark) setSenderLandmark(addr.landmark);
+      if (addr.city) setSenderCity(addr.city);
+      if (addr.district) setSenderDistrict(addr.district);
+      if (addr.state) setSenderState(addr.state);
+      if (addr.pincode) setSenderPincode(addr.pincode);
 
       setErrors((prev) => {
         const next = { ...prev };
@@ -226,7 +245,7 @@ export function InternationalBookingForm({
     }
   };
 
-  // Receiver address book selection
+  // Auto-fill receiver from address book selection
   const handleSelectReceiverAddress = (addrId: string) => {
     setSelectedReceiverAddrId(addrId);
     if (!addrId) return;
@@ -235,14 +254,11 @@ export function InternationalBookingForm({
       if (addr.contact_name) setReceiverName(addr.contact_name);
       if (addr.contact_mobile) setReceiverMobile(addr.contact_mobile);
       if (addr.contact_email) setReceiverEmail(addr.contact_email);
-      setReceiverPincode(addr.pincode || "");
-      if (addr.country) {
-        setReceiverCountry(addr.country);
-      }
-      setReceiverState(addr.state || "");
-      setReceiverCity(addr.city || "");
+      if (addr.country) setReceiverCountry(addr.country);
       setReceiverAddress1(addr.address || "");
-      setReceiverAddress2(addr.address_line_2 || "");
+      if (addr.city) setReceiverCity(addr.city);
+      if (addr.state) setReceiverState(addr.state);
+      if (addr.pincode) setReceiverPincode(addr.pincode);
 
       setErrors((prev) => {
         const next = { ...prev };
@@ -317,165 +333,152 @@ export function InternationalBookingForm({
   }, [lengthCm, widthCm, heightCm]);
 
   // ----------------------------------------------------
-  // STEP VALIDATION LOGIC (Strict - Matches Domestic rule)
+  // UNIFIED 4-PART FORM VALIDATION LOGIC
   // ----------------------------------------------------
-  const validateStep = (step: number): boolean => {
+  const validateAll = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // STEP 1: SENDER DETAILS VALIDATION
-    if (step === 1) {
-      if (!senderName.trim()) {
-        newErrors.senderName = "Sender name is required";
-      } else if (senderName.trim().length < 2) {
-        newErrors.senderName = "Please enter a valid sender name (min 2 characters)";
-      }
-
-      const mobileClean = senderMobile.replace(/\D/g, "");
-      if (!mobileClean) {
-        newErrors.senderMobile = "Sender mobile number is required";
-      } else if (!/^[6-9]\d{9}$/.test(mobileClean)) {
-        newErrors.senderMobile = "Enter a valid 10-digit Indian mobile number (starts with 6-9)";
-      }
-
-      if (senderEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail.trim())) {
-        newErrors.senderEmail = "Please enter a valid email address";
-      }
-
-      if (!senderAddress1.trim()) {
-        newErrors.senderAddress1 = "Pickup street address is required";
-      } else if (senderAddress1.trim().length < 5) {
-        newErrors.senderAddress1 = "Please enter a complete street address (min 5 characters)";
-      }
-
-      if (!senderCity.trim()) {
-        newErrors.senderCity = "City is required";
-      }
-
-      if (!senderState.trim()) {
-        newErrors.senderState = "Please select a State / UT";
-      }
-
-      const pinClean = senderPincode.replace(/\D/g, "");
-      if (!pinClean) {
-        newErrors.senderPincode = "Pincode is required";
-      } else if (!/^\d{6}$/.test(pinClean)) {
-        newErrors.senderPincode = "Enter a valid 6-digit Indian pincode";
-      }
+    // PART 1: SENDER DETAILS VALIDATION
+    if (!senderName.trim()) {
+      newErrors.senderName = "Sender full name is required";
+    } else if (senderName.trim().length < 2) {
+      newErrors.senderName = "Please enter a valid sender name (min 2 characters)";
     }
 
-    // STEP 2: RECEIVER DETAILS VALIDATION (Field Order: Pincode -> Country -> State -> City -> Address1 -> Address2)
-    if (step === 2) {
-      if (!receiverName.trim()) {
-        newErrors.receiverName = "Recipient contact name is required";
-      } else if (receiverName.trim().length < 2) {
-        newErrors.receiverName = "Please enter a valid recipient name (min 2 characters)";
-      }
-
-      const phoneClean = receiverMobile.replace(/[^\d+]/g, "");
-      if (!phoneClean || phoneClean.length < 5) {
-        newErrors.receiverMobile = "Enter a valid recipient phone number with country code";
-      }
-
-      if (receiverEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(receiverEmail.trim())) {
-        newErrors.receiverEmail = "Please enter a valid email address";
-      }
-
-      // 1. Pincode / Postal Code
-      if (!receiverPincode.trim()) {
-        newErrors.receiverPincode = "Postal / ZIP Code is required";
-      } else if (receiverPincode.trim().length < 3) {
-        newErrors.receiverPincode = "Enter a valid postal / ZIP code";
-      }
-
-      // 2. Country
-      if (!receiverCountry.trim()) {
-        newErrors.receiverCountry = "Destination country is required";
-      }
-
-      // 3. State
-      if (!receiverState.trim()) {
-        newErrors.receiverState = "State / Province / Region is required";
-      }
-
-      // 4. City
-      if (!receiverCity.trim()) {
-        newErrors.receiverCity = "City is required";
-      }
-
-      // 5. Address Line 1
-      if (!receiverAddress1.trim()) {
-        newErrors.receiverAddress1 = "Address Line 1 is required";
-      } else if (receiverAddress1.trim().length < 5) {
-        newErrors.receiverAddress1 = "Please enter a complete destination street address (min 5 characters)";
-      }
+    const mobileClean = senderMobile.replace(/\D/g, "");
+    if (!mobileClean) {
+      newErrors.senderMobile = "Sender mobile number is required";
+    } else if (!/^[6-9]\d{9}$/.test(mobileClean)) {
+      newErrors.senderMobile = "Enter a valid 10-digit Indian mobile number (starts with 6-9)";
     }
 
-    // STEP 3: PARCEL & CUSTOMS ITEMS VALIDATION
-    if (step === 3) {
-      if (!description.trim()) {
-        newErrors.description = "Package description is required";
-      } else if (description.trim().length < 3) {
-        newErrors.description = "Please enter a brief description (min 3 characters)";
-      }
-
-      const wt = parseFloat(weightKg);
-      if (!weightKg || isNaN(wt) || wt <= 0) {
-        newErrors.weightKg = "Enter a valid package weight in kg (e.g. 1.5)";
-      }
-
-      const l = parseFloat(lengthCm);
-      if (!lengthCm || isNaN(l) || l <= 0) {
-        newErrors.lengthCm = "Enter length in cm";
-      }
-
-      const w = parseFloat(widthCm);
-      if (!widthCm || isNaN(w) || w <= 0) {
-        newErrors.widthCm = "Enter width in cm";
-      }
-
-      const h = parseFloat(heightCm);
-      if (!heightCm || isNaN(h) || h <= 0) {
-        newErrors.heightCm = "Enter height in cm";
-      }
-
-      const validItems = lineItems.filter(
-        (i) => i.name.trim().length > 0 && i.quantity > 0 && i.unit_price > 0
-      );
-      if (validItems.length === 0) {
-        newErrors.lineItems =
-          "Please enter at least one line item with description, quantity, and unit price greater than 0.";
-      }
+    if (senderEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail.trim())) {
+      newErrors.senderEmail = "Please enter a valid email address";
     }
 
-    // STEP 4: REVIEW STEP VALIDATION
-    if (step === 4) {
-      if (isAdminMode && adminShippingCharge) {
-        const chargeNum = parseFloat(adminShippingCharge);
-        if (isNaN(chargeNum) || chargeNum < 0) {
-          newErrors.adminShippingCharge = "Enter a valid non-negative shipping charge";
-        }
+    if (!senderAddress1.trim()) {
+      newErrors.senderAddress1 = "Pickup street address is required";
+    } else if (senderAddress1.trim().length < 5) {
+      newErrors.senderAddress1 = "Please enter a complete street address (min 5 characters)";
+    }
+
+    if (!senderCity.trim()) {
+      newErrors.senderCity = "City is required";
+    }
+
+    if (!senderState.trim()) {
+      newErrors.senderState = "Please select a State / UT";
+    }
+
+    const pinClean = senderPincode.replace(/\D/g, "");
+    if (!pinClean) {
+      newErrors.senderPincode = "Pincode is required";
+    } else if (!/^\d{6}$/.test(pinClean)) {
+      newErrors.senderPincode = "Enter a valid 6-digit Indian pincode";
+    }
+
+    // PART 2: RECEIVER DETAILS VALIDATION
+    if (!receiverName.trim()) {
+      newErrors.receiverName = "Recipient contact name is required";
+    } else if (receiverName.trim().length < 2) {
+      newErrors.receiverName = "Please enter a valid recipient name (min 2 characters)";
+    }
+
+    const phoneClean = receiverMobile.replace(/[^\d+]/g, "");
+    if (!phoneClean || phoneClean.length < 5) {
+      newErrors.receiverMobile = "Enter a valid recipient phone number with country code";
+    }
+
+    if (receiverEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(receiverEmail.trim())) {
+      newErrors.receiverEmail = "Please enter a valid email address";
+    }
+
+    if (!receiverPincode.trim()) {
+      newErrors.receiverPincode = "Postal / ZIP Code is required";
+    } else if (receiverPincode.trim().length < 3) {
+      newErrors.receiverPincode = "Enter a valid postal / ZIP code";
+    }
+
+    if (!receiverCountry.trim()) {
+      newErrors.receiverCountry = "Destination country is required";
+    }
+
+    if (!receiverState.trim()) {
+      newErrors.receiverState = "State / Province / Region is required";
+    }
+
+    if (!receiverCity.trim()) {
+      newErrors.receiverCity = "City is required";
+    }
+
+    if (!receiverAddress1.trim()) {
+      newErrors.receiverAddress1 = "Address Line 1 is required";
+    } else if (receiverAddress1.trim().length < 5) {
+      newErrors.receiverAddress1 = "Please enter a complete destination street address (min 5 characters)";
+    }
+
+    // PART 3: PARCEL & CUSTOMS ITEMS VALIDATION
+    if (!description.trim()) {
+      newErrors.description = "Package description is required";
+    } else if (description.trim().length < 3) {
+      newErrors.description = "Please enter a brief description (min 3 characters)";
+    }
+
+    const wt = parseFloat(weightKg);
+    if (!weightKg || isNaN(wt) || wt <= 0) {
+      newErrors.weightKg = "Enter a valid package weight in kg (e.g. 1.5)";
+    }
+
+    const l = parseFloat(lengthCm);
+    if (!lengthCm || isNaN(l) || l <= 0) {
+      newErrors.lengthCm = "Enter length in cm";
+    }
+
+    const w = parseFloat(widthCm);
+    if (!widthCm || isNaN(w) || w <= 0) {
+      newErrors.widthCm = "Enter width in cm";
+    }
+
+    const h = parseFloat(heightCm);
+    if (!heightCm || isNaN(h) || h <= 0) {
+      newErrors.heightCm = "Enter height in cm";
+    }
+
+    const validItems = lineItems.filter(
+      (i) => i.name.trim().length > 0 && i.quantity > 0 && i.unit_price > 0
+    );
+    if (validItems.length === 0) {
+      newErrors.lineItems =
+        "Please enter at least one line item with description, quantity, and unit price greater than 0.";
+    }
+
+    // PART 4: REVIEW / ADMIN STEP VALIDATION
+    if (isAdminMode && adminShippingCharge) {
+      const chargeNum = parseFloat(adminShippingCharge);
+      if (isNaN(chargeNum) || chargeNum < 0) {
+        newErrors.adminShippingCharge = "Enter a valid non-negative shipping charge";
       }
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
-  const handleNextStep = (e?: React.MouseEvent) => {
-    if (e) e.preventDefault();
-    if (validateStep(currentStep)) {
-      setCurrentStep((prev) => Math.min(prev + 1, 4));
+    // Auto-scroll to first invalid input field if any
+    const firstErrorKey = Object.keys(newErrors)[0];
+    if (firstErrorKey) {
+      const el = document.querySelector(`[name="${firstErrorKey}"], #${firstErrorKey}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        (el as HTMLElement).focus?.();
+      }
     }
+
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (currentStep !== 4) {
-      handleNextStep();
-      return;
-    }
 
-    if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) {
+    if (!validateAll()) {
       return;
     }
 
@@ -595,6 +598,7 @@ export function InternationalBookingForm({
     }
   };
 
+  // SUCCESS CONFIRMATION SCREEN
   if (isSuccess && createdBooking) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6 animate-in fade-in-50">
@@ -606,11 +610,11 @@ export function InternationalBookingForm({
           <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
             International Booking Request Created
           </span>
-          <h1 className="text-3xl font-extrabold text-text-primary">
+          <h1 className="text-3xl font-extrabold text-[#030164]">
             Booking #{createdBooking.booking_number}
           </h1>
           {createdAwb && (
-            <p className="font-mono text-sm font-bold text-brand-accent">
+            <p className="font-mono text-sm font-bold text-[#2563EB]">
               AWB: {createdAwb}
             </p>
           )}
@@ -621,8 +625,8 @@ export function InternationalBookingForm({
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-900 text-left space-y-1">
-          <div className="font-bold flex items-center gap-1.5 text-brand-primary">
-            <AlertCircle className="w-4 h-4" /> Next Steps:
+          <div className="font-bold flex items-center gap-1.5 text-[#030164]">
+            <AlertCircle className="w-4 h-4 text-[#2563EB]" /> Next Steps:
           </div>
           <p>1. Our customs desk will verify international documentation and invoice values.</p>
           <p>2. You will receive an SMS/WhatsApp notification with courier pickup & flight tracking details.</p>
@@ -641,7 +645,6 @@ export function InternationalBookingForm({
                 size="md"
                 onClick={() => {
                   setIsSuccess(false);
-                  setCurrentStep(1);
                   setErrors({});
                   setCreatedBooking(null);
                   setCreatedAwb(null);
@@ -653,7 +656,7 @@ export function InternationalBookingForm({
           ) : (
             <>
               <Link href={`/track?booking_id=${createdBooking.booking_number}`}>
-                <Button variant="primary" size="md">
+                <Button variant="primary" size="md" className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white">
                   Track Consignment
                 </Button>
               </Link>
@@ -662,7 +665,6 @@ export function InternationalBookingForm({
                 size="md"
                 onClick={() => {
                   setIsSuccess(false);
-                  setCurrentStep(1);
                   setErrors({});
                   setCreatedBooking(null);
                   setCreatedAwb(null);
@@ -682,1170 +684,1259 @@ export function InternationalBookingForm({
     );
   }
 
+  // ----------------------------------------------------
+  // ONE LONG FORM — ALL 4 PARTS VERTICALLY ALIGNED
+  // ----------------------------------------------------
   return (
-    <div className="space-y-6">
-      {/* 1. STEPPER PROGRESS UI — MATCHES DOMESTIC EXACTLY */}
-      <div className="grid grid-cols-4 gap-2 text-center text-xs font-semibold">
-        {[
-          { step: 1, label: "Sender" },
-          { step: 2, label: "Receiver" },
-          { step: 3, label: "Customs & Items" },
-          { step: 4, label: "Review & Submit" },
-        ].map((s) => (
-          <div
-            key={s.step}
-            className={`py-2 px-1 rounded-lg border transition-all ${
-              currentStep === s.step
-                ? "bg-brand-primary text-white border-brand-primary shadow-sm font-bold"
-                : currentStep > s.step
-                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                : "bg-surface-subtle text-text-muted border-border-default"
-            }`}
-          >
-            <span className="hidden sm:inline">Step {s.step}: </span>
-            {s.label}
-          </div>
-        ))}
+    <div className="space-y-8">
+      {/* 4-PART VERTICAL PROGRESS & SECTION JUMP NAVIGATOR */}
+      <div className="bg-white/95 border border-slate-200 rounded-2xl p-3 shadow-xs sticky top-20 z-20 backdrop-blur-md">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-semibold">
+          {[
+            { id: "part-sender", num: "Part 1", label: "Sender Details", icon: User },
+            { id: "part-receiver", num: "Part 2", label: "Receiver & Country", icon: Globe },
+            { id: "part-customs", num: "Part 3", label: "Customs & Package", icon: Package },
+            { id: "part-review", num: "Part 4", label: "Review & Dispatch", icon: CheckCircle2 },
+          ].map((part) => {
+            const Icon = part.icon;
+            return (
+              <a
+                key={part.id}
+                href={`#${part.id}`}
+                className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200/80 hover:border-[#030164]/40 hover:bg-slate-50 transition-all text-slate-700 group"
+              >
+                <div className="w-6 h-6 rounded-lg bg-[#030164]/10 text-[#030164] flex items-center justify-center shrink-0 group-hover:bg-[#030164] group-hover:text-white transition-colors">
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+                <div className="truncate">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block leading-none">
+                    {part.num}
+                  </span>
+                  <span className="font-bold text-slate-800 text-xs truncate block mt-0.5">
+                    {part.label}
+                  </span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
       </div>
 
-      {/* 2. MAIN WIZARD CARD CONTAINER — ONLY ONE STEP VISIBLE AT A TIME */}
-      <Card className="shadow-md">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (currentStep === 4) {
-              handleSubmit(e);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
-              e.preventDefault();
-              if (currentStep < 4) {
-                handleNextStep();
-              }
-            }
-          }}
-          noValidate
-        >
-          {/* ============================================================== */}
-          {/* STEP 1: SENDER DETAILS (Origin = India) */}
-          {/* ============================================================== */}
-          {currentStep === 1 && (
-            <div className="p-6 sm:p-8 space-y-6 animate-in fade-in duration-150">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <User className="w-5 h-5 text-brand-primary" />
-                  <h3 className="text-lg font-bold text-text-primary">Sender Information (Origin: India)</h3>
+      <form onSubmit={handleSubmit} noValidate className="space-y-8">
+        {/* ============================================================== */}
+        {/* PART 1: SENDER INFORMATION (Origin: India) */}
+        {/* ============================================================== */}
+        <Card id="part-sender" className="shadow-md overflow-hidden border border-slate-200">
+          <div className="bg-gradient-to-r from-[#030164] to-[#120e7a] text-white p-4 sm:p-5 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <span className="w-8 h-8 rounded-lg bg-white/10 text-white font-extrabold flex items-center justify-center text-xs border border-white/20">
+                1
+              </span>
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <User className="w-4 h-4 text-[#2563EB]" />
+                  <span>Sender Information (Origin: India)</span>
+                </h3>
+                <p className="text-xs text-slate-300">
+                  Registered Indian pickup hub & export consignor contact details
+                </p>
+              </div>
+            </div>
+            {savedAddresses.length > 0 && (
+              <span className="text-xs text-white font-semibold flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/20">
+                <BookMarked className="w-3.5 h-3.5 text-[#2563EB]" /> Address Book Active
+              </span>
+            )}
+          </div>
+
+          <div className="p-6 sm:p-8 space-y-6">
+            {/* Saved Address Book Dropdown if available */}
+            {savedAddresses.length > 0 && (
+              <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/50 border border-blue-200 rounded-xl p-3.5 space-y-2 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[#030164] flex items-center gap-1.5">
+                    <BookMarked className="w-4 h-4 text-[#2563EB]" />
+                    Choose from Saved Addresses ({savedAddresses.length})
+                  </label>
+                  {!isAdminMode && (
+                    <Link
+                      href="/customer/addresses"
+                      target="_blank"
+                      className="text-[11px] text-[#2563EB] hover:underline font-medium"
+                    >
+                      Manage Address Book ↗
+                    </Link>
+                  )}
                 </div>
-                {savedAddresses.length > 0 && (
-                  <span className="text-xs text-brand-primary font-semibold flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
-                    <BookMarked className="w-3.5 h-3.5" /> Address Book Enabled
-                  </span>
+                <select
+                  value={selectedSenderAddrId}
+                  onChange={(e) => handleSelectSenderAddress(e.target.value)}
+                  className="w-full h-10 px-3 py-1.5 text-xs bg-white border border-blue-300 rounded-lg text-text-primary focus:ring-2 focus:ring-[#030164]/30 font-medium"
+                >
+                  <option value="">-- Click to select a pickup address and auto-populate --</option>
+                  {savedAddresses.map((addr) => (
+                    <option key={addr.id} value={addr.id}>
+                      {addr.label} {addr.is_default ? "★ (Default)" : ""}: {addr.address}, {addr.city} ({addr.pincode})
+                      {addr.contact_name ? ` — ${addr.contact_name}` : ""}
+                    </option>
+                  ))}
+                </select>
+                {selectedSenderAddrId && (
+                  <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1 animate-in fade-in">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Sender details auto-filled from Address Book
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Sender Full Name"
+                name="senderName"
+                id="senderName"
+                value={senderName}
+                onChange={(e) => {
+                  setSenderName(e.target.value);
+                  clearError("senderName");
+                }}
+                placeholder="e.g. Ramesh Sharma"
+                error={errors.senderName}
+                required
+              />
+              <Input
+                label="Sender Mobile Number"
+                name="senderMobile"
+                id="senderMobile"
+                type="tel"
+                maxLength={10}
+                value={senderMobile}
+                onChange={(e) => {
+                  setSenderMobile(e.target.value);
+                  clearError("senderMobile");
+                }}
+                placeholder="10-digit Indian mobile"
+                helperText="Origin dispatch updates & pickup verification"
+                error={errors.senderMobile}
+                required
+              />
+              <div className="sm:col-span-2">
+                <Input
+                  label="Sender Email (Optional)"
+                  name="senderEmail"
+                  id="senderEmail"
+                  type="email"
+                  value={senderEmail}
+                  onChange={(e) => {
+                    setSenderEmail(e.target.value);
+                    clearError("senderEmail");
+                  }}
+                  placeholder="sender@example.com"
+                  error={errors.senderEmail}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Input
+                  label="Pickup Street Address Line 1"
+                  name="senderAddress1"
+                  id="senderAddress1"
+                  value={senderAddress1}
+                  onChange={(e) => {
+                    setSenderAddress1(e.target.value);
+                    clearError("senderAddress1");
+                  }}
+                  placeholder="Plot/Flat number, building, street address"
+                  error={errors.senderAddress1}
+                  required
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Input
+                  label="Address Line 2 (Optional)"
+                  name="senderAddress2"
+                  value={senderAddress2}
+                  onChange={(e) => setSenderAddress2(e.target.value)}
+                  placeholder="Suite, floor, area details"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Input
+                  label="Landmark (Optional)"
+                  name="senderLandmark"
+                  value={senderLandmark}
+                  onChange={(e) => setSenderLandmark(e.target.value)}
+                  placeholder="Near landmark / hub"
+                />
+              </div>
+
+              <Input
+                label="City"
+                name="senderCity"
+                id="senderCity"
+                value={senderCity}
+                onChange={(e) => {
+                  setSenderCity(e.target.value);
+                  clearError("senderCity");
+                }}
+                placeholder="City"
+                error={errors.senderCity}
+                required
+              />
+              <Input
+                label="District (Optional)"
+                name="senderDistrict"
+                value={senderDistrict}
+                onChange={(e) => setSenderDistrict(e.target.value)}
+                placeholder="District"
+              />
+
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-text-primary">
+                  State / Union Territory <span className="text-status-danger">*</span>
+                </label>
+                <select
+                  name="senderState"
+                  id="senderState"
+                  value={senderState}
+                  onChange={(e) => {
+                    setSenderState(e.target.value);
+                    clearError("senderState");
+                  }}
+                  className={`w-full h-11 px-3 py-2 text-sm bg-surface-base border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#030164] ${
+                    errors.senderState ? "border-status-danger" : "border-border-default"
+                  }`}
+                >
+                  <option value="">-- Select Indian State / UT --</option>
+                  {INDIAN_STATES_AND_UTS.map((st) => (
+                    <option key={st} value={st}>
+                      {st}
+                    </option>
+                  ))}
+                </select>
+                {errors.senderState && (
+                  <p className="text-xs text-status-danger">{errors.senderState}</p>
                 )}
               </div>
 
-              {/* Saved Address Book Dropdown if available */}
-              {savedAddresses.length > 0 && (
-                <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/50 border border-blue-200 rounded-xl p-3.5 space-y-2 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-brand-primary flex items-center gap-1.5">
-                      <BookMarked className="w-4 h-4 text-brand-accent" />
-                      Choose from Saved Addresses ({savedAddresses.length})
-                    </label>
-                  </div>
-                  <select
-                    value={selectedSenderAddrId}
-                    onChange={(e) => handleSelectSenderAddress(e.target.value)}
-                    className="w-full h-10 px-3 py-1.5 text-xs bg-white border border-blue-300 rounded-lg text-text-primary focus:ring-2 focus:ring-brand-primary/30 font-medium"
-                  >
-                    <option value="">-- Click to select an address and auto-populate --</option>
-                    {savedAddresses.map((addr) => (
-                      <option key={addr.id} value={addr.id}>
-                        {addr.label} {addr.is_default ? "★ (Default)" : ""}: {addr.address}, {addr.city} ({addr.pincode})
-                        {addr.contact_name ? ` — ${addr.contact_name}` : ""}
-                      </option>
-                    ))}
-                  </select>
-                  {selectedSenderAddrId && (
-                    <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1 animate-in fade-in">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Sender details auto-filled from Address Book
-                    </div>
-                  )}
+              <Input
+                label="Pincode"
+                name="senderPincode"
+                id="senderPincode"
+                type="text"
+                maxLength={6}
+                value={senderPincode}
+                onChange={(e) => {
+                  setSenderPincode(e.target.value);
+                  clearError("senderPincode");
+                }}
+                placeholder="6-digit pincode"
+                error={errors.senderPincode}
+                required
+              />
+            </div>
+
+            {/* Option to Save Sender Address to Address Book */}
+            <div className="pt-3 border-t border-border-default/60 space-y-2 bg-surface-subtle/50 p-3 rounded-xl">
+              <label className="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={saveSenderAddress}
+                  onChange={(e) => setSaveSenderAddress(e.target.checked)}
+                  className="w-4 h-4 rounded text-[#030164] focus:ring-[#030164] border-border-default"
+                />
+                <span className="flex items-center gap-1.5">
+                  <BookmarkCheck className="w-3.5 h-3.5 text-[#2563EB]" />
+                  Save this pickup address to Address Book for future bookings
+                </span>
+              </label>
+              {saveSenderAddress && (
+                <div className="pl-6 pt-1 max-w-sm animate-in fade-in">
+                  <Input
+                    label="Address Label / Nickname"
+                    value={senderAddressLabel}
+                    onChange={(e) => setSenderAddressLabel(e.target.value)}
+                    placeholder="e.g. Head Office, Jaipur Hub"
+                  />
                 </div>
               )}
+            </div>
+          </div>
+        </Card>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Sender Full Name"
-                  name="sender_name"
-                  value={senderName}
-                  onChange={(e) => {
-                    setSenderName(e.target.value);
-                    clearError("senderName");
-                  }}
-                  placeholder="e.g. Ramesh Kumar / Business Name"
-                  error={errors.senderName}
-                  required
-                />
-                <Input
-                  label="Sender Mobile Number"
-                  name="sender_mobile"
-                  type="tel"
-                  maxLength={10}
-                  value={senderMobile}
-                  onChange={(e) => {
-                    setSenderMobile(e.target.value);
-                    clearError("senderMobile");
-                  }}
-                  placeholder="10-digit mobile number"
-                  helperText="10-digit Indian mobile number"
-                  error={errors.senderMobile}
-                  required
-                />
-                <div className="sm:col-span-2">
-                  <Input
-                    label="Sender Email (Optional)"
-                    name="sender_email"
-                    type="email"
-                    value={senderEmail}
-                    onChange={(e) => {
-                      setSenderEmail(e.target.value);
-                      clearError("senderEmail");
-                    }}
-                    placeholder="email@example.com"
-                    error={errors.senderEmail}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <Input
-                    label="Pickup Full Address (Line 1)"
-                    name="sender_address_1"
-                    value={senderAddress1}
-                    onChange={(e) => {
-                      setSenderAddress1(e.target.value);
-                      clearError("senderAddress1");
-                    }}
-                    placeholder="Complete pickup street address / flat / building"
-                    error={errors.senderAddress1}
-                    required
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <Input
-                    label="Address Line 2 (Optional)"
-                    name="sender_address_2"
-                    value={senderAddress2}
-                    onChange={(e) => setSenderAddress2(e.target.value)}
-                    placeholder="Suite, Floor, Warehouse unit"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <Input
-                    label="Landmark (Optional)"
-                    name="sender_landmark"
-                    value={senderLandmark}
-                    onChange={(e) => setSenderLandmark(e.target.value)}
-                    placeholder="e.g. Near Metro Station, Behind City Hospital"
-                  />
-                </div>
-                <Input
-                  label="City"
-                  name="sender_city"
-                  value={senderCity}
-                  onChange={(e) => {
-                    setSenderCity(e.target.value);
-                    clearError("senderCity");
-                  }}
-                  placeholder="City"
-                  error={errors.senderCity}
-                  required
-                />
-                <Input
-                  label="District (Optional)"
-                  name="sender_district"
-                  value={senderDistrict}
-                  onChange={(e) => setSenderDistrict(e.target.value)}
-                  placeholder="District"
-                />
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-text-primary">
-                    State / Union Territory <span className="text-status-danger">*</span>
+        {/* ============================================================== */}
+        {/* PART 2: RECEIVER / DESTINATION (International) */}
+        {/* ============================================================== */}
+        <Card id="part-receiver" className="shadow-md overflow-hidden border border-slate-200">
+          <div className="bg-gradient-to-r from-[#030164] to-[#120e7a] text-white p-4 sm:p-5 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <span className="w-8 h-8 rounded-lg bg-white/10 text-white font-extrabold flex items-center justify-center text-xs border border-white/20">
+                2
+              </span>
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[#2563EB]" />
+                  <span>Receiver & Destination Information</span>
+                </h3>
+                <p className="text-xs text-slate-300">
+                  Global recipient door delivery address and destination customs details
+                </p>
+              </div>
+            </div>
+            {savedAddresses.length > 0 && (
+              <span className="text-xs text-white font-semibold flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/20">
+                <BookMarked className="w-3.5 h-3.5 text-[#2563EB]" /> Address Book Active
+              </span>
+            )}
+          </div>
+
+          <div className="p-6 sm:p-8 space-y-6">
+            {/* Saved Address Book Dropdown for Receiver */}
+            {savedAddresses.length > 0 && (
+              <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/50 border border-blue-200 rounded-xl p-3.5 space-y-2 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[#030164] flex items-center gap-1.5">
+                    <BookMarked className="w-4 h-4 text-[#2563EB]" />
+                    Choose from Saved Recipients ({savedAddresses.length})
                   </label>
+                </div>
+                <select
+                  value={selectedReceiverAddrId}
+                  onChange={(e) => handleSelectReceiverAddress(e.target.value)}
+                  className="w-full h-10 px-3 py-1.5 text-xs bg-white border border-blue-300 rounded-lg text-text-primary focus:ring-2 focus:ring-[#030164]/30 font-medium"
+                >
+                  <option value="">-- Click to select an address and auto-populate --</option>
+                  {savedAddresses.map((addr) => (
+                    <option key={addr.id} value={addr.id}>
+                      {addr.label} {addr.is_default ? "★ (Default)" : ""}: {addr.address}, {addr.city} ({addr.country || "Abroad"})
+                      {addr.contact_name ? ` — ${addr.contact_name}` : ""}
+                    </option>
+                  ))}
+                </select>
+                {selectedReceiverAddrId && (
+                  <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1 animate-in fade-in">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Receiver details auto-filled from Address Book
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Recipient Contact Information */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Recipient Contact Name"
+                name="receiverName"
+                id="receiverName"
+                value={receiverName}
+                onChange={(e) => {
+                  setReceiverName(e.target.value);
+                  clearError("receiverName");
+                }}
+                placeholder="e.g. John Doe / Global Tech Inc."
+                error={errors.receiverName}
+                required
+              />
+              <Input
+                label="Recipient Phone Number (with Country Dial Code)"
+                name="receiverMobile"
+                id="receiverMobile"
+                type="tel"
+                value={receiverMobile}
+                onChange={(e) => {
+                  setReceiverMobile(e.target.value);
+                  clearError("receiverMobile");
+                }}
+                placeholder="e.g. +1 415 555 2671"
+                helperText="Required by foreign courier for delivery alerts & OTP"
+                error={errors.receiverMobile}
+                required
+              />
+              <div className="sm:col-span-2">
+                <Input
+                  label="Recipient Email Address (Optional)"
+                  name="receiverEmail"
+                  id="receiverEmail"
+                  type="email"
+                  value={receiverEmail}
+                  onChange={(e) => {
+                    setReceiverEmail(e.target.value);
+                    clearError("receiverEmail");
+                  }}
+                  placeholder="recipient@company.com"
+                  helperText="Customs invoices & real-time tracking will be emailed to recipient"
+                  error={errors.receiverEmail}
+                />
+              </div>
+
+              {/* 1. Postal / ZIP Code */}
+              <div>
+                <Input
+                  label="Postal / ZIP Code"
+                  name="receiverPincode"
+                  id="receiverPincode"
+                  value={receiverPincode}
+                  onChange={(e) => {
+                    setReceiverPincode(e.target.value);
+                    clearError("receiverPincode");
+                  }}
+                  placeholder="e.g. 94103, SW1A 1AA, 75008"
+                  error={errors.receiverPincode}
+                  required
+                />
+              </div>
+
+              {/* 2. Destination Country Selector */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-text-primary">
+                  Destination Country <span className="text-status-danger">*</span>
+                </label>
+                <select
+                  name="receiverCountry"
+                  id="receiverCountry"
+                  value={receiverCountry}
+                  onChange={(e) => {
+                    setReceiverCountry(e.target.value);
+                    setReceiverState("");
+                    clearError("receiverCountry");
+                  }}
+                  className={`w-full h-11 px-3 py-2 text-sm bg-surface-base border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#030164] ${
+                    errors.receiverCountry ? "border-status-danger" : "border-border-default"
+                  }`}
+                >
+                  {COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.name}>
+                      {c.name} ({c.phoneCode})
+                    </option>
+                  ))}
+                </select>
+                {errors.receiverCountry && (
+                  <p className="text-xs text-status-danger">{errors.receiverCountry}</p>
+                )}
+              </div>
+
+              {/* 3. State / Province / Region */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-text-primary">
+                  State / Province / Region <span className="text-status-danger">*</span>
+                </label>
+                {receiverStatesList.length > 0 ? (
                   <select
-                    name="sender_state"
-                    value={senderState}
+                    name="receiverState"
+                    id="receiverState"
+                    value={receiverState}
                     onChange={(e) => {
-                      setSenderState(e.target.value);
-                      clearError("senderState");
+                      setReceiverState(e.target.value);
+                      clearError("receiverState");
                     }}
-                    className={`w-full h-10 px-3 py-2 text-sm bg-surface-base border rounded-lg focus:ring-1 focus:ring-brand-primary ${
-                      errors.senderState ? "border-status-danger" : "border-border-default"
+                    className={`w-full h-11 px-3 py-2 text-sm bg-surface-base border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#030164] ${
+                      errors.receiverState ? "border-status-danger" : "border-border-default"
                     }`}
                   >
-                    <option value="">Select State / UT</option>
-                    {INDIAN_STATES_AND_UTS.map((st) => (
+                    <option value="">-- Select Province / State --</option>
+                    {receiverStatesList.map((st) => (
                       <option key={st} value={st}>
                         {st}
                       </option>
                     ))}
                   </select>
-                  {errors.senderState && (
-                    <p className="text-xs text-status-danger mt-1">{errors.senderState}</p>
-                  )}
-                </div>
+                ) : (
+                  <Input
+                    name="receiverState"
+                    id="receiverState"
+                    value={receiverState}
+                    onChange={(e) => {
+                      setReceiverState(e.target.value);
+                      clearError("receiverState");
+                    }}
+                    placeholder="e.g. California, Ontario, Bavaria"
+                    error={errors.receiverState}
+                    required
+                  />
+                )}
+                {errors.receiverState && (
+                  <p className="text-xs text-status-danger">{errors.receiverState}</p>
+                )}
+              </div>
+
+              {/* 4. City */}
+              <div>
                 <Input
-                  label="Postal PIN Code"
-                  name="sender_pincode"
-                  maxLength={6}
-                  value={senderPincode}
+                  label="Destination City"
+                  name="receiverCity"
+                  id="receiverCity"
+                  value={receiverCity}
                   onChange={(e) => {
-                    setSenderPincode(e.target.value);
-                    clearError("senderPincode");
+                    setReceiverCity(e.target.value);
+                    clearError("receiverCity");
                   }}
-                  placeholder="6-digit pincode"
-                  error={errors.senderPincode}
+                  placeholder="e.g. San Francisco, London, Dubai"
+                  error={errors.receiverCity}
                   required
                 />
               </div>
 
-              {/* Option to Save Sender Address to Address Book */}
-              <div className="pt-3 border-t border-border-default/60 space-y-2 bg-surface-subtle/50 p-3 rounded-xl">
-                <label className="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={saveSenderAddress}
-                    onChange={(e) => setSaveSenderAddress(e.target.checked)}
-                    className="w-4 h-4 rounded text-brand-primary focus:ring-brand-primary border-border-default"
-                  />
-                  <span className="flex items-center gap-1.5">
-                    <BookmarkCheck className="w-3.5 h-3.5 text-brand-primary" />
-                    Save this pickup address to Address Book for future bookings
-                  </span>
-                </label>
-                {saveSenderAddress && (
-                  <div className="pl-6 pt-1 max-w-sm animate-in fade-in">
-                    <Input
-                      label="Address Label / Nickname"
-                      value={senderAddressLabel}
-                      onChange={(e) => setSenderAddressLabel(e.target.value)}
-                      placeholder="e.g. Head Office, Jaipur Hub"
-                    />
-                  </div>
-                )}
+              {/* 5. Address Line 1 */}
+              <div className="sm:col-span-2">
+                <Input
+                  label="Street Address Line 1"
+                  name="receiverAddress1"
+                  id="receiverAddress1"
+                  value={receiverAddress1}
+                  onChange={(e) => {
+                    setReceiverAddress1(e.target.value);
+                    clearError("receiverAddress1");
+                  }}
+                  placeholder="Building/House number, Street name, Avenue"
+                  error={errors.receiverAddress1}
+                  required
+                />
+              </div>
+
+              {/* 6. Address Line 2 */}
+              <div className="sm:col-span-2">
+                <Input
+                  label="Address Line 2 (Optional)"
+                  name="receiverAddress2"
+                  value={receiverAddress2}
+                  onChange={(e) => setReceiverAddress2(e.target.value)}
+                  placeholder="Apartment, suite, unit, building, floor, etc."
+                />
               </div>
             </div>
-          )}
 
-          {/* ============================================================== */}
-          {/* STEP 2: RECEIVER DETAILS (Field Order per Round 12 §3) */}
-          {/* Order: 1. Pincode -> 2. Country -> 3. State -> 4. City -> 5. Address 1 -> 6. Address 2 */}
-          {/* ============================================================== */}
-          {currentStep === 2 && (
-            <div className="p-6 sm:p-8 space-y-6 animate-in fade-in duration-150">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-brand-accent" />
-                  <h3 className="text-lg font-bold text-text-primary">Receiver / Destination Information</h3>
+            {/* Option to Save Recipient Address */}
+            <div className="pt-3 border-t border-border-default/60 space-y-2 bg-surface-subtle/50 p-3 rounded-xl">
+              <label className="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={saveReceiverAddress}
+                  onChange={(e) => setSaveReceiverAddress(e.target.checked)}
+                  className="w-4 h-4 rounded text-[#030164] focus:ring-[#030164] border-border-default"
+                />
+                <span className="flex items-center gap-1.5">
+                  <BookmarkCheck className="w-3.5 h-3.5 text-[#2563EB]" />
+                  Save this recipient address to Address Book
+                </span>
+              </label>
+              {saveReceiverAddress && (
+                <div className="pl-6 pt-1 max-w-sm animate-in fade-in">
+                  <Input
+                    label="Address Label / Nickname"
+                    value={receiverAddressLabel}
+                    onChange={(e) => setReceiverAddressLabel(e.target.value)}
+                    placeholder="e.g. US Client, London Office"
+                  />
                 </div>
-                {savedAddresses.length > 0 && (
-                  <span className="text-xs text-brand-primary font-semibold flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
-                    <BookMarked className="w-3.5 h-3.5" /> Address Book Enabled
-                  </span>
-                )}
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* ============================================================== */}
+        {/* PART 3: PACKAGE, CUSTOMS & COMMERCIAL INVOICE */}
+        {/* ============================================================== */}
+        <Card id="part-customs" className="shadow-md overflow-hidden border border-slate-200">
+          <div className="bg-gradient-to-r from-[#030164] to-[#120e7a] text-white p-4 sm:p-5 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <span className="w-8 h-8 rounded-lg bg-white/10 text-white font-extrabold flex items-center justify-center text-xs border border-white/20">
+                3
+              </span>
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Package className="w-4 h-4 text-[#2563EB]" />
+                  <span>Customs Declaration, Commercial Invoice & Parcel Specs</span>
+                </h3>
+                <p className="text-xs text-slate-300">
+                  Itemized declaration for international clearance, multi-currency valuation & physical package dimensions
+                </p>
+              </div>
+            </div>
+
+            {/* Currency Selector Pill */}
+            <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
+              <DollarSign className="w-4 h-4 text-[#2563EB]" />
+              <span className="text-xs font-semibold text-slate-200">Declared Currency:</span>
+              <div className="inline-flex rounded-lg bg-white/20 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setCurrency("USD")}
+                  className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${
+                    currency === "USD"
+                      ? "bg-white text-[#030164] shadow-xs"
+                      : "text-white/80 hover:text-white"
+                  }`}
+                >
+                  USD ($)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrency("INR")}
+                  className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${
+                    currency === "INR"
+                      ? "bg-white text-[#030164] shadow-xs"
+                      : "text-white/80 hover:text-white"
+                  }`}
+                >
+                  INR (₹)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 sm:p-8 space-y-6">
+            {/* Live Exchange Rate & Conversion Banner */}
+            <div className="flex items-center justify-between flex-wrap gap-2 p-3 bg-blue-50/80 border border-blue-200 rounded-xl text-xs text-blue-900">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-[#2563EB]" />
+                <span>
+                  Live Central Bank Exchange Rate: <strong>$1.00 USD = ₹{exchangeRate.toFixed(2)} INR</strong>
+                </span>
+              </div>
+              <div className="font-semibold text-slate-700">
+                Total Customs Value:{" "}
+                <span className="font-mono font-bold text-[#030164] text-sm">
+                  {currency === "USD"
+                    ? `$${totalDeclaredValue.toFixed(2)} USD (≈ ₹${totalDeclaredInrEquivalent.toLocaleString()} INR)`
+                    : `₹${totalDeclaredValue.toLocaleString()} INR (≈ $${(totalDeclaredValue / exchangeRate).toFixed(2)} USD)`}
+                </span>
+              </div>
+            </div>
+
+            {/* International Commercial Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-text-primary mb-1.5">
+                  Service Level <span className="text-status-danger">*</span>
+                </label>
+                <select
+                  value={serviceType}
+                  onChange={(e) => setServiceType(e.target.value)}
+                  className="w-full h-11 px-3 py-2 text-xs bg-surface-base border border-border-default rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-[#030164] font-medium"
+                >
+                  <option value="Express Worldwide (3-5 Days)">Express Worldwide (3-5 Days)</option>
+                  <option value="Priority Air Freight (2-4 Days)">Priority Air Freight (2-4 Days)</option>
+                  <option value="Economy Air Cargo (5-8 Days)">Economy Air Cargo (5-8 Days)</option>
+                </select>
               </div>
 
-              {/* Saved Address Book Dropdown for Receiver */}
-              {savedAddresses.length > 0 && (
-                <div className="bg-gradient-to-r from-orange-50/80 to-amber-50/50 border border-orange-200 rounded-xl p-3.5 space-y-2 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-brand-accent flex items-center gap-1.5">
-                      <BookMarked className="w-4 h-4 text-brand-primary" />
-                      Choose from Saved Recipients ({savedAddresses.length})
-                    </label>
-                  </div>
-                  <select
-                    value={selectedReceiverAddrId}
-                    onChange={(e) => handleSelectReceiverAddress(e.target.value)}
-                    className="w-full h-10 px-3 py-1.5 text-xs bg-white border border-orange-300 rounded-lg text-text-primary focus:ring-2 focus:ring-brand-accent/30 font-medium"
-                  >
-                    <option value="">-- Click to select an address and auto-populate --</option>
-                    {savedAddresses.map((addr) => (
-                      <option key={addr.id} value={addr.id}>
-                        {addr.label} {addr.is_default ? "★ (Default)" : ""}: {addr.address}, {addr.city} ({addr.country || "Abroad"})
-                        {addr.contact_name ? ` — ${addr.contact_name}` : ""}
-                      </option>
-                    ))}
-                  </select>
-                  {selectedReceiverAddrId && (
-                    <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1 animate-in fade-in">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Receiver details auto-filled from Address Book
-                    </div>
-                  )}
+              <div>
+                <Input
+                  label="Commercial Invoice No. (Optional)"
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  placeholder="e.g. INV-2026-0891"
+                  helperText="Leave empty to auto-generate"
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Invoice Date"
+                  type="date"
+                  value={invoiceDate}
+                  onChange={(e) => setInvoiceDate(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="IOSS / VAT / Tax ID (Optional)"
+                  value={iossNumber}
+                  onChange={(e) => setIossNumber(e.target.value)}
+                  placeholder="e.g. IM1234567890"
+                  helperText="For EU / UK customs expedited tax clearance"
+                />
+              </div>
+            </div>
+
+            {/* Itemized Line Items Table */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-[#2563EB]" />
+                    Itemized Commercial Line Items (Customs Declaration)
+                  </h4>
+                  <p className="text-xs text-text-muted">
+                    List every unique product in consignment with unit price in {currency}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addLineItem}
+                  className="text-xs flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Product Item
+                </Button>
+              </div>
+
+              {errors.lineItems && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{errors.lineItems}</span>
                 </div>
               )}
 
-              {/* Recipient Contact Information */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Recipient Contact Name"
-                  name="receiver_name"
-                  value={receiverName}
-                  onChange={(e) => {
-                    setReceiverName(e.target.value);
-                    clearError("receiverName");
-                  }}
-                  placeholder="e.g. John Doe / Global Tech Inc."
-                  error={errors.receiverName}
-                  required
-                />
-                <Input
-                  label="Phone / Mobile (with country prefix)"
-                  name="receiver_mobile"
-                  type="tel"
-                  value={receiverMobile}
-                  onChange={(e) => {
-                    setReceiverMobile(e.target.value);
-                    clearError("receiverMobile");
-                  }}
-                  placeholder="e.g. +1 415-555-2671"
-                  helperText="Required for customs & delivery notification"
-                  error={errors.receiverMobile}
-                  required
-                />
-                <div className="sm:col-span-2">
-                  <Input
-                    label="Recipient Email (Optional)"
-                    name="receiver_email"
-                    type="email"
-                    value={receiverEmail}
-                    onChange={(e) => {
-                      setReceiverEmail(e.target.value);
-                      clearError("receiverEmail");
-                    }}
-                    placeholder="recipient@example.com"
-                    error={errors.receiverEmail}
-                  />
-                </div>
-              </div>
-
-              {/* Section Divider: International Address in STRICT ORDER (§3) */}
-              <div className="pt-2 border-t border-border-default/60">
-                <span className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-3">
-                  Destination Address (Foreign Customs Location)
-                </span>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* 1. Pincode / Postal Code */}
-                  <div>
-                    <Input
-                      label="1. Pincode / Postal Code"
-                      name="receiver_pincode"
-                      value={receiverPincode}
-                      onChange={(e) => {
-                        setReceiverPincode(e.target.value);
-                        clearError("receiverPincode");
-                      }}
-                      placeholder="e.g. 90210 / SW1A 1AA / M5V 2T6"
-                      error={errors.receiverPincode}
-                      required
-                    />
-                  </div>
-
-                  {/* 2. Country — Select from dropdown */}
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-medium text-text-primary">
-                      2. Destination Country <span className="text-status-danger">*</span>
-                    </label>
-                    <select
-                      value={receiverCountry}
-                      onChange={(e) => handleCountryChange(e.target.value)}
-                      className={`w-full h-10 px-3 py-2 text-sm bg-surface-base border rounded-lg focus:ring-1 focus:ring-brand-primary ${
-                        errors.receiverCountry ? "border-status-danger" : "border-border-default"
-                      }`}
-                      required
-                    >
-                      <option value="">Select Country</option>
-                      {COUNTRIES.map((c) => (
-                        <option key={c.code} value={c.name}>
-                          {c.name} ({c.code})
-                        </option>
-                      ))}
-                    </select>
-                    {errors.receiverCountry && (
-                      <p className="text-xs text-status-danger mt-1">{errors.receiverCountry}</p>
-                    )}
-                  </div>
-
-                  {/* 3. State — Select from dropdown, filtered to valid states */}
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-medium text-text-primary">
-                      3. State / Province / Region <span className="text-status-danger">*</span>
-                    </label>
-                    {validReceiverStates && validReceiverStates.length > 0 ? (
-                      <select
-                        value={receiverState}
-                        onChange={(e) => {
-                          setReceiverState(e.target.value);
-                          clearError("receiverState");
-                        }}
-                        className={`w-full h-10 px-3 py-2 text-sm bg-surface-base border rounded-lg focus:ring-1 focus:ring-brand-primary ${
-                          errors.receiverState ? "border-status-danger" : "border-border-default"
-                        }`}
-                        required
-                      >
-                        <option value="">Select State / Province</option>
-                        {validReceiverStates.map((st) => (
-                          <option key={st} value={st}>
-                            {st}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <Input
-                        value={receiverState}
-                        onChange={(e) => {
-                          setReceiverState(e.target.value);
-                          clearError("receiverState");
-                        }}
-                        placeholder="State or Province Name"
-                        error={errors.receiverState}
-                        required
-                      />
-                    )}
-                    {errors.receiverState && validReceiverStates && validReceiverStates.length > 0 && (
-                      <p className="text-xs text-status-danger mt-1">{errors.receiverState}</p>
-                    )}
-                  </div>
-
-                  {/* 4. City */}
-                  <div>
-                    <Input
-                      label="4. City"
-                      name="receiver_city"
-                      value={receiverCity}
-                      onChange={(e) => {
-                        setReceiverCity(e.target.value);
-                        clearError("receiverCity");
-                      }}
-                      placeholder="e.g. Los Angeles, London, Toronto"
-                      error={errors.receiverCity}
-                      required
-                    />
-                  </div>
-
-                  {/* 5. Address Line 1 */}
-                  <div className="sm:col-span-2">
-                    <Input
-                      label="5. Address Line 1 (Street Address / Building)"
-                      name="receiver_address_1"
-                      value={receiverAddress1}
-                      onChange={(e) => {
-                        setReceiverAddress1(e.target.value);
-                        clearError("receiverAddress1");
-                      }}
-                      placeholder="House/Plot No., Street Name, Complex"
-                      error={errors.receiverAddress1}
-                      required
-                    />
-                  </div>
-
-                  {/* 6. Address Line 2 (optional) */}
-                  <div className="sm:col-span-2">
-                    <Input
-                      label="6. Address Line 2 (Optional - Suite, Apt, Unit)"
-                      name="receiver_address_2"
-                      value={receiverAddress2}
-                      onChange={(e) => setReceiverAddress2(e.target.value)}
-                      placeholder="e.g. Suite 400, Apt 2B"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Option to Save Receiver Address to Address Book */}
-              <div className="pt-3 border-t border-border-default/60 space-y-2 bg-surface-subtle/50 p-3 rounded-xl">
-                <label className="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={saveReceiverAddress}
-                    onChange={(e) => setSaveReceiverAddress(e.target.checked)}
-                    className="w-4 h-4 rounded text-brand-primary focus:ring-brand-primary border-border-default"
-                  />
-                  <span className="flex items-center gap-1.5">
-                    <BookmarkCheck className="w-3.5 h-3.5 text-brand-accent" />
-                    Save this international recipient to Address Book for future bookings
-                  </span>
-                </label>
-                {saveReceiverAddress && (
-                  <div className="pl-6 pt-1 max-w-sm animate-in fade-in">
-                    <Input
-                      label="Recipient Label / Nickname"
-                      value={receiverAddressLabel}
-                      onChange={(e) => setReceiverAddressLabel(e.target.value)}
-                      placeholder="e.g. US Client Office, John Doe Home"
-                    />
-                  </div>
-                )}
+              <div className="overflow-x-auto border border-border-default rounded-xl bg-surface-base">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-surface-subtle border-b border-border-default text-text-secondary uppercase text-[10px] tracking-wider font-bold">
+                    <tr>
+                      <th className="p-3">#</th>
+                      <th className="p-3 min-w-[160px]">Product Description *</th>
+                      <th className="p-3 min-w-[100px]">SKU / Ref</th>
+                      <th className="p-3 w-20">Qty *</th>
+                      <th className="p-3 w-28">Unit Price ({currency}) *</th>
+                      <th className="p-3 min-w-[100px]">HSN Code</th>
+                      <th className="p-3 w-20">Tax %</th>
+                      <th className="p-3 w-24 text-right">Subtotal</th>
+                      <th className="p-3 w-10 text-center"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-default">
+                    {lineItems.map((item, index) => (
+                      <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="p-3 font-mono text-text-muted">{index + 1}</td>
+                        <td className="p-2">
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => handleLineItemChange(index, "name", e.target.value)}
+                            placeholder="e.g. Cotton Garments, Circuit Board"
+                            className="w-full h-9 px-2.5 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white"
+                            required
+                          />
+                        </td>
+                        <td className="p-2">
+                          <input
+                            type="text"
+                            value={item.sku}
+                            onChange={(e) => handleLineItemChange(index, "sku", e.target.value)}
+                            placeholder="SKU-102"
+                            className="w-full h-9 px-2.5 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white font-mono"
+                          />
+                        </td>
+                        <td className="p-2">
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) =>
+                              handleLineItemChange(index, "quantity", Math.max(1, parseInt(e.target.value) || 1))
+                            }
+                            className="w-full h-9 px-2 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white text-center font-bold"
+                          />
+                        </td>
+                        <td className="p-2">
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-2 text-[10px] text-text-muted font-bold">
+                              {currency === "USD" ? "$" : "₹"}
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={item.unit_price || ""}
+                              onChange={(e) =>
+                                handleLineItemChange(index, "unit_price", parseFloat(e.target.value) || 0)
+                              }
+                              placeholder="0.00"
+                              className="w-full h-9 pl-6 pr-2 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white font-mono text-right font-medium"
+                            />
+                          </div>
+                        </td>
+                        <td className="p-2">
+                          <input
+                            type="text"
+                            value={item.hsn_code}
+                            onChange={(e) => handleLineItemChange(index, "hsn_code", e.target.value)}
+                            placeholder="e.g. 6204"
+                            className="w-full h-9 px-2.5 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white font-mono"
+                          />
+                        </td>
+                        <td className="p-2">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={item.tax_rate || ""}
+                            onChange={(e) =>
+                              handleLineItemChange(index, "tax_rate", parseFloat(e.target.value) || 0)
+                            }
+                            placeholder="0"
+                            className="w-full h-9 px-2 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white text-center"
+                          />
+                        </td>
+                        <td className="p-3 text-right font-mono font-bold text-text-primary whitespace-nowrap">
+                          {currency === "USD" ? `$${item.total.toFixed(2)}` : `₹${item.total.toLocaleString()}`}
+                        </td>
+                        <td className="p-2 text-center">
+                          {lineItems.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeLineItem(index)}
+                              className="text-text-muted hover:text-rose-600 p-1.5 rounded-lg transition-colors"
+                              title="Delete line item"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-surface-subtle font-bold border-t border-border-default">
+                    <tr>
+                      <td colSpan={7} className="p-3 text-right text-text-secondary uppercase text-[11px]">
+                        Total Customs Valuation:
+                      </td>
+                      <td className="p-3 text-right font-mono text-sm text-[#030164] whitespace-nowrap">
+                        {currency === "USD"
+                          ? `$${totalDeclaredValue.toFixed(2)} USD`
+                          : `₹${totalDeclaredValue.toLocaleString()} INR`}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             </div>
-          )}
 
-          {/* ============================================================== */}
-          {/* STEP 3: PARCEL & CUSTOMS LINE ITEMS */}
-          {/* Currency selector built inline attached to price fields (§2) */}
-          {/* ============================================================== */}
-          {currentStep === 3 && (
-            <div className="p-6 sm:p-8 space-y-6 animate-in fade-in duration-150">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <Package className="w-5 h-5 text-brand-primary" />
-                  <h3 className="text-lg font-bold text-text-primary">Parcel & Customs Line Items</h3>
-                </div>
-                <div className="text-xs font-semibold text-text-muted bg-surface-subtle px-3 py-1 rounded-full border border-border-default">
-                  1 USD ≈ ₹{exchangeRate.toFixed(2)} INR
-                </div>
-              </div>
+            {/* Parcel Physical Details */}
+            <div className="pt-4 border-t border-border-default space-y-4">
+              <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
+                <Package className="w-4 h-4 text-emerald-600" />
+                Physical Package Dimensions & Specifications
+              </h4>
 
-              {/* Package Dimensions & Specifications */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-1.5 sm:col-span-2">
                   <label className="block text-sm font-medium text-text-primary">
-                    Package Classification <span className="text-status-danger">*</span>
+                    Consignment Category <span className="text-status-danger">*</span>
                   </label>
                   <select
                     value={parcelType}
                     onChange={(e) => setParcelType(e.target.value)}
-                    className="w-full h-10 px-3 py-2 text-sm bg-surface-base border border-border-default rounded-lg focus:ring-1 focus:ring-brand-primary"
+                    className="w-full h-11 px-3 py-2 text-sm bg-surface-base border border-border-default rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-[#030164]"
                   >
-                    <option value="Commercial Merchandise">Commercial Merchandise</option>
-                    <option value="Document / Printed Material">Document / Printed Material</option>
-                    <option value="Commercial Sample">Commercial Sample</option>
+                    <option value="Commercial Merchandise">Commercial Merchandise (Standard Export)</option>
+                    <option value="Documents / Legal Files">Documents / Legal Files (Air Courier)</option>
+                    <option value="Commercial Samples">Commercial Samples (No Commercial Value)</option>
+                    <option value="Personal Effects">Personal Effects / Household Relocation</option>
                     <option value="Gift Consignment">Gift Consignment</option>
                   </select>
                 </div>
 
-                <div className="sm:col-span-2">
+                <div>
                   <Input
-                    label="Consignment Description"
-                    name="description"
-                    value={description}
+                    label="Actual Weight (KG)"
+                    name="weightKg"
+                    id="weightKg"
+                    type="number"
+                    step="0.01"
+                    min="0.1"
+                    value={weightKg}
                     onChange={(e) => {
-                      setDescription(e.target.value);
-                      clearError("description");
+                      setWeightKg(e.target.value);
+                      clearError("weightKg");
                     }}
-                    placeholder="e.g. Export Cotton Garments Samples"
-                    error={errors.description}
+                    placeholder="e.g. 1.5"
+                    helperText="Actual scale weight in kilograms"
+                    error={errors.weightKg}
                     required
                   />
                 </div>
 
-                <Input
-                  label="Estimated Actual Weight (kg)"
-                  name="weight_kg"
-                  type="number"
-                  step="0.05"
-                  min="0.1"
-                  value={weightKg}
-                  onChange={(e) => {
-                    setWeightKg(e.target.value);
-                    clearError("weightKg");
-                  }}
-                  placeholder="e.g. 2.5"
-                  helperText="Physical weight in kg (verified during customs intake)"
-                  error={errors.weightKg}
-                  required
-                />
-
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-text-primary">
-                    Service Level <span className="text-status-danger">*</span>
+                    Volumetric Weight (Estimated)
                   </label>
-                  <select
-                    value={serviceType}
-                    onChange={(e) => setServiceType(e.target.value)}
-                    className="w-full h-10 px-3 py-2 text-sm bg-surface-base border border-border-default rounded-lg focus:ring-1 focus:ring-brand-primary"
-                  >
-                    <option value="Express Worldwide (3-5 Days)">Express Worldwide (3-5 Days)</option>
-                    <option value="Standard International (5-8 Days)">Standard International (5-8 Days)</option>
-                    <option value="Economy Air Cargo (7-12 Days)">Economy Air Cargo (7-12 Days)</option>
-                    <option value="International Document (2-4 Days)">International Document (2-4 Days)</option>
-                  </select>
-                </div>
-
-                <div className="sm:col-span-2 space-y-2 pt-2">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-text-muted">
-                    Dimensions (Length x Width x Height in CM) <span className="text-status-danger">*</span>
-                  </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    <Input
-                      label="Length (cm)"
-                      name="length_cm"
-                      type="number"
-                      value={lengthCm}
-                      onChange={(e) => {
-                        setLengthCm(e.target.value);
-                        clearError("lengthCm");
-                      }}
-                      placeholder="L cm"
-                      error={errors.lengthCm}
-                      required
-                    />
-                    <Input
-                      label="Width (cm)"
-                      name="width_cm"
-                      type="number"
-                      value={widthCm}
-                      onChange={(e) => {
-                        setWidthCm(e.target.value);
-                        clearError("widthCm");
-                      }}
-                      placeholder="W cm"
-                      error={errors.widthCm}
-                      required
-                    />
-                    <Input
-                      label="Height (cm)"
-                      name="height_cm"
-                      type="number"
-                      value={heightCm}
-                      onChange={(e) => {
-                        setHeightCm(e.target.value);
-                        clearError("heightCm");
-                      }}
-                      placeholder="H cm"
-                      error={errors.heightCm}
-                      required
-                    />
+                  <div className="h-11 px-3 flex items-center bg-surface-subtle border border-border-default rounded-lg text-xs font-mono font-bold text-text-secondary">
+                    {volumetricWeightKg ? `${volumetricWeightKg} kg (L×W×H / 5000)` : "Enter L, W, H below"}
                   </div>
                 </div>
               </div>
 
-              {volumetricWeightKg && (
-                <div className="p-3 rounded-xl bg-surface-subtle border border-border-default text-xs flex items-center justify-between text-text-secondary">
-                  <span>
-                    Volumetric Weight: <strong>{volumetricWeightKg} kg</strong> (L×W×H / 5000)
-                  </span>
-                  <span className="text-[11px] text-text-muted">
-                    Billable weight is the greater of actual vs volumetric weight.
-                  </span>
-                </div>
-              )}
-
-              {/* Optional Commercial Invoice Metadata */}
-              <div className="pt-2 border-t border-border-default/60">
-                <span className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-3">
-                  Invoice & Export References (Optional)
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <Input
-                    label="Invoice Number"
-                    value={invoiceNumber}
-                    onChange={(e) => setInvoiceNumber(e.target.value)}
-                    placeholder="e.g. INV-2026-089"
-                  />
-                  <Input
-                    label="Invoice Date"
-                    type="date"
-                    value={invoiceDate}
-                    onChange={(e) => setInvoiceDate(e.target.value)}
-                  />
-                  <Input
-                    label="IOSS / Tax ID"
-                    value={iossNumber}
-                    onChange={(e) => setIossNumber(e.target.value)}
-                    placeholder="e.g. IM1234567890"
-                  />
-                </div>
+              {/* Dimensions: Length, Width, Height */}
+              <div className="grid grid-cols-3 gap-3">
+                <Input
+                  label="Length (cm)"
+                  name="lengthCm"
+                  id="lengthCm"
+                  type="number"
+                  min="1"
+                  value={lengthCm}
+                  onChange={(e) => {
+                    setLengthCm(e.target.value);
+                    clearError("lengthCm");
+                  }}
+                  placeholder="e.g. 25"
+                  error={errors.lengthCm}
+                  required
+                />
+                <Input
+                  label="Width (cm)"
+                  name="widthCm"
+                  id="widthCm"
+                  type="number"
+                  min="1"
+                  value={widthCm}
+                  onChange={(e) => {
+                    setWidthCm(e.target.value);
+                    clearError("widthCm");
+                  }}
+                  placeholder="e.g. 15"
+                  error={errors.widthCm}
+                  required
+                />
+                <Input
+                  label="Height (cm)"
+                  name="heightCm"
+                  id="heightCm"
+                  type="number"
+                  min="1"
+                  value={heightCm}
+                  onChange={(e) => {
+                    setHeightCm(e.target.value);
+                    clearError("heightCm");
+                  }}
+                  placeholder="e.g. 10"
+                  error={errors.heightCm}
+                  required
+                />
               </div>
 
-              {/* Customs Line Items Table with Attached Currency Selectors (§2) */}
-              <div className="pt-2 border-t border-border-default/60 space-y-3">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
-                      <FileText className="w-4 h-4 text-brand-primary" /> Customs Commercial Line Items
-                    </h4>
-                    <p className="text-xs text-text-secondary">
-                      Itemized list required for international customs declaration and valuation
-                    </p>
-                  </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-text-primary">
+                  Detailed Contents / Customs Description <span className="text-status-danger">*</span>
+                </label>
+                <textarea
+                  name="description"
+                  id="description"
+                  rows={2}
+                  value={description}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    clearError("description");
+                  }}
+                  placeholder="Provide an exact, non-generic description of contents for customs agents (e.g. 5x Cotton Men's T-Shirts, 2x Bluetooth Headphones)."
+                  className={`w-full p-3 text-sm bg-surface-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#030164] transition-colors ${
+                    errors.description ? "border-status-danger" : "border-border-default"
+                  }`}
+                  required
+                />
+                {errors.description && (
+                  <p className="text-xs text-status-danger">{errors.description}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
 
-                  {/* Total Declared Value with Attached Currency Toggle (§2) */}
-                  <div className="flex items-center gap-2 bg-surface-subtle border border-border-default px-3 py-1.5 rounded-xl">
-                    <span className="text-xs font-bold text-text-secondary">Total Value:</span>
-                    <div className="flex items-center rounded-lg border border-border-default overflow-hidden bg-white">
-                      <button
-                        type="button"
-                        onClick={() => setCurrency("USD")}
-                        className={`px-2 py-0.5 text-xs font-bold transition-colors ${
-                          currency === "USD"
-                            ? "bg-brand-primary text-white"
-                            : "bg-surface-subtle text-text-secondary hover:text-text-primary"
-                        }`}
-                      >
-                        USD ($)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setCurrency("INR")}
-                        className={`px-2 py-0.5 text-xs font-bold transition-colors ${
-                          currency === "INR"
-                            ? "bg-brand-accent text-white"
-                            : "bg-surface-subtle text-text-secondary hover:text-text-primary"
-                        }`}
-                      >
-                        INR (₹)
-                      </button>
-                    </div>
-                    <span className="font-mono font-bold text-sm text-text-primary">
-                      {currency === "USD" ? `$${totalDeclaredValue.toFixed(2)}` : `₹${totalDeclaredValue.toLocaleString()}`}
-                    </span>
-                  </div>
+        {/* ============================================================== */}
+        {/* PART 4: CONSIGNMENT SUMMARY, DISPATCH & SUBMISSION */}
+        {/* ============================================================== */}
+        <Card id="part-review" className="shadow-md overflow-hidden border border-slate-200">
+          <div className="bg-gradient-to-r from-[#030164] to-[#120e7a] text-white p-4 sm:p-5 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <span className="w-8 h-8 rounded-lg bg-white/10 text-white font-extrabold flex items-center justify-center text-xs border border-white/20">
+                4
+              </span>
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#2563EB]" />
+                  <span>Consignment Summary & Final Dispatch Confirmation</span>
+                </h3>
+                <p className="text-xs text-slate-300">
+                  Verify foreign destination, customs documentation & submit consignment booking
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 sm:p-8 space-y-6">
+            {/* Live Verification Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Sender Summary Card */}
+              <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-2 text-xs">
+                <div className="flex items-center justify-between border-b border-border-default pb-2">
+                  <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                    <User className="w-3.5 h-3.5 text-[#030164]" /> 1. Sender (Origin: India)
+                  </span>
+                  <a href="#part-sender" className="text-[11px] text-[#2563EB] font-semibold hover:underline">
+                    Edit
+                  </a>
                 </div>
-
-                {errors.lineItems && (
-                  <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                    <span>{errors.lineItems}</span>
+                <div className="font-bold text-sm text-text-primary">{senderName || "— (Name required)"}</div>
+                <div className="text-text-secondary leading-relaxed">{senderAddress1 || "—"}</div>
+                {senderAddress2 && <div className="text-text-secondary">{senderAddress2}</div>}
+                {senderLandmark && (
+                  <div className="text-[11px] text-text-muted">
+                    <span className="font-semibold text-text-secondary">Landmark:</span> {senderLandmark}
                   </div>
                 )}
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border border-border-default rounded-xl overflow-hidden">
-                    <thead className="bg-surface-subtle text-text-primary uppercase tracking-wider font-bold">
-                      <tr>
-                        <th className="p-2.5">Item Description *</th>
-                        <th className="p-2.5 w-24">SKU</th>
-                        <th className="p-2.5 w-16 text-center">Qty *</th>
-                        <th className="p-2.5 w-40">Unit Price *</th>
-                        <th className="p-2.5 w-24">HSN Code</th>
-                        <th className="p-2.5 w-16 text-center">Tax %</th>
-                        <th className="p-2.5 w-28 text-right">Total ({currency})</th>
-                        <th className="p-2.5 w-10 text-center"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border-default">
-                      {lineItems.map((item, idx) => (
-                        <tr key={item.id} className="hover:bg-surface-subtle/50">
-                          <td className="p-2">
-                            <input
-                              type="text"
-                              value={item.name}
-                              onChange={(e) => handleLineItemChange(idx, "name", e.target.value)}
-                              placeholder="e.g. Cotton Handloom Shirt"
-                              className="w-full text-xs p-1.5 rounded-lg border border-border-default focus:ring-1 focus:ring-brand-primary focus:outline-none"
-                              required
-                            />
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="text"
-                              value={item.sku}
-                              onChange={(e) => handleLineItemChange(idx, "sku", e.target.value)}
-                              placeholder="SKU-101"
-                              className="w-full text-xs p-1.5 rounded-lg border border-border-default focus:ring-1 focus:ring-brand-primary focus:outline-none"
-                            />
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              onChange={(e) => handleLineItemChange(idx, "quantity", e.target.value)}
-                              className="w-full text-xs p-1.5 rounded-lg border border-border-default text-center focus:ring-1 focus:ring-brand-primary focus:outline-none font-mono"
-                              required
-                            />
-                          </td>
-                          {/* Unit Price with Attached Currency Selector Inline (§2) */}
-                          <td className="p-2">
-                            <div className="flex items-center rounded-lg border border-border-default focus-within:ring-1 focus-within:ring-brand-primary focus-within:border-brand-primary overflow-hidden bg-white shadow-2xs">
-                              <select
-                                value={currency}
-                                onChange={(e) => setCurrency(e.target.value as "USD" | "INR")}
-                                className="h-7 px-1.5 text-[11px] font-bold bg-surface-subtle border-r border-border-default text-text-primary focus:outline-none cursor-pointer"
-                                title="Change valuation currency"
-                              >
-                                <option value="USD">USD</option>
-                                <option value="INR">INR</option>
-                              </select>
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={item.unit_price || ""}
-                                onChange={(e) => handleLineItemChange(idx, "unit_price", e.target.value)}
-                                placeholder="0.00"
-                                className="w-full h-7 px-2 text-xs font-mono text-text-primary bg-transparent focus:outline-none"
-                                required
-                              />
-                            </div>
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="text"
-                              value={item.hsn_code}
-                              onChange={(e) => handleLineItemChange(idx, "hsn_code", e.target.value)}
-                              placeholder="620520"
-                              className="w-full text-xs p-1.5 rounded-lg border border-border-default font-mono focus:ring-1 focus:ring-brand-primary focus:outline-none"
-                            />
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={item.tax_rate || ""}
-                              onChange={(e) => handleLineItemChange(idx, "tax_rate", e.target.value)}
-                              placeholder="0"
-                              className="w-full text-xs p-1.5 rounded-lg border border-border-default text-center focus:ring-1 focus:ring-brand-primary focus:outline-none"
-                            />
-                          </td>
-                          <td className="p-2 text-right font-mono font-bold text-text-primary">
-                            {currency === "USD" ? `$${item.total.toFixed(2)}` : `₹${item.total.toLocaleString()}`}
-                          </td>
-                          <td className="p-2 text-center">
-                            {lineItems.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => removeLineItem(idx)}
-                                className="text-text-muted hover:text-status-danger p-1 transition-colors"
-                                title="Remove item"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="font-semibold text-text-primary">
+                  {senderCity || "City"}
+                  {senderDistrict ? `, ${senderDistrict}` : ""}
+                  {senderState ? `, ${senderState}` : ""} - {senderPincode || "Pincode"}, India
                 </div>
+                <div className="text-text-muted pt-1 border-t border-border-default/60 space-y-0.5">
+                  <div>
+                    <span className="font-medium text-text-secondary">Mobile:</span> +91 {senderMobile || "—"}
+                  </div>
+                  {senderEmail && (
+                    <div>
+                      <span className="font-medium text-text-secondary">Email:</span> {senderEmail}
+                    </div>
+                  )}
+                </div>
+                {saveSenderAddress && (
+                  <div className="pt-1.5">
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                      <BookmarkCheck className="w-3 h-3 text-emerald-600" /> Will save to Address Book ({senderAddressLabel || "Pickup"})
+                    </span>
+                  </div>
+                )}
+              </div>
 
-                <div className="flex items-center justify-between pt-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addLineItem}
-                    className="flex items-center gap-1.5 text-xs"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Another Line Item</span>
-                  </Button>
+              {/* Receiver Summary Card */}
+              <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-2 text-xs">
+                <div className="flex items-center justify-between border-b border-border-default pb-2">
+                  <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                    <Globe className="w-3.5 h-3.5 text-[#2563EB]" /> 2. Receiver (Destination: Abroad)
+                  </span>
+                  <a href="#part-receiver" className="text-[11px] text-[#2563EB] font-semibold hover:underline">
+                    Edit
+                  </a>
+                </div>
+                <div className="font-bold text-sm text-text-primary">{receiverName || "— (Name required)"}</div>
+                <div className="text-text-secondary leading-relaxed">{receiverAddress1 || "—"}</div>
+                {receiverAddress2 && <div className="text-text-secondary">{receiverAddress2}</div>}
+                <div className="font-semibold text-text-primary">
+                  {receiverCity || "City"}, {receiverState || "State"} ({receiverPincode || "Postal Code"})
+                </div>
+                <div className="font-bold text-[#030164]">{receiverCountry}</div>
+                <div className="text-text-muted pt-1 border-t border-border-default/60 space-y-0.5">
+                  <div>
+                    <span className="font-medium text-text-secondary">Phone:</span> {receiverMobile || "—"}
+                  </div>
+                  {receiverEmail && (
+                    <div>
+                      <span className="font-medium text-text-secondary">Email:</span> {receiverEmail}
+                    </div>
+                  )}
+                </div>
+                {saveReceiverAddress && (
+                  <div className="pt-1.5">
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                      <BookmarkCheck className="w-3 h-3 text-emerald-600" /> Will save to Address Book ({receiverAddressLabel || "Delivery"})
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
 
-                  <span className="text-xs text-text-muted">
-                    Total Items: <strong>{lineItems.reduce((acc, i) => acc + (Number(i.quantity) || 0), 0)}</strong>
+            {/* Parcel & Customs Declaration Summary */}
+            <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-3 text-xs">
+              <div className="flex items-center justify-between border-b border-border-default pb-2">
+                <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                  <Package className="w-3.5 h-3.5 text-emerald-600" /> 3. Parcel & Customs Valuation
+                </span>
+                <a href="#part-customs" className="text-[11px] text-[#2563EB] font-semibold hover:underline">
+                  Edit
+                </a>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                <div>
+                  <span className="text-text-muted block">Classification:</span>
+                  <span className="font-medium text-text-primary">{parcelType}</span>
+                </div>
+                <div>
+                  <span className="text-text-muted block">Actual Weight:</span>
+                  <span className="font-mono font-bold text-text-primary">{weightKg ? `${weightKg} kg` : "—"}</span>
+                </div>
+                <div>
+                  <span className="text-text-muted block">Dimensions (L×W×H):</span>
+                  <span className="font-mono text-text-primary">
+                    {lengthCm && widthCm && heightCm ? `${lengthCm} × ${widthCm} × ${heightCm} cm` : "—"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-text-muted block">Total Customs Value:</span>
+                  <span className="font-mono font-bold text-[#030164] text-sm">
+                    {currency === "USD" ? `$${totalDeclaredValue.toFixed(2)} USD` : `₹${totalDeclaredValue.toLocaleString()} INR`}
                   </span>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* ============================================================== */}
-          {/* STEP 4: REVIEW & CONFIRM (Matches Domestic Step 4) */}
-          {/* ============================================================== */}
-          {currentStep === 4 && (
-            <div className="p-6 sm:p-8 space-y-6 animate-in fade-in duration-150">
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-emerald-600" />
-                <h3 className="text-lg font-bold text-text-primary">Review & Confirm International Booking</h3>
-              </div>
-
-              {/* Comprehensive Booking Verification Cards */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="font-bold text-sm text-text-primary flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-brand-primary" /> Review All International Details Before Submitting
-                  </div>
-                  <span className="text-[11px] text-text-muted">Verify foreign destination & customs entries</span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Sender Summary Card */}
-                  <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-2 text-xs">
-                    <div className="flex items-center justify-between border-b border-border-default pb-2">
-                      <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
-                        <User className="w-3.5 h-3.5 text-brand-primary" /> 1. Sender (Origin: India)
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setCurrentStep(1)}
-                        className="text-[11px] text-brand-primary font-semibold hover:underline"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                    <div className="font-bold text-sm text-text-primary">{senderName || "—"}</div>
-                    <div className="text-text-secondary leading-relaxed">{senderAddress1 || "—"}</div>
-                    {senderAddress2 && (
-                      <div className="text-text-secondary">{senderAddress2}</div>
-                    )}
-                    {senderLandmark && (
-                      <div className="text-[11px] text-text-muted">
-                        <span className="font-semibold text-text-secondary">Landmark:</span> {senderLandmark}
-                      </div>
-                    )}
-                    <div className="font-semibold text-text-primary">
-                      {senderCity}
-                      {senderDistrict ? `, ${senderDistrict}` : ""}
-                      {senderState ? `, ${senderState}` : ""} - {senderPincode}, India
-                    </div>
-                    <div className="text-text-muted pt-1 border-t border-border-default/60 space-y-0.5">
-                      <div><span className="font-medium text-text-secondary">Mobile:</span> +91 {senderMobile || "—"}</div>
-                      {senderEmail && (
-                        <div><span className="font-medium text-text-secondary">Email:</span> {senderEmail}</div>
-                      )}
-                    </div>
-                    {saveSenderAddress && (
-                      <div className="pt-1.5">
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                          <BookmarkCheck className="w-3 h-3 text-emerald-600" /> Will save to Address Book ({senderAddressLabel || "Pickup"})
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Receiver Summary Card (Ordered per Step 2) */}
-                  <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-2 text-xs">
-                    <div className="flex items-center justify-between border-b border-border-default pb-2">
-                      <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
-                        <Globe className="w-3.5 h-3.5 text-brand-accent" /> 2. Receiver (Destination: Abroad)
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setCurrentStep(2)}
-                        className="text-[11px] text-brand-primary font-semibold hover:underline"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                    <div className="font-bold text-sm text-text-primary">{receiverName || "—"}</div>
-                    <div className="text-text-secondary leading-relaxed">{receiverAddress1 || "—"}</div>
-                    {receiverAddress2 && (
-                      <div className="text-text-secondary">{receiverAddress2}</div>
-                    )}
-                    <div className="font-semibold text-text-primary">
-                      {receiverCity}, {receiverState} ({receiverPincode})
-                    </div>
-                    <div className="font-bold text-brand-primary">
-                      {receiverCountry}
-                    </div>
-                    <div className="text-text-muted pt-1 border-t border-border-default/60 space-y-0.5">
-                      <div><span className="font-medium text-text-secondary">Phone:</span> {receiverMobile || "—"}</div>
-                      {receiverEmail && (
-                        <div><span className="font-medium text-text-secondary">Email:</span> {receiverEmail}</div>
-                      )}
-                    </div>
-                    {saveReceiverAddress && (
-                      <div className="pt-1.5">
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                          <BookmarkCheck className="w-3 h-3 text-emerald-600" /> Will save to Address Book ({receiverAddressLabel || "Delivery"})
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Parcel & Customs Declaration Summary */}
-                <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-3 text-xs">
-                  <div className="flex items-center justify-between border-b border-border-default pb-2">
-                    <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
-                      <Package className="w-3.5 h-3.5 text-emerald-600" /> 3. Parcel & Customs Valuation
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep(3)}
-                      className="text-[11px] text-brand-primary font-semibold hover:underline"
-                    >
-                      Edit
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                    <div>
-                      <span className="text-text-muted block">Classification:</span>
-                      <span className="font-medium text-text-primary">{parcelType}</span>
-                    </div>
-                    <div>
-                      <span className="text-text-muted block">Actual Weight:</span>
-                      <span className="font-mono font-bold text-text-primary">{weightKg ? `${weightKg} kg` : "—"}</span>
-                    </div>
-                    <div>
-                      <span className="text-text-muted block">Dimensions (L×W×H):</span>
-                      <span className="font-mono text-text-primary">
-                        {lengthCm && widthCm && heightCm
-                          ? `${lengthCm} × ${widthCm} × ${heightCm} cm`
-                          : "—"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-text-muted block">Total Customs Value:</span>
-                      <span className="font-mono font-bold text-text-primary text-sm">
-                        {currency === "USD" ? `$${totalDeclaredValue.toFixed(2)} USD` : `₹${totalDeclaredValue.toLocaleString()} INR`}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-border-default/60 flex items-center justify-between flex-wrap gap-2">
-                    <div>
-                      <span className="text-text-muted">Description: </span>
-                      <span className="text-text-primary font-medium">{description}</span>
-                    </div>
-                    <div>
-                      <span className="text-text-muted">Service Level: </span>
-                      <span className="font-bold text-brand-primary">{serviceType}</span>
-                    </div>
-                  </div>
-
-                  {/* Line Items Snapshot */}
-                  <div className="pt-2 border-t border-border-default/60">
-                    <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">
-                      Itemized Line Items ({lineItems.filter((i) => i.name.trim().length > 0).length}):
-                    </span>
-                    <div className="space-y-1">
-                      {lineItems
-                        .filter((i) => i.name.trim().length > 0)
-                        .map((item, idx) => (
-                          <div key={item.id || idx} className="flex items-center justify-between text-xs py-1 border-b border-border-default/40 last:border-none">
-                            <span className="text-text-primary">
-                              {item.quantity}x {item.name} {item.sku ? `(${item.sku})` : ""}
-                            </span>
-                            <span className="font-mono font-bold text-text-primary">
-                              {currency === "USD" ? `$${item.total.toFixed(2)}` : `₹${item.total.toLocaleString()}`}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Admin-only Allocation Controls (if in admin mode) */}
-              {isAdminMode && (
-                <div className="p-4 bg-slate-50 border border-brand-primary/20 rounded-xl space-y-3">
-                  <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                    <Truck className="w-4 h-4 text-brand-primary" />
-                    <h4 className="font-bold text-xs uppercase tracking-wider text-[#002B49]">
-                      Admin Dispatch & Carrier Allocation
-                    </h4>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-700">
-                        Assign International Carrier (Optional)
-                      </label>
-                      <select
-                        value={adminCourierId}
-                        onChange={(e) => setAdminCourierId(e.target.value)}
-                        className="w-full h-10 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#002B49]"
-                      >
-                        <option value="">Manual / Allocate Later</option>
-                        {adminCouriers.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name} ({c.code})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-700">
-                        Shipping Charge ({currency})
-                      </label>
-                      <div className="flex rounded-lg border border-slate-300 focus-within:ring-1 focus-within:ring-[#002B49] overflow-hidden bg-white">
-                        <select
-                          value={currency}
-                          onChange={(e) => setCurrency(e.target.value as "USD" | "INR")}
-                          className="h-10 px-2.5 text-xs font-bold bg-slate-100 border-r border-slate-300 text-slate-700 focus:outline-none cursor-pointer"
-                        >
-                          <option value="USD">USD ($)</option>
-                          <option value="INR">INR (₹)</option>
-                        </select>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={adminShippingCharge}
-                          onChange={(e) => setAdminShippingCharge(e.target.value)}
-                          placeholder={currency === "USD" ? "e.g. 45.00" : "e.g. 3750"}
-                          className="w-full h-10 px-3 text-xs text-slate-800 bg-transparent focus:outline-none font-mono"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* International Shipping Charge Notice Banner */}
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
+              <div className="pt-2 border-t border-border-default/60 flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <div className="font-bold text-brand-primary">International Customs & Freight Notice:</div>
-                  <p className="mt-0.5">
-                    Final freight charges and customs export clearances will be confirmed upon package inspection.
-                    Destination customs duties (if applicable) are assessed by the destination country authority.
-                  </p>
+                  <span className="text-text-muted">Description: </span>
+                  <span className="text-text-primary font-medium">{description || "—"}</span>
+                </div>
+                <div>
+                  <span className="text-text-muted">Service Level: </span>
+                  <span className="font-bold text-[#030164]">{serviceType}</span>
                 </div>
               </div>
 
-              {/* API Error Alert */}
-              {apiError && (
-                <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-bold text-rose-900">Submission Error</div>
-                    <p className="mt-0.5">{apiError}</p>
+              {/* Line Items Snapshot */}
+              <div className="pt-2 border-t border-border-default/60">
+                <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">
+                  Itemized Line Items ({lineItems.filter((i) => i.name.trim().length > 0).length}):
+                </span>
+                <div className="space-y-1">
+                  {lineItems
+                    .filter((i) => i.name.trim().length > 0)
+                    .map((item, idx) => (
+                      <div key={item.id || idx} className="flex items-center justify-between text-xs py-1 border-b border-border-default/40 last:border-none">
+                        <span className="text-text-primary">
+                          {item.quantity}x {item.name} {item.sku ? `(${item.sku})` : ""}
+                        </span>
+                        <span className="font-mono font-bold text-text-primary">
+                          {currency === "USD" ? `$${item.total.toFixed(2)}` : `₹${item.total.toLocaleString()}`}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Admin-only Allocation Controls (if in admin mode) */}
+            {isAdminMode && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+                  <Truck className="w-4 h-4 text-[#030164]" />
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-[#030164]">
+                    Admin Dispatch & Carrier Allocation
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Assign International Carrier (Optional)
+                    </label>
+                    <select
+                      value={adminCourierId}
+                      onChange={(e) => setAdminCourierId(e.target.value)}
+                      className="w-full h-10 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#030164]"
+                    >
+                      <option value="">Manual / Allocate Later</option>
+                      {adminCouriers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} ({c.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Shipping Charge ({currency})
+                    </label>
+                    <div className="flex rounded-lg border border-slate-300 focus-within:ring-1 focus-within:ring-[#030164] overflow-hidden bg-white">
+                      <select
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value as "USD" | "INR")}
+                        className="h-10 px-2.5 text-xs font-bold bg-slate-100 border-r border-slate-300 text-slate-700 focus:outline-none cursor-pointer"
+                      >
+                        <option value="USD">USD ($)</option>
+                        <option value="INR">INR (₹)</option>
+                      </select>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={adminShippingCharge}
+                        onChange={(e) => setAdminShippingCharge(e.target.value)}
+                        placeholder={currency === "USD" ? "e.g. 45.00" : "e.g. 3750"}
+                        className="w-full h-10 px-3 text-xs text-slate-800 bg-transparent focus:outline-none font-mono"
+                      />
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* ============================================================== */}
-          {/* STEPPER NAVIGATION CONTROLS — MATCHES DOMESTIC EXACTLY */}
-          {/* ============================================================== */}
-          <CardFooter className="flex justify-between py-4">
-            {currentStep > 1 ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="md"
-                onClick={() => {
-                  setErrors({});
-                  setCurrentStep((prev) => Math.max(prev - 1, 1));
-                }}
-              >
-                <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
-              </Button>
-            ) : (
-              <div />
+              </div>
             )}
 
-            {currentStep < 4 ? (
+            {/* International Customs Notice Banner */}
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-[#2563EB] shrink-0 mt-0.5" />
+              <div>
+                <div className="font-bold text-[#030164]">International Customs & Freight Notice:</div>
+                <p className="mt-0.5 leading-relaxed">
+                  Final freight charges and customs export clearances will be confirmed upon package physical intake & weighing.
+                  Destination customs duties (if assessed) are subject to destination country import tariffs.
+                </p>
+              </div>
+            </div>
+
+            {/* Global Validation & Submission Error Alert */}
+            {Object.keys(errors).length > 0 && (
+              <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-3 animate-in fade-in">
+                <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-bold text-rose-900">Please complete all required fields:</div>
+                  <ul className="list-disc list-inside mt-1 space-y-0.5 text-rose-700">
+                    {Object.entries(errors).slice(0, 4).map(([field, msg]) => (
+                      <li key={field}>{msg}</li>
+                    ))}
+                    {Object.keys(errors).length > 4 && (
+                      <li>...and {Object.keys(errors).length - 4} other field(s)</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {apiError && (
+              <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-3 animate-in fade-in">
+                <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-bold text-rose-900">Submission Error</div>
+                  <p className="mt-0.5">{apiError}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Final Action Button */}
+            <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-xs text-slate-500">
+                <span>By submitting, you agree to our </span>
+                <Link href="/terms" target="_blank" className="text-[#2563EB] hover:underline font-semibold">
+                  International Carriage Terms
+                </Link>
+                <span> and Customs Regulations.</span>
+              </div>
+
               <Button
-                type="button"
-                variant="primary"
-                size="md"
-                onClick={handleNextStep}
-              >
-                Next Step <ArrowRight className="w-4 h-4 ml-1.5" />
-              </Button>
-            ) : (
-              <Button
-                type="button"
+                type="submit"
                 variant="accent"
                 size="lg"
-                onClick={() => handleSubmit()}
-                isLoading={isSubmitting}
-                className="shadow-md font-bold px-8"
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#030164] to-[#2563EB] hover:from-[#02004a] hover:to-[#1d4ed8] text-white font-extrabold text-sm rounded-xl shadow-lg shadow-[#030164]/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
               >
-                Confirm & Submit International Booking
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Processing Consignment...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plane className="w-4 h-4" />
+                    <span>
+                      {isAdminMode
+                        ? "Confirm & Dispatch International Shipment"
+                        : "Confirm & Submit International Booking"}
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </Button>
-            )}
-          </CardFooter>
-        </form>
-      </Card>
+            </div>
+          </div>
+        </Card>
+      </form>
     </div>
   );
 }

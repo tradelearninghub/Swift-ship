@@ -1,6 +1,6 @@
-# Deploying SS International Courier Service to Hostinger Node.js Hosting
+# Deploying SS International Courier to Hostinger Node.js Hosting
 
-Complete, step-by-step guide to deploying the **SS International Courier Service & Multi-Courier Tracking Platform** to Hostinger Node.js Hosting with automated database creation and zero-touch setup.
+Complete, step-by-step guide to deploying the **SS International Courier & Multi-Courier Tracking Platform** to Hostinger Node.js Hosting with automated database creation and zero-touch setup.
 
 ---
 
@@ -72,7 +72,7 @@ SMTP_PORT="465"
 SMTP_USER="support@yourdomain.com"
 SMTP_PASS="your-email-password"
 SMTP_FROM_EMAIL="support@yourdomain.com"
-SMTP_FROM_NAME="SS International Courier Service"
+SMTP_FROM_NAME="SS International Courier"
 ```
 
 ---

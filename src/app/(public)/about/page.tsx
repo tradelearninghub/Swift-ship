@@ -6,7 +6,7 @@ import { getCompanyProfile } from "@/lib/settings";
 
 export default async function AboutPage() {
   const profile = await getCompanyProfile();
-  const companyName = profile.company_name || "SS International Courier Service";
+  const companyName = profile.company_name || "SS International Courier";
 
   return (
     <div className="max-w-container mx-auto px-4 py-12 space-y-16">

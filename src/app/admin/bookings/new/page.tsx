@@ -227,12 +227,12 @@ export default function AdminNewBookingPage() {
           /* Selected Customer Card */
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#002B49] text-white flex items-center justify-center font-bold text-sm">
+              <div className="w-10 h-10 rounded-full bg-[#030164] text-white flex items-center justify-center font-bold text-sm">
                 {selectedCustomer.name.slice(0, 2).toUpperCase()}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-[#002B49]">{selectedCustomer.name}</span>
+                  <span className="font-bold text-sm text-[#030164]">{selectedCustomer.name}</span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 uppercase">
                     {selectedCustomer.account_type}
                   </span>
@@ -267,7 +267,7 @@ export default function AdminNewBookingPage() {
                   if (customerSearchResults.length > 0) setShowCustomerDropdown(true);
                 }}
                 placeholder="Search registered customer by Name or Mobile number..."
-                className="w-full h-10 pl-9 pr-8 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#002B49] text-slate-900"
+                className="w-full h-10 pl-9 pr-8 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#030164] text-slate-900"
               />
               {isSearchingCustomers && (
                 <Loader2 className="w-4 h-4 text-slate-400 animate-spin absolute right-3 top-3" />
@@ -324,7 +324,7 @@ export default function AdminNewBookingPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-2xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="font-bold text-base text-[#002B49] flex items-center gap-2">
+              <div className="font-bold text-base text-[#030164] flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-brand-accent" />
                 <span>Add New Customer</span>
               </div>
@@ -385,7 +385,7 @@ export default function AdminNewBookingPage() {
                   <select
                     value={newCustAccountType}
                     onChange={(e) => setNewCustAccountType(e.target.value as any)}
-                    className="w-full h-10 px-3 rounded-lg border border-slate-300 text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#002B49]"
+                    className="w-full h-10 px-3 rounded-lg border border-slate-300 text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#030164]"
                   >
                     <option value="INDIVIDUAL">Individual</option>
                     <option value="BUSINESS">Business</option>

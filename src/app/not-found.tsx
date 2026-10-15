@@ -7,10 +7,9 @@ import {
   Package,
   Search,
   Home,
-  ArrowLeft,
-  Truck,
-  Phone,
   Calculator,
+  Phone,
+  ArrowLeft,
   Compass,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -21,9 +20,8 @@ export default function NotFound() {
 
   const handleQuickTrack = (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = awbQuery.trim();
-    if (trimmed) {
-      router.push(`/track?awb=${encodeURIComponent(trimmed)}`);
+    if (awbQuery.trim()) {
+      router.push(`/track?awb=${encodeURIComponent(awbQuery.trim())}`);
     } else {
       router.push("/track");
     }
@@ -34,20 +32,20 @@ export default function NotFound() {
       {/* Top Header Bar */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="logo text-xl font-extrabold text-[#0B2A4A] tracking-tight">
-            SS International<span className="text-[#FF6B00]"> Courier Service</span>
+          <Link href="/" className="logo text-xl font-extrabold text-[#030164] tracking-tight">
+            SS International<span className="text-[#2563EB]"> Courier</span>
           </Link>
 
           <div className="flex items-center gap-3">
             <Link
               href="/track"
-              className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#FF6B00] transition-colors hidden sm:inline"
+              className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#2563EB] transition-colors hidden sm:inline"
             >
               Track Shipment
             </Link>
             <Link
               href="/book"
-              className="px-3.5 py-1.5 rounded-lg bg-[#FF6B00] hover:bg-[#e05f00] text-white text-xs sm:text-sm font-semibold transition-colors shadow-sm"
+              className="px-3.5 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs sm:text-sm font-semibold transition-colors shadow-sm"
             >
               Book a Parcel
             </Link>
@@ -64,19 +62,19 @@ export default function NotFound() {
               404
             </div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-[#0B2A4A] to-[#1A3B5C] text-white shadow-xl flex items-center justify-center border-2 border-white transform -rotate-6">
-                <Package className="w-8 h-8 sm:w-10 sm:h-10 text-[#FF6B00]" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-[#030164] to-[#2563EB] text-white shadow-xl flex items-center justify-center border-2 border-white transform -rotate-6">
+                <Package className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
               </div>
             </div>
           </div>
 
           {/* Heading & Context */}
           <div className="space-y-3 max-w-xl mx-auto">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
-              <Compass className="w-3.5 h-3.5 text-amber-600" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-semibold">
+              <Compass className="w-3.5 h-3.5 text-blue-600" />
               Consignment / Page Lost in Transit
             </div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-[#0B2A4A] tracking-tight">
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-[#030164] tracking-tight">
               We couldn&apos;t find that page
             </h1>
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
@@ -101,7 +99,7 @@ export default function NotFound() {
               <Button
                 type="submit"
                 size="sm"
-                className="bg-[#0B2A4A] hover:bg-[#1A3B5C] text-white text-xs px-4"
+                className="bg-[#030164] hover:bg-[#02004a] text-white text-xs px-4"
               >
                 Track Now
               </Button>
@@ -112,12 +110,12 @@ export default function NotFound() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-left max-w-2xl mx-auto pt-2">
             <Link
               href="/"
-              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-[#FF6B00]/40 hover:shadow-md transition-all group"
+              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-[#2563EB]/40 hover:shadow-md transition-all group"
             >
-              <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#0B2A4A] flex items-center justify-center mb-2.5 group-hover:bg-[#0B2A4A] group-hover:text-white transition-colors">
+              <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#030164] flex items-center justify-center mb-2.5 group-hover:bg-[#030164] group-hover:text-white transition-colors">
                 <Home className="w-4 h-4" />
               </div>
-              <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#FF6B00] transition-colors">
+              <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors">
                 Home Portal
               </h3>
               <p className="text-xs text-slate-500 mt-1">
@@ -127,27 +125,27 @@ export default function NotFound() {
 
             <Link
               href="/calculator"
-              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-[#FF6B00]/40 hover:shadow-md transition-all group"
+              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-[#2563EB]/40 hover:shadow-md transition-all group"
             >
-              <div className="w-9 h-9 rounded-lg bg-orange-50 text-[#FF6B00] flex items-center justify-center mb-2.5 group-hover:bg-[#FF6B00] group-hover:text-white transition-colors">
+              <div className="w-9 h-9 rounded-lg bg-indigo-50 text-[#2563EB] flex items-center justify-center mb-2.5 group-hover:bg-[#2563EB] group-hover:text-white transition-colors">
                 <Calculator className="w-4 h-4" />
               </div>
-              <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#FF6B00] transition-colors">
+              <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors">
                 Rate Calculator
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Estimate cargo shipping costs across India
+                Estimate cargo shipping costs across India & abroad
               </p>
             </Link>
 
             <Link
               href="/contact"
-              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-[#FF6B00]/40 hover:shadow-md transition-all group"
+              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-[#2563EB]/40 hover:shadow-md transition-all group"
             >
               <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center mb-2.5 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
                 <Phone className="w-4 h-4" />
               </div>
-              <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#FF6B00] transition-colors">
+              <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors">
                 Help & Contact
               </h3>
               <p className="text-xs text-slate-500 mt-1">
@@ -177,7 +175,7 @@ export default function NotFound() {
               href="https://decentonline.in"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-slate-300 hover:text-[#FF6B00] font-medium transition-colors underline underline-offset-2"
+              className="text-slate-300 hover:text-[#2563EB] font-medium transition-colors underline underline-offset-2"
             >
               Decent Online
             </a>

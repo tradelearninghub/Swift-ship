@@ -62,7 +62,7 @@ export default function RegisterPage() {
         </div>
         <h2 className="text-xl font-bold text-text-primary">Account Created Successfully</h2>
         <p className="text-xs text-text-secondary">
-          Welcome to SS International Courier Service. You can now log in to access your self-service portal.
+          Welcome to SS International Courier. You can now log in to access your self-service portal.
         </p>
         <div className="pt-2">
           <Link href="/customer">
@@ -80,7 +80,7 @@ export default function RegisterPage() {
       <div className="space-y-1">
         <h2 className="text-xl font-bold text-text-primary">Create an account</h2>
         <p className="text-xs text-text-secondary">
-          Join shippers using SS International Courier Service for reliable multi-carrier logistics
+          Join shippers using SS International Courier for reliable multi-carrier logistics
         </p>
       </div>
 

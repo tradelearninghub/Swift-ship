@@ -37,7 +37,7 @@ export default function BookParcelPage() {
           <Plane className="w-3.5 h-3.5 text-sky-600 animate-pulse" />
           <span>Global Air Express Courier</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-[#002B49] tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-[#030164] tracking-tight">
           Book International Shipment
         </h1>
         <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">

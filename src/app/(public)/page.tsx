@@ -259,7 +259,7 @@ export default function HomePage() {
         <div className="main-container">
           <div
             style={{
-              background: "linear-gradient(to right, #002B49, #003e6b)",
+              background: "linear-gradient(to right, #030164, #1e1b94)",
               color: "#fff",
               borderRadius: "12px",
               padding: "40px",

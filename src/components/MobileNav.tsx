@@ -1,102 +1,71 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
-  Truck,
   Phone,
   Mail,
   Home,
-  Layers,
+  Package,
   Search,
-  PlusCircle,
   Calculator,
-  MessageSquare,
+  HelpCircle,
+  Info,
   LogIn,
   UserPlus,
-  Info,
   ShieldCheck,
-  Compass,
+  Truck,
+  PlusCircle,
 } from "lucide-react";
 
-export interface MobileNavSocialItem {
-  url?: string;
-  icon?: string;
-  isSvg?: boolean;
-  hover?: string;
-  label: string;
-}
-
 interface MobileNavProps {
-  phones?: string[];
-  email?: string;
-  address?: string;
-  customTrigger?: React.ReactNode;
-  socials?: MobileNavSocialItem[];
+  phones: string[];
+  email: string;
+  address: string;
+  socials?: { url?: string; isSvg?: boolean; hover?: string; label?: string; icon?: string }[];
+  whatsappUrl?: string;
 }
 
 export function MobileNav({
-  phones = ["8000151117", "7689987368"],
-  email = "support@sscourierservice.in",
-  address = "Shop No 4, 5th Crossing, Padmavati School, Ghee Walo Ka Rasta, Johri Bazar, Jaipur 302003",
-  customTrigger,
+  phones,
+  email,
+  address,
   socials = [],
+  whatsappUrl,
 }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  // Close drawer on route change
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
-
-  // Prevent background scrolling when drawer is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
   const navLinks = [
     { href: "/", label: "Home", icon: Home },
-    { href: "/services", label: "Services", icon: Layers },
-    { href: "/track", label: "Track Shipment", icon: Search },
+    { href: "/services", label: "Services", icon: Package },
+    { href: "/track", label: "Track Consignment", icon: Search },
     { href: "/calculator", label: "Rate Calculator", icon: Calculator },
-    { href: "/how-it-works", label: "How It Works", icon: Compass },
+    { href: "/how-it-works", label: "How It Works", icon: HelpCircle },
     { href: "/about", label: "About Us", icon: Info },
-    { href: "/contact", label: "Contact Us", icon: MessageSquare },
+    { href: "/contact", label: "Contact Us", icon: Phone },
   ];
 
   return (
     <>
-      {/* Trigger: Either customTrigger or default hamburger button */}
-      {customTrigger ? (
-        <div onClick={() => setIsOpen(true)} role="button" tabIndex={0}>
-          {customTrigger}
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="p-2 rounded-lg text-[#002B49] hover:bg-slate-100 transition-colors focus:outline-none border border-slate-200 shadow-xs"
-          aria-label="Open mobile navigation menu"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-      )}
+      {/* Mobile Menu Hamburger Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="p-2 rounded-lg text-[#030164] hover:bg-slate-100 transition-colors focus:outline-none border border-slate-200 shadow-xs"
+        aria-label="Open mobile navigation menu"
+        aria-expanded={isOpen}
+      >
+        <Menu className="w-5 h-5" />
+      </button>
 
-      {/* Drawer Overlay & Panel */}
+      {/* Slide-out Backdrop & Drawer */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex">
-          {/* Dark Backdrop */}
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in-50"
             onClick={() => setIsOpen(false)}
@@ -106,14 +75,14 @@ export function MobileNav({
           {/* Slide-out Drawer Panel */}
           <div className="relative ml-auto w-full max-w-xs sm:max-w-sm bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-250">
             {/* Header */}
-            <div className="p-4 bg-[#002B49] text-white flex items-center justify-between border-b border-white/10">
+            <div className="p-4 bg-[#030164] text-white flex items-center justify-between border-b border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#FF6B00] flex items-center justify-center text-white shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center text-white shrink-0">
                   <Truck className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
                   <span className="font-bold text-base leading-tight tracking-tight">SS INTERNATIONAL</span>
-                  <span className="text-[9px] font-bold text-[#FF6B00] tracking-[0.2em] uppercase leading-none">COURIER SERVICE</span>
+                  <span className="text-[9px] font-bold text-[#2563EB] tracking-[0.25em] uppercase leading-none">COURIER</span>
                 </div>
               </div>
               <button
@@ -130,7 +99,8 @@ export function MobileNav({
             <div className="p-4 border-b border-slate-100 bg-slate-50">
               <Link
                 href="/book"
-                className="w-full flex items-center justify-center gap-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold py-2.5 px-4 rounded-xl shadow-md shadow-[#FF6B00]/20 text-sm transition-all"
+                onClick={() => setIsOpen(false)}
+                className="w-full flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-bold py-2.5 px-4 rounded-xl shadow-md shadow-[#2563EB]/20 text-sm transition-all"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Book a Parcel</span>
@@ -149,16 +119,17 @@ export function MobileNav({
                   <Link
                     key={link.href}
                     href={link.href}
+                    onClick={() => setIsOpen(false)}
                     className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                       isActive
-                        ? "bg-[#002B49] text-white"
+                        ? "bg-[#030164] text-white"
                         : "text-slate-700 hover:bg-slate-100"
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon
                         className={`w-4 h-4 ${
-                          isActive ? "text-[#FF6B00]" : "text-slate-400"
+                          isActive ? "text-[#2563EB]" : "text-slate-400"
                         }`}
                       />
                       <span>{link.label}</span>
@@ -174,21 +145,24 @@ export function MobileNav({
                 </div>
                 <Link
                   href="/login"
-                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#002B49] hover:bg-slate-50"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#030164] hover:bg-slate-50"
                 >
                   <LogIn className="w-4 h-4 text-slate-400" />
                   <span>Customer Sign In</span>
                 </Link>
                 <Link
                   href="/register"
-                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#002B49] hover:bg-slate-50"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#030164] hover:bg-slate-50"
                 >
                   <UserPlus className="w-4 h-4 text-slate-400" />
                   <span>Register Free Account</span>
                 </Link>
                 <Link
                   href="/admin/login"
-                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-[#FF6B00]"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-[#2563EB]"
                 >
                   <ShieldCheck className="w-4 h-4 text-slate-400" />
                   <span>Admin Operations →</span>
@@ -206,18 +180,18 @@ export function MobileNav({
                     <a
                       key={i}
                       href={`tel:+91${cleanP}`}
-                      className="flex items-center gap-2 font-semibold text-[#002B49] hover:text-[#FF6B00]"
+                      className="flex items-center gap-2 font-semibold text-[#030164] hover:text-[#2563EB]"
                     >
-                      <Phone className="w-3.5 h-3.5 text-[#FF6B00]" />
+                      <Phone className="w-3.5 h-3.5 text-[#2563EB]" />
                       <span>+91 {cleanP}</span>
                     </a>
                   );
                 })}
                 <a
                   href={`mailto:${email}`}
-                  className="flex items-center gap-2 text-slate-600 hover:text-[#FF6B00]"
+                  className="flex items-center gap-2 text-slate-600 hover:text-[#2563EB]"
                 >
-                  <Mail className="w-3.5 h-3.5 text-[#FF6B00]" />
+                  <Mail className="w-3.5 h-3.5 text-[#2563EB]" />
                   <span className="truncate">{email}</span>
                 </a>
               </div>
@@ -235,7 +209,7 @@ export function MobileNav({
                         href={s.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`w-8 h-8 rounded-full bg-slate-100 ${s.hover || "hover:bg-[#002B49]"} text-slate-700 hover:text-white flex items-center justify-center transition-all text-xs shadow-xs`}
+                        className={`w-8 h-8 rounded-full bg-slate-100 ${s.hover || "hover:bg-[#030164]"} text-slate-700 hover:text-white flex items-center justify-center transition-all text-xs shadow-xs`}
                         title={s.label}
                         aria-label={s.label}
                       >
@@ -255,7 +229,7 @@ export function MobileNav({
 
             {/* Footer Notice */}
             <div className="p-4 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-500 text-center">
-              <p className="font-semibold text-slate-700">SS International Courier Service</p>
+              <p className="font-semibold text-slate-700">SS International Courier</p>
               <p className="mt-0.5 truncate text-[10px]">{address}</p>
             </div>
           </div>

@@ -584,7 +584,7 @@ INSERT IGNORE INTO `settings` (`id`, `group`, `key`, `value`, `updated_at`) VALU
   'company_profile',
   'company_profile',
   JSON_OBJECT(
-    'company_name', 'SS International Courier Service Pvt. Ltd.',
+    'company_name', 'SS International Courier Pvt. Ltd.',
     'tagline', 'Fast, Safe & Multi-Carrier Courier Logistics',
     'support_email', 'support@sscourierservice.in',
     'support_phones', JSON_ARRAY('8000151117', '7689987368'),

@@ -76,7 +76,7 @@ export async function sendNotification(payload: NotificationPayload) {
     const awb = String(variables.awb || variables.awb_number || "—");
     const courierName = String(variables.courierName || variables.courier_name || "Carrier Partner");
     const trackingLink = String(variables.trackingLink || variables.tracking_url || "https://sscourierservice.in/track");
-    const companyName = String(variables.companyName || variables.company_name || "SS International Courier Service");
+    const companyName = String(variables.companyName || variables.company_name || "SS International Courier");
 
     const mergedVars: Record<string, string> = {
       customerName,
@@ -122,16 +122,16 @@ export async function sendNotification(payload: NotificationPayload) {
         text: body,
         html: `
           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px; margin: 0 auto;">
-            <div style="background-color: #002B49; padding: 20px; color: #ffffff; border-radius: 8px 8px 0 0; text-align: left;">
-              <h2 style="margin: 0; font-size: 18px; font-weight: bold; letter-spacing: 0.5px;">SS International Courier Service</h2>
+            <div style="background-color: #030164; padding: 20px; color: #ffffff; border-radius: 8px 8px 0 0; text-align: left;">
+              <h2 style="margin: 0; font-size: 18px; font-weight: bold; letter-spacing: 0.5px;">SS International Courier</h2>
               <p style="margin: 4px 0 0; font-size: 11px; opacity: 0.8;">Express Logistics & Multi-Carrier Courier Deliveries</p>
             </div>
             <div style="border: 1px solid #e2e8f0; border-top: none; padding: 24px 20px; border-radius: 0 0 8px 8px; background-color: #ffffff;">
               <div style="font-size: 14px; margin-top: 0; color: #1e293b; white-space: pre-line;">${body}</div>
               <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0 16px;" />
               <p style="font-size: 11px; color: #64748b; margin-bottom: 4px; line-height: 1.4;">
-                SS International Courier Service • Shop No 4, Johri Bazar, Jaipur 302003<br/>
-                Helpline: +91 8000151117 / +91 7689987368 • Website: <a href="https://sscourierservice.in" style="color: #FF6B00; text-decoration: none;">sscourierservice.in</a>
+                SS International Courier • Shop No 4, Johri Bazar, Jaipur 302003<br/>
+                Helpline: +91 8000151117 / +91 7689987368 • Website: <a href="https://sscourierservice.in" style="color: #2563EB; text-decoration: none;">sscourierservice.in</a>
               </p>
             </div>
           </div>

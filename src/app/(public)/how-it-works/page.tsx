@@ -6,7 +6,7 @@ import { getCompanyProfile } from "@/lib/settings";
 
 export default async function HowItWorksPage() {
   const profile = await getCompanyProfile();
-  const companyName = profile.company_name || "SS International Courier Service";
+  const companyName = profile.company_name || "SS International Courier";
 
   const steps = [
     {

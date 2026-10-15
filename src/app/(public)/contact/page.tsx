@@ -335,7 +335,7 @@ export default function ContactPage() {
 
         <div className="w-full h-80 sm:h-96 rounded-2xl overflow-hidden border border-border-default shadow-md bg-slate-100 relative">
           <iframe
-            title="SS International Courier Service Location Map"
+            title="SS International Courier Location Map"
             src={mapUrl}
             width="100%"
             height="100%"

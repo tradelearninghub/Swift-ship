@@ -94,8 +94,8 @@ export async function POST(req: NextRequest) {
     try {
       sendRealEmail({
         to: email,
-        subject: `We have received your inquiry [${ticketNumber}] — SS International Courier Service`,
-        text: `Hello ${name},\n\nThank you for contacting SS International Courier Service. We have received your inquiry and our support team will respond promptly.\n\nTicket Reference: ${ticketNumber}\nSubject: ${subject}\n\nWarm regards,\nSS International Courier Service Support Team`,
+        subject: `We have received your inquiry [${ticketNumber}] — SS International Courier`,
+        text: `Hello ${name},\n\nThank you for contacting SS International Courier. We have received your inquiry and our support team will respond promptly.\n\nTicket Reference: ${ticketNumber}\nSubject: ${subject}\n\nWarm regards,\nSS International Courier Support Team`,
       }).catch((err) => {
         console.warn("[CONTACT-EMAIL] Non-blocking acknowledgment mail error:", err.message);
       });

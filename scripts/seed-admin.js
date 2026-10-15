@@ -1,5 +1,5 @@
 /**
- * SS International Courier Service - Dedicated Admin Seeder Script
+ * SS International Courier - Dedicated Admin Seeder Script
  * Ensures the database has the Super Admin account and essential system roles.
  * STRICTLY NON-DESTRUCTIVE: Never overwrites existing user data, passwords, or settings.
  */
@@ -157,7 +157,7 @@ async function seedAdmin() {
           'company_profile',
           'company_profile',
           JSON_OBJECT(
-            'company_name', 'SS International Courier Service Pvt. Ltd.',
+            'company_name', 'SS International Courier Pvt. Ltd.',
             'tagline', 'Fast, Safe & Multi-Carrier Courier Logistics',
             'support_email', 'support@sscourierservice.in',
             'support_phones', JSON_ARRAY('8000151117', '7689987368'),
@@ -185,14 +185,15 @@ async function seedAdmin() {
           val &&
           (val.company_name === "SS Courier service Pvt. Ltd." ||
             val.company_name === "SS Courier Services Pvt. Ltd." ||
-            val.company_name === "SS Courier service")
+            val.company_name === "SS Courier service" ||
+            val.company_name === "SS International Courier Service Pvt. Ltd.")
         ) {
-          val.company_name = "SS International Courier Service Pvt. Ltd.";
+          val.company_name = "SS International Courier Pvt. Ltd.";
           await prisma.setting.update({
             where: { key: "company_profile" },
             data: { value: val },
           });
-          console.log("[ADMIN-SEED] 🔄 Updated legacy default brand name to 'SS International Courier Service Pvt. Ltd.' while preserving all user-customized fields.");
+          console.log("[ADMIN-SEED] 🔄 Updated brand name to 'SS International Courier Pvt. Ltd.' while preserving all user-customized fields.");
         }
       } catch (e) {}
     }

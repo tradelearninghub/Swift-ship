@@ -10,9 +10,9 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          primary: "var(--brand-primary, #1D4ED8)",
-          "primary-hover": "var(--brand-primary-hover, #1E40AF)",
-          accent: "var(--brand-accent, #F59E0B)",
+          primary: "var(--brand-primary, #030164)",
+          "primary-hover": "var(--brand-primary-hover, #02004a)",
+          accent: "var(--brand-accent, #2563EB)",
         },
         surface: {
           base: "var(--surface-base, #FFFFFF)",
