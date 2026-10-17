@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   Menu,
   X,
+  MessageSquareQuote,
 } from "lucide-react";
 import { SignOutButton } from "@/components/SignOutButton";
 
@@ -52,7 +53,8 @@ export default function AdminLayout({
     { href: "/admin/payments", label: "Payments", icon: CreditCard },
     { href: "/admin/support", label: "Support Tickets", icon: LifeBuoy },
 
-    { section: "System" },
+    { section: "System & Website" },
+    { href: "/admin/testimonials", label: "Testimonials & Partners", icon: MessageSquareQuote },
     { href: "/admin/notifications", label: "Notifications", icon: Bell },
     { href: "/admin/reports", label: "Reports", icon: BarChart3 },
     { href: "/admin/settings", label: "System Settings", icon: Settings },

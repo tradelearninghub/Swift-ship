@@ -68,11 +68,11 @@ export default async function PublicLayout({
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      {/* TOPBAR (Sleek dark announcement & contact bar) */}
-      <div className="bg-[#070D1B] text-slate-300 text-xs py-2 border-b border-slate-800/80">
-        <div className="main-container flex flex-wrap items-center justify-between gap-y-2">
+      {/* TOPBAR (Sleek single-line dark contact & action bar) */}
+      <div className="bg-[#070D1B] text-slate-300 text-xs py-2.5 border-b border-slate-800/80">
+        <div className="main-container flex items-center justify-between gap-4 overflow-x-auto no-scrollbar whitespace-nowrap">
           {/* Left: Phone & Support Email */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <div className="flex items-center gap-x-3 sm:gap-x-4 shrink-0">
             <span className="flex items-center gap-1.5 text-slate-300">
               <i className="fas fa-phone-alt text-[#2563EB] text-[11px]"></i>
               <a href={`tel:+91${phone1.replace(/^\+91/, "").trim()}`} className="hover:text-white transition-colors">
@@ -83,7 +83,7 @@ export default async function PublicLayout({
                 +91 {phone2.replace(/^\+91/, "").trim()}
               </a>
             </span>
-            <span className="hidden md:flex items-center gap-1.5 text-slate-300">
+            <span className="hidden md:flex items-center gap-1.5 text-slate-300 border-l border-slate-800 pl-3">
               <i className="fas fa-envelope text-[#2563EB] text-[11px]"></i>
               <a href={`mailto:${profile.support_email}`} className="hover:text-white transition-colors">
                 {profile.support_email}
@@ -91,14 +91,8 @@ export default async function PublicLayout({
             </span>
           </div>
 
-          {/* Center: Special Announcement Pill matching modern reference */}
-          <div className="hidden xl:flex items-center gap-2 text-[11px] text-blue-300 bg-blue-500/10 px-3 py-0.5 rounded-full border border-blue-400/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-            <span>Worldwide Express Network across 220+ Countries • Doorstep Pickup &amp; Customs Clearance</span>
-          </div>
-
           {/* Right: Tracking, Login & Socials */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             <Link href="/track" className="text-slate-300 hover:text-white transition-colors flex items-center gap-1.5">
               <i className="fas fa-search-location text-[#2563EB]"></i>
               <span>Live Tracking</span>
@@ -156,6 +150,7 @@ export default async function PublicLayout({
           </div>
         </div>
       </div>
+
 
       {/* NAVBAR (Crisp white header with dark text and sapphire CTA) */}
       <nav className="bg-white/95 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100 shadow-xs py-3">
@@ -251,17 +246,19 @@ export default async function PublicLayout({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             {/* Section 1 — Brand Story & Identity */}
             <div className="footer-col space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0">
-                  <i className="fas fa-shipping-fast text-[#2563EB] text-lg !mr-0"></i>
+              <Link href="/" className="inline-flex items-center gap-3 group text-decoration-none">
+                <div className="w-11 h-11 rounded-xl bg-[#0B1536] border border-blue-500/30 flex items-center justify-center text-white shadow-lg shadow-blue-500/10 group-hover:scale-105 transition-transform duration-200 shrink-0">
+                  <i className="fas fa-shipping-fast text-[#2563EB] text-xl !mr-0"></i>
                 </div>
-                <div>
-                  <h3 className="text-white text-base font-bold leading-tight">SS INTERNATIONAL</h3>
-                  <p className="text-[10px] text-[#2563EB] tracking-[0.25em] font-semibold uppercase">
-                    COURIER
-                  </p>
+                <div className="flex flex-col">
+                  <span className="font-black text-xl text-white tracking-tight leading-tight group-hover:text-blue-400 transition-colors">
+                    SS INTERNATIONAL
+                  </span>
+                  <span className="text-[10px] font-bold text-[#2563EB] tracking-[0.25em] uppercase leading-none">
+                    COURIER &amp; CARGO
+                  </span>
                 </div>
-              </div>
+              </Link>
 
               <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
                 Fast, reliable express courier and automated shipment tracking across 220+ countries. Direct counter booking, commercial invoices, and end-to-end priority logistics.
@@ -410,12 +407,20 @@ export default async function PublicLayout({
                   <p className="font-semibold text-slate-200 text-xs uppercase tracking-wider mb-1">
                     Hub Address
                   </p>
-                  <p className="text-xs text-slate-400 leading-relaxed flex items-start gap-2">
-                    <i className="fas fa-map-marker-alt text-[#2563EB] text-xs mt-1 shrink-0"></i>
-                    <span>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      `${profile.address}, ${profile.city}, ${profile.state} ${profile.pincode}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-slate-400 hover:text-white transition-colors leading-relaxed flex items-start gap-2 group"
+                    title="Open hub location in Google Maps"
+                  >
+                    <i className="fas fa-map-marker-alt text-[#2563EB] group-hover:text-blue-400 text-xs mt-1 shrink-0"></i>
+                    <span className="group-hover:underline">
                       {profile.address}, {profile.city}, {profile.state} {profile.pincode}
                     </span>
-                  </p>
+                  </a>
                 </div>
 
                 {/* Direct WhatsApp Support Corner Button in Footer */}

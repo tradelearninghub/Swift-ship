@@ -28,7 +28,12 @@ import {
   Power,
   Navigation,
   DollarSign,
+  Sparkles,
+  Eye,
+  EyeOff,
+  MessageSquareQuote,
 } from "lucide-react";
+import Link from "next/link";
 
 interface SettingRow {
   key: string;
@@ -62,11 +67,15 @@ interface NotificationTemplateItem {
 
 export default function AdminSettingsPage() {
   const [activeGroup, setActiveGroup] = useState<
-    "company" | "templates" | "social" | "smtp" | "whatsapp" | "sms" | "security" | "currency"
+    "company" | "website" | "templates" | "social" | "smtp" | "whatsapp" | "sms" | "security" | "currency"
   >("company");
   const [isSaving, setIsSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Partner Marquee visibility state
+  const [partnerMarqueeVisible, setPartnerMarqueeVisible] = useState(true);
+  const [togglingMarquee, setTogglingMarquee] = useState(false);
 
   // Test email state
   const [testRecipientEmail, setTestRecipientEmail] = useState("");
@@ -230,6 +239,14 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     loadSettings();
+    fetch("/api/admin/partner-channel")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.settings && typeof data.settings.is_visible === "boolean") {
+          setPartnerMarqueeVisible(data.settings.is_visible);
+        }
+      })
+      .catch(() => {});
   }, [loadSettings]);
 
   useEffect(() => {
@@ -451,6 +468,7 @@ export default function AdminSettingsPage() {
 
   const navItems = [
     { key: "company" as const, label: "Company Profile", icon: Building },
+    { key: "website" as const, label: "Partner Marquee & Reviews", icon: Sparkles },
     { key: "templates" as const, label: "Email Templates (§39)", icon: FileText },
     { key: "social" as const, label: "Social Media Links", icon: Share2 },
     { key: "smtp" as const, label: "Email / SMTP Config", icon: Mail },
@@ -772,6 +790,107 @@ export default function AdminSettingsPage() {
             {/* ============================================================== */}
             {activeGroup !== "templates" && (
               <form onSubmit={handleSave} className="space-y-6">
+                {/* WEBSITE: PARTNER MARQUEE & TESTIMONIALS */}
+                {activeGroup === "website" && (
+                  <div className="space-y-6">
+                    <div className="border-b border-border-default pb-3 flex items-center justify-between">
+                      <div>
+                        <h3 className="font-bold text-sm text-text-primary">Partner Channel Marquee & Customer Reviews</h3>
+                        <p className="text-xs text-text-muted mt-0.5">
+                          Toggle the courier partners marquee ribbon on the public website and manage testimonials.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Marquee Toggle Card */}
+                    <div className="p-5 rounded-2xl border border-border-default bg-surface-subtle space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-sm text-text-primary">Courier Partners Marquee Ribbon</h4>
+                            <span
+                              className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                                partnerMarqueeVisible
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-300"
+                                  : "bg-rose-50 text-rose-700 border border-rose-300"
+                              }`}
+                            >
+                              {partnerMarqueeVisible ? "DISPLAYED ON WEBSITE" : "HIDDEN FROM WEBSITE"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-text-secondary mt-1">
+                            Shows an animated ribbon of Indian couriers (Delhivery, Blue Dart, DTDC, India Post, etc.) and major US/International couriers (FedEx, DHL, UPS, USPS, Aramex).
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={togglingMarquee}
+                          onClick={async () => {
+                            const next = !partnerMarqueeVisible;
+                            setTogglingMarquee(true);
+                            try {
+                              const res = await fetch("/api/admin/partner-channel", {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ is_visible: next }),
+                              });
+                              if (res.ok) {
+                                setPartnerMarqueeVisible(next);
+                                setSaveResult({
+                                  success: true,
+                                  message: `Partner Channel Marquee is now ${next ? "VISIBLE" : "HIDDEN"} on the website.`,
+                                });
+                              }
+                            } catch {}
+                            setTogglingMarquee(false);
+                          }}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0 ${
+                            partnerMarqueeVisible
+                              ? "bg-rose-600 hover:bg-rose-700 text-white shadow-sm"
+                              : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                          }`}
+                        >
+                          {togglingMarquee ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : partnerMarqueeVisible ? (
+                            <>
+                              <EyeOff className="w-3.5 h-3.5" />
+                              <span>Hide Marquee</span>
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>Show Marquee</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Testimonials Quick Access */}
+                    <div className="p-5 rounded-2xl border border-blue-200 bg-blue-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <MessageSquareQuote className="w-5 h-5 text-[#2563EB]" />
+                          <h4 className="font-bold text-sm text-slate-900">Customer Testimonials &amp; Reviews</h4>
+                        </div>
+                        <p className="text-xs text-slate-600 mt-1 max-w-lg">
+                          Add new client testimonials, remove outdated reviews, or toggle their active status on the home page.
+                        </p>
+                      </div>
+
+                      <Link
+                        href="/admin/testimonials"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all shrink-0"
+                      >
+                        <span>Open Testimonials Manager</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
                 {/* COMPANY PROFILE */}
                 {activeGroup === "company" && (
                   <div className="space-y-4">

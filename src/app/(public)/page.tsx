@@ -25,6 +25,9 @@ import {
   Loader2,
 } from "lucide-react";
 
+import { PartnerMarquee } from "@/components/PartnerMarquee";
+import { TestimonialsSection } from "@/components/TestimonialsSection";
+
 export default function HomePage() {
   const router = useRouter();
 
@@ -37,25 +40,6 @@ export default function HomePage() {
     if (!q) return;
     router.push(`/track?awb=${encodeURIComponent(q)}`);
   };
-
-  // Instant Rate Calculator state
-  const [calcCountry, setCalcCountry] = useState("United States");
-  const [calcWeight, setCalcWeight] = useState("1.0");
-  const [calcType, setCalcType] = useState<"document" | "parcel" | "express">("parcel");
-
-  // Dynamic estimated rate preview
-  const estimatedPrice = React.useMemo(() => {
-    const w = parseFloat(calcWeight) || 1.0;
-    let base = 1250;
-    if (calcCountry === "United States" || calcCountry === "Canada") base = 1650;
-    else if (calcCountry === "United Kingdom" || calcCountry === "Germany" || calcCountry === "France") base = 1450;
-    else if (calcCountry === "United Arab Emirates" || calcCountry === "Saudi Arabia") base = 950;
-    else if (calcCountry === "Australia" || calcCountry === "New Zealand") base = 1750;
-
-    let multiplier = calcType === "document" ? 0.8 : calcType === "express" ? 1.35 : 1.0;
-    const total = Math.round((base + (w - 1) * (base * 0.45)) * multiplier);
-    return Math.max(total, 599);
-  }, [calcCountry, calcWeight, calcType]);
 
   // FAQ Accordion state (first item open by default)
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -357,6 +341,11 @@ export default function HomePage() {
       </div>
 
       {/* ========================================================================= */}
+      {/* 2b. PARTNER CHANNELS MARQUEE (India & Major US/International Couriers) */}
+      {/* ========================================================================= */}
+      <PartnerMarquee />
+
+      {/* ========================================================================= */}
       {/* 3. BENTO GRID: Reliability. Speed & Efficiency. (Crisp white canvas) */}
       {/* ========================================================================= */}
       <section className="py-16 sm:py-24 bg-white">
@@ -467,127 +456,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* 4. SHIPPING RATE CALCULATOR (With background warehouse photo) */}
-      {/* ========================================================================= */}
-      <section className="relative py-24 sm:py-32 bg-slate-900 overflow-hidden">
-        {/* Background Image */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1800&q=80"
-          alt="Logistics Warehouse"
-          className="absolute inset-0 w-full h-full object-cover opacity-35"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-900/60"></div>
 
-        <div className="main-container relative z-10">
-          {/* Centered Pristine White Calculator Card */}
-          <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-2xl p-7 sm:p-10 border border-slate-100">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mb-2">
-                <span className="text-[#2563EB]">Calculate</span> Shipping Rate
-              </h2>
-              <p className="text-slate-500 text-xs sm:text-sm">
-                Get an instant estimate for priority air cargo across 220+ international destinations
-              </p>
-
-              {/* Mode Pill */}
-              <div className="inline-flex items-center gap-2 mt-4 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#2563EB] text-xs font-bold">
-                <Globe2 className="w-3.5 h-3.5" />
-                <span>Send Internationally (220+ Countries)</span>
-              </div>
-            </div>
-
-            {/* Inputs Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {/* Origin */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  From (Your Location)
-                </label>
-                <div className="h-11 px-3.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-700 text-sm flex items-center gap-2 font-medium">
-                  <MapPin className="w-4 h-4 text-emerald-600" />
-                  <span>India (All Major Hubs &amp; Cities)</span>
-                </div>
-              </div>
-
-              {/* Destination Country */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  To (Destination Country)
-                </label>
-                <select
-                  value={calcCountry}
-                  onChange={(e) => setCalcCountry(e.target.value)}
-                  className="w-full h-11 px-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
-                >
-                  <option value="United States">United States (USA)</option>
-                  <option value="United Kingdom">United Kingdom (UK)</option>
-                  <option value="Canada">Canada</option>
-                  <option value="United Arab Emirates">United Arab Emirates (UAE)</option>
-                  <option value="Australia">Australia</option>
-                  <option value="Germany">Germany</option>
-                  <option value="France">France</option>
-                  <option value="Saudi Arabia">Saudi Arabia</option>
-                  <option value="Singapore">Singapore</option>
-                  <option value="New Zealand">New Zealand</option>
-                </select>
-              </div>
-
-              {/* Weight */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Weight (Kilograms)
-                </label>
-                <input
-                  type="number"
-                  min="0.5"
-                  step="0.5"
-                  value={calcWeight}
-                  onChange={(e) => setCalcWeight(e.target.value)}
-                  placeholder="e.g. 2.5"
-                  className="w-full h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
-                />
-              </div>
-
-              {/* Shipment Type */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Shipment Type
-                </label>
-                <select
-                  value={calcType}
-                  onChange={(e) => setCalcType(e.target.value as "document" | "parcel" | "express")}
-                  className="w-full h-11 px-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
-                >
-                  <option value="parcel">Standard Commercial Parcel</option>
-                  <option value="document">Legal / Business Documents</option>
-                  <option value="express">Express Priority Air Freight</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Price Preview & CTA Row */}
-            <div className="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <p className="text-xs text-slate-500 font-medium">Estimated Starting Rate:</p>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900">₹{estimatedPrice.toLocaleString("en-IN")}</span>
-                  <span className="text-xs text-slate-500">approx. base air tariff</span>
-                </div>
-              </div>
-
-              <Link
-                href={`/book?country=${encodeURIComponent(calcCountry)}&weight=${encodeURIComponent(calcWeight)}`}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-sm shadow-md shadow-blue-500/25 transition-all transform hover:-translate-y-0.5"
-              >
-                <span>Book This Shipment</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ========================================================================= */}
       {/* 5. DELIVERY MILESTONE BANNER (Fast. Reliable. Trackable Deliveries) */}
@@ -624,6 +493,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ========================================================================= */}
+      {/* 5b. TESTIMONIALS & REVIEWS SECTION */}
+      {/* ========================================================================= */}
+      <TestimonialsSection />
 
       {/* ========================================================================= */}
       {/* 6. FAQ ACCORDION SECTION (Clean White Background) */}

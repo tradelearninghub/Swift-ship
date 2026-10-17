@@ -230,7 +230,15 @@ export function MobileNav({
             {/* Footer Notice */}
             <div className="p-4 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-500 text-center">
               <p className="font-semibold text-slate-700">SS International Courier</p>
-              <p className="mt-0.5 truncate text-[10px]">{address}</p>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-0.5 truncate text-[10px] text-blue-600 hover:underline block"
+                title="Open address in Google Maps"
+              >
+                {address}
+              </a>
             </div>
           </div>
         </div>
