@@ -741,6 +741,61 @@ export function InternationalBookingForm({
 
       <form onSubmit={handleSubmit} noValidate className="space-y-8">
         {/* ============================================================== */}
+        {/* TOP OF FORM: PRE-PRINTED AWB STICKER & DISPATCH DATE */}
+        {/* ============================================================== */}
+        <Card id="part-awb-sticker" className="shadow-md overflow-hidden border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-50/60 via-white to-blue-50/30">
+          <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-[#030164] text-white p-4 sm:p-5 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <span className="w-8 h-8 rounded-lg bg-white/10 text-white font-extrabold flex items-center justify-center text-xs border border-white/20">
+                <Barcode className="w-4 h-4" />
+              </span>
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <span>Pre-Printed AWB Sticker & Dispatch Date</span>
+                </h3>
+                <p className="text-xs text-emerald-100">
+                  Required for business & corporate accounts with pre-printed barcode stickers / tags
+                </p>
+              </div>
+            </div>
+            <span className="text-xs text-emerald-950 font-bold flex items-center gap-1.5 bg-emerald-200/90 px-3 py-1 rounded-full border border-emerald-300">
+              <Tag className="w-3.5 h-3.5 text-emerald-900" /> Pre-Printed Tag
+            </span>
+          </div>
+
+          <div className="p-5 sm:p-6 space-y-3">
+            <p className="text-xs text-slate-600">
+              If you have physical pre-printed AWB sticker tags, enter the barcode number and consignment date below to link directly with courier company tracking.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Input
+                  label="Pre-Printed AWB Sticker / Barcode Number"
+                  name="manualAwb"
+                  id="manualAwb"
+                  value={manualAwb}
+                  onChange={(e) => setManualAwb(e.target.value.toUpperCase())}
+                  placeholder="e.g. AWB-98214012 or sticker barcode"
+                  helperText="Physical barcode sticker number affixed on parcel"
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="AWB Sticker / Dispatch Date"
+                  name="awbDate"
+                  id="awbDate"
+                  type="date"
+                  value={awbDate}
+                  onChange={(e) => setAwbDate(e.target.value)}
+                  helperText="Date of consignment dispatch"
+                />
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* ============================================================== */}
         {/* PART 1: SENDER INFORMATION (Origin: India) */}
         {/* ============================================================== */}
         <Card id="part-sender" className="shadow-md overflow-hidden border border-slate-200">
@@ -1644,50 +1699,6 @@ export function InternationalBookingForm({
                 {errors.description && (
                   <p className="text-xs text-status-danger">{errors.description}</p>
                 )}
-              </div>
-
-              {/* Pre-Printed AWB Barcode Sticker / Tag (§Business & Admin) */}
-              <div className="pt-5 border-t border-border-default space-y-4">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="space-y-0.5">
-                    <h4 className="text-sm font-bold text-text-primary flex items-center gap-2">
-                      <Barcode className="w-4 h-4 text-[#030164]" />
-                      Pre-Printed AWB Sticker & Dispatch Date
-                    </h4>
-                    <p className="text-xs text-text-secondary">
-                      Required for corporate / registered business accounts using physical pre-printed barcode tags.
-                    </p>
-                  </div>
-                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
-                    <Tag className="w-3 h-3 text-emerald-600" /> Pre-Printed Tag Supported
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/80 p-4 rounded-xl border border-slate-200">
-                  <div>
-                    <Input
-                      label="Pre-Printed AWB Sticker / Barcode Number"
-                      name="manualAwb"
-                      id="manualAwb"
-                      value={manualAwb}
-                      onChange={(e) => setManualAwb(e.target.value.toUpperCase())}
-                      placeholder="e.g. AWB-98214012 or sticker barcode"
-                      helperText="Physical barcode sticker number affixed on parcel"
-                    />
-                  </div>
-
-                  <div>
-                    <Input
-                      label="AWB Sticker / Dispatch Date"
-                      name="awbDate"
-                      id="awbDate"
-                      type="date"
-                      value={awbDate}
-                      onChange={(e) => setAwbDate(e.target.value)}
-                      helperText="Date of consignment dispatch"
-                    />
-                  </div>
-                </div>
               </div>
             </div>
           </div>

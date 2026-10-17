@@ -226,6 +226,40 @@ export function UpdateTrackingModal({
             </div>
           </div>
 
+          {/* Pre-Printed Sticker Barcode & Date Section */}
+          <div className="space-y-4 bg-emerald-50/40 p-4 rounded-xl border border-emerald-100">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+                <Barcode className="w-4 h-4 text-emerald-700" /> Pre-Printed AWB Sticker & Dispatch Date
+              </h4>
+              <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                Registered Business Tag Support
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Input
+                  label="Physical Sticker AWB / Barcode Tag"
+                  value={manualAwb}
+                  onChange={(e) => setManualAwb(e.target.value.toUpperCase())}
+                  placeholder="e.g. AWB-98214012"
+                  helperText="Pre-printed barcode number on the parcel sticker"
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Sticker Dispatch Date"
+                  type="date"
+                  value={awbDate}
+                  onChange={(e) => setAwbDate(e.target.value)}
+                  helperText="Date tag was applied / dispatched"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Carrier Selection & Tracking ID Input */}
           <div className="space-y-4 bg-blue-50/40 p-4 rounded-xl border border-blue-100">
             <h4 className="text-xs font-bold uppercase tracking-wider text-[#030164] flex items-center gap-1.5">
@@ -299,40 +333,6 @@ export function UpdateTrackingModal({
               <p className="text-[10px] text-text-muted">
                 Auto-generated for <strong>{courierName}</strong>. Customers will be able to click this tracking ID directly or tap a redirect button to track live on the courier's official portal.
               </p>
-            </div>
-          </div>
-
-          {/* Pre-Printed Sticker Barcode & Date Section */}
-          <div className="space-y-4 bg-emerald-50/40 p-4 rounded-xl border border-emerald-100">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
-                <Barcode className="w-4 h-4 text-emerald-700" /> Pre-Printed AWB Sticker & Dispatch Date
-              </h4>
-              <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                Registered Business Tag Support
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Input
-                  label="Physical Sticker AWB / Barcode Tag"
-                  value={manualAwb}
-                  onChange={(e) => setManualAwb(e.target.value.toUpperCase())}
-                  placeholder="e.g. AWB-98214012"
-                  helperText="Pre-printed barcode number on the parcel sticker"
-                />
-              </div>
-
-              <div>
-                <Input
-                  label="Sticker Dispatch Date"
-                  type="date"
-                  value={awbDate}
-                  onChange={(e) => setAwbDate(e.target.value)}
-                  helperText="Date tag was applied / dispatched"
-                />
-              </div>
             </div>
           </div>
 
