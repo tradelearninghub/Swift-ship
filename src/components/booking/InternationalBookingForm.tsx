@@ -27,6 +27,8 @@ import {
   Plane,
   ShieldCheck,
   Search,
+  Barcode,
+  Tag,
 } from "lucide-react";
 
 export interface LineItem {
@@ -133,6 +135,10 @@ export function InternationalBookingForm({
   const [widthCm, setWidthCm] = useState("");
   const [heightCm, setHeightCm] = useState("");
 
+  // Pre-Printed AWB Barcode Sticker State (§Business & Staff tags)
+  const [manualAwb, setManualAwb] = useState("");
+  const [awbDate, setAwbDate] = useState("");
+
   // Admin Specific Fields
   const [adminCourierId, setAdminCourierId] = useState("");
   const [adminShippingCharge, setAdminShippingCharge] = useState("");
@@ -162,10 +168,11 @@ export function InternationalBookingForm({
     loadRate();
   }, []);
 
-  // Set today's date for invoice by default
+  // Set today's date for invoice and AWB sticker by default
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
     setInvoiceDate(today);
+    setAwbDate(today);
   }, []);
 
   // Available states for selected receiver country
@@ -532,6 +539,10 @@ export function InternationalBookingForm({
         submitted_height_cm: Math.round(parseFloat(heightCm || "15")),
         declared_value_paise: declaredSmallestUnit,
 
+        // Pre-Printed AWB Sticker & Dispatch Date (§Business / Admin)
+        manual_awb: manualAwb.trim() || undefined,
+        awb_date: awbDate.trim() || undefined,
+
         payment_type: "PREPAID",
         cod_amount_paise: 0,
 
@@ -617,6 +628,12 @@ export function InternationalBookingForm({
             <p className="font-mono text-sm font-bold text-[#2563EB]">
               AWB: {createdAwb}
             </p>
+          )}
+          {manualAwb && (
+            <div className="inline-flex items-center gap-2 font-mono text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg my-1">
+              <Barcode className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Pre-Printed Tag AWB: {manualAwb} ({awbDate || "Today"})</span>
+            </div>
           )}
           <p className="text-sm text-text-secondary max-w-md mx-auto">
             Your international consignment to <strong>{receiverCountry}</strong> has been registered.
@@ -1628,6 +1645,50 @@ export function InternationalBookingForm({
                   <p className="text-xs text-status-danger">{errors.description}</p>
                 )}
               </div>
+
+              {/* Pre-Printed AWB Barcode Sticker / Tag (§Business & Admin) */}
+              <div className="pt-5 border-t border-border-default space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="space-y-0.5">
+                    <h4 className="text-sm font-bold text-text-primary flex items-center gap-2">
+                      <Barcode className="w-4 h-4 text-[#030164]" />
+                      Pre-Printed AWB Sticker & Dispatch Date
+                    </h4>
+                    <p className="text-xs text-text-secondary">
+                      Required for corporate / registered business accounts using physical pre-printed barcode tags.
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
+                    <Tag className="w-3 h-3 text-emerald-600" /> Pre-Printed Tag Supported
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/80 p-4 rounded-xl border border-slate-200">
+                  <div>
+                    <Input
+                      label="Pre-Printed AWB Sticker / Barcode Number"
+                      name="manualAwb"
+                      id="manualAwb"
+                      value={manualAwb}
+                      onChange={(e) => setManualAwb(e.target.value.toUpperCase())}
+                      placeholder="e.g. AWB-98214012 or sticker barcode"
+                      helperText="Physical barcode sticker number affixed on parcel"
+                    />
+                  </div>
+
+                  <div>
+                    <Input
+                      label="AWB Sticker / Dispatch Date"
+                      name="awbDate"
+                      id="awbDate"
+                      type="date"
+                      value={awbDate}
+                      onChange={(e) => setAwbDate(e.target.value)}
+                      helperText="Date of consignment dispatch"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </Card>
@@ -1800,6 +1861,18 @@ export function InternationalBookingForm({
                     ))}
                 </div>
               </div>
+
+              {/* Pre-Printed Sticker Tag in Summary */}
+              {manualAwb && (
+                <div className="pt-2 border-t border-border-default/60 flex items-center justify-between flex-wrap gap-2 bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-200">
+                  <div className="flex items-center gap-2">
+                    <Barcode className="w-4 h-4 text-emerald-700" />
+                    <span className="font-semibold text-emerald-900">Pre-Printed Tag AWB:</span>
+                    <span className="font-mono font-bold text-emerald-800">{manualAwb}</span>
+                  </div>
+                  <span className="text-[11px] text-emerald-700 font-medium">Sticker Date: {awbDate || "Today"}</span>
+                </div>
+              )}
             </div>
 
             {/* Admin-only Allocation Controls (if in admin mode) */}

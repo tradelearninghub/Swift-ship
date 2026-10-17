@@ -50,6 +50,21 @@ export default function AdminCodPage() {
         </Button>
       </div>
 
+      {/* Inactive COD Service Notice */}
+      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="font-bold flex items-center gap-1.5 text-amber-800">
+            <AlertTriangle className="w-4 h-4 text-amber-600" /> COD Settlement Service Inactive
+          </div>
+          <p className="text-amber-700 leading-relaxed">
+            The business does not offer Cash on Delivery (COD) settlement services. All consignments are booked strictly on 100% prepaid freight terms.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => window.location.href = "/admin/bookings"} className="whitespace-nowrap shrink-0">
+          Go to Bookings <ArrowRight className="w-3.5 h-3.5 ml-1" />
+        </Button>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4">

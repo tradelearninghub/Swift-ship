@@ -10,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { ReceiptLabelModal } from "@/components/ui/ReceiptLabelModal";
 import { MilestoneUpdateModal } from "@/components/ui/MilestoneUpdateModal";
 import { Modal } from "@/components/ui/Modal";
+import { UpdateTrackingModal } from "@/components/admin/UpdateTrackingModal";
 import { formatPaiseToRupees, formatGramsToKg } from "@/lib/utils";
 import {
   ArrowLeft,
@@ -57,6 +58,7 @@ export default function AdminBookingReviewPage() {
   const [isApproved, setIsApproved] = useState(false);
   const [isLabelModalOpen, setIsLabelModalOpen] = useState(false);
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
+  const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
 
   // Rejection modal
   const [showRejectBox, setShowRejectBox] = useState(false);
@@ -739,6 +741,19 @@ export default function AdminBookingReviewPage() {
                   </div>
                 </div>
               )}
+
+              <div className="pt-2 border-t border-border-default">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsTrackingModalOpen(true)}
+                  className="w-full text-xs font-bold text-[#030164] border-blue-200 hover:bg-blue-50 flex items-center justify-center gap-1.5"
+                >
+                  <Truck className="w-3.5 h-3.5 text-[#2563EB]" />
+                  <span>Update Third-Party Carrier Tracking & AWB</span>
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -841,6 +856,22 @@ export default function AdminBookingReviewPage() {
               ...prev,
               status: updatedShipment?.status === "DELIVERED" ? "DELIVERED" : prev.status,
               shipment: updatedShipment || prev.shipment,
+            }));
+          }}
+        />
+      )}
+
+      {/* Third-Party Courier Tracking & Pre-Printed AWB Modal */}
+      {isTrackingModalOpen && booking && (
+        <UpdateTrackingModal
+          isOpen={isTrackingModalOpen}
+          onClose={() => setIsTrackingModalOpen(false)}
+          booking={booking}
+          onSuccess={(updated) => {
+            setBooking((prev: any) => ({
+              ...prev,
+              ...updated,
+              shipment: updated.shipment || prev.shipment,
             }));
           }}
         />

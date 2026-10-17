@@ -243,15 +243,15 @@ export default function CustomerDashboardPage() {
                           <div className="font-semibold text-text-primary">
                             {amountPaise > 0 ? formatPaiseToRupees(amountPaise) : "Pending Rate"}
                           </div>
-                          <div className="text-[10px] text-text-muted uppercase font-medium">
-                            {b.payment_type === "COD" ? `COD (₹${Math.round(b.cod_amount / 100)})` : "Prepaid"}
+                          <div className="text-[10px] text-emerald-700 uppercase font-semibold">
+                            Prepaid
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <StatusBadge status={b.shipment?.status || b.status} />
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <Link href={`/track/${trackingToken}`}>
+                          <Link href={`/track?booking_id=${b.booking_number}`}>
                             <Button variant="outline" size="sm">
                               Track <ExternalLink className="w-3 h-3 ml-1" />
                             </Button>

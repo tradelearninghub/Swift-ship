@@ -20,19 +20,24 @@ import {
   FileText,
   Phone,
   Barcode,
+  ExternalLink,
+  Tag,
 } from "lucide-react";
 
-type SearchMode = "AWB" | "ORDER_ID" | "MOBILE";
+type SearchMode = "AWB" | "ORDER_ID" | "TRACKING_ID" | "MOBILE";
 
 function TrackingContent() {
   const searchParams = useSearchParams();
   const initialAwb = searchParams.get("awb") || "";
   const initialBookingId = searchParams.get("booking_id") || searchParams.get("order_id") || "";
+  const initialTrackingId = searchParams.get("tracking_id") || "";
   const initialMobile = searchParams.get("mobile") || "";
-  const initialQuery = searchParams.get("q") || initialAwb || initialBookingId;
+  const initialQuery = searchParams.get("q") || initialAwb || initialBookingId || initialTrackingId;
 
   const [activeTab, setActiveTab] = useState<SearchMode>(
-    initialAwb
+    initialTrackingId
+      ? "TRACKING_ID"
+      : initialAwb
       ? "AWB"
       : initialBookingId
       ? "ORDER_ID"
@@ -44,6 +49,7 @@ function TrackingContent() {
   // Search fields
   const [awbInput, setAwbInput] = useState(initialAwb);
   const [bookingIdInput, setBookingIdInput] = useState(initialBookingId);
+  const [trackingIdInput, setTrackingIdInput] = useState(initialTrackingId);
   const [mobileInput, setMobileInput] = useState(initialMobile);
 
   // Search Results State
@@ -169,8 +175,8 @@ function TrackingContent() {
 
       {/* 3-Option Search Container */}
       <div className="max-w-2xl mx-auto bg-surface-base border border-border-default rounded-2xl p-6 shadow-md space-y-6">
-        {/* 3 Distinct Search Option Tabs */}
-        <div className="grid grid-cols-3 rounded-xl bg-surface-subtle p-1 border border-border-default text-xs font-semibold gap-1">
+        {/* 4 Distinct Search Option Tabs */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 rounded-xl bg-surface-subtle p-1 border border-border-default text-xs font-semibold gap-1">
           <button
             type="button"
             onClick={() => setActiveTab("AWB")}
@@ -181,7 +187,7 @@ function TrackingContent() {
             }`}
           >
             <Barcode className="w-4 h-4 hidden sm:inline" />
-            <span>AWB Number</span>
+            <span>AWB / Tag</span>
           </button>
 
           <button
@@ -194,7 +200,20 @@ function TrackingContent() {
             }`}
           >
             <FileText className="w-4 h-4 hidden sm:inline" />
-            <span>Order / Booking ID</span>
+            <span>Booking ID</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("TRACKING_ID")}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg transition-all ${
+              activeTab === "TRACKING_ID"
+                ? "bg-surface-base text-brand-primary shadow-sm font-bold"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            <Truck className="w-4 h-4 hidden sm:inline" />
+            <span>Tracking ID</span>
           </button>
 
           <button
@@ -207,7 +226,7 @@ function TrackingContent() {
             }`}
           >
             <Phone className="w-4 h-4 hidden sm:inline" />
-            <span>Mobile Number</span>
+            <span>Mobile No.</span>
           </button>
         </div>
 
@@ -222,14 +241,14 @@ function TrackingContent() {
           >
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-text-primary">
-                Enter Air Waybill (AWB) Number
+                Enter Air Waybill (AWB) or Pre-Printed Tag Number
               </label>
               <div className="relative">
                 <input
                   type="text"
                   value={awbInput}
                   onChange={(e) => setAwbInput(e.target.value)}
-                  placeholder="e.g. DEL98234123 or BLU77491021"
+                  placeholder="e.g. DEL98234123, BLU77491021 or AWB-98214012"
                   className="w-full h-12 pl-4 pr-12 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:outline-none transition-all"
                   required
                 />
@@ -259,14 +278,14 @@ function TrackingContent() {
           >
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-text-primary">
-                Enter Booking ID / Order Reference
+                Enter Booking ID / Consignment Reference
               </label>
               <div className="relative">
                 <input
                   type="text"
                   value={bookingIdInput}
                   onChange={(e) => setBookingIdInput(e.target.value)}
-                  placeholder="e.g. BK-1025 or BK-1018"
+                  placeholder="e.g. BK-1025 or BK-INT-1035"
                   className="w-full h-12 pl-4 pr-12 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:outline-none transition-all"
                   required
                 />
@@ -281,6 +300,43 @@ function TrackingContent() {
               isLoading={isLoading}
             >
               Track by Booking ID
+            </Button>
+          </form>
+        )}
+
+        {/* Option 3: Third-Party Carrier Tracking ID Search */}
+        {activeTab === "TRACKING_ID" && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleDirectLookup(trackingIdInput);
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-text-primary">
+                Enter Third-Party Courier Tracking Number
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={trackingIdInput}
+                  onChange={(e) => setTrackingIdInput(e.target.value)}
+                  placeholder="e.g. 78219401293 or DEL9812401 (FedEx, DHL, Delhivery, Blue Dart...)"
+                  className="w-full h-12 pl-4 pr-12 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:outline-none transition-all"
+                  required
+                />
+                <Search className="w-5 h-5 text-text-muted absolute right-4 top-3.5" />
+              </div>
+            </div>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full shadow-md bg-[#030164] hover:bg-[#120e7a] text-white"
+              isLoading={isLoading}
+            >
+              Track by Courier Tracking ID
             </Button>
           </form>
         )}
@@ -416,19 +472,44 @@ function TrackingContent() {
                     status={selectedBooking.status || selectedBooking.shipment?.status}
                   />
                 </div>
-                <div className="text-xs text-text-muted font-mono flex flex-wrap gap-x-4 gap-y-1">
+                <div className="text-xs text-text-muted font-mono flex flex-wrap gap-x-4 gap-y-1.5 pt-1">
                   <span>
                     AWB:{" "}
                     <strong className="text-text-primary">
                       {selectedBooking.awb || selectedBooking.shipment?.awb || "Pending Allocation"}
                     </strong>
                   </span>
+                  {selectedBooking.awb_date && (
+                    <span>
+                      Tag Date:{" "}
+                      <strong className="text-text-primary">{selectedBooking.awb_date}</strong>
+                    </span>
+                  )}
                   <span>
                     Courier Partner:{" "}
                     <strong className="text-text-primary">
                       {selectedBooking.courier_name || selectedBooking.shipment?.courier_name || "Assigned Partner"}
                     </strong>
                   </span>
+                  {selectedBooking.third_party_tracking_id && (
+                    <span>
+                      Carrier Tracking ID:{" "}
+                      {selectedBooking.tracking_url ? (
+                        <a
+                          href={selectedBooking.tracking_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Click to redirect to courier tracking page"
+                          className="font-bold text-[#2563EB] hover:underline inline-flex items-center gap-1"
+                        >
+                          {selectedBooking.third_party_tracking_id}
+                          <ExternalLink className="w-3 h-3 text-[#2563EB]" />
+                        </a>
+                      ) : (
+                        <strong className="text-text-primary">{selectedBooking.third_party_tracking_id}</strong>
+                      )}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -443,7 +524,47 @@ function TrackingContent() {
               </Button>
             </CardHeader>
 
-            <CardContent className="p-6 space-y-8">
+            <CardContent className="p-6 space-y-6">
+              {/* Third-Party Official Courier Website Redirection Banner */}
+              {selectedBooking.tracking_url && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 via-indigo-50/70 to-blue-50 border border-blue-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#030164] text-white flex items-center justify-center shrink-0 shadow-sm">
+                      <Truck className="w-5 h-5 text-[#2563EB]" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <div className="text-xs font-bold text-[#030164] flex items-center gap-1.5 flex-wrap">
+                        <span>Third-Party Courier Partner:</span>
+                        <span className="bg-blue-100 text-[#030164] px-2 py-0.5 rounded font-mono text-[11px] font-bold">
+                          {selectedBooking.courier_name || "Official Partner"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 font-mono">
+                        Tracking ID:{" "}
+                        <a
+                          href={selectedBooking.tracking_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-bold text-[#2563EB] hover:underline"
+                        >
+                          {selectedBooking.third_party_tracking_id || selectedBooking.awb}
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href={selectedBooking.tracking_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#030164] to-[#2563EB] hover:from-[#02004a] hover:to-[#1d4ed8] text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all"
+                  >
+                    <span>Track on {selectedBooking.courier_name || "Courier"} Official Website</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              )}
+
               {/* Privacy Preserving Route Overview (§27) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
                 <div className="space-y-1">
@@ -485,9 +606,7 @@ function TrackingContent() {
                     })}
                   </div>
                   <div className="text-xs font-medium text-emerald-700">
-                    {selectedBooking.payment_type === "COD"
-                      ? "Cash on Delivery"
-                      : "Prepaid Dispatch"}
+                    Prepaid Dispatch
                   </div>
                 </div>
               </div>

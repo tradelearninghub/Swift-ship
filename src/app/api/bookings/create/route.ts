@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { getUsdToInrRate } from "@/lib/settings";
+import { saveTrackingMetadata } from "@/lib/trackingMetadata";
 import { z } from "zod";
 
 const LineItemSchema = z.object({
@@ -19,6 +20,10 @@ const BookingCreateSchema = z.object({
   shipment_mode: z.enum(["DOMESTIC", "INTERNATIONAL"]).optional().default("INTERNATIONAL"),
   currency: z.enum(["INR", "USD"]).optional().default("INR"),
   exchange_rate: z.number().positive().optional(),
+
+  // Pre-printed AWB sticker tags & dispatch date
+  manual_awb: z.string().optional().nullable(),
+  awb_date: z.string().optional().nullable(),
 
   // Customer identity
   customer_name: z.string().optional(),
@@ -68,9 +73,9 @@ const BookingCreateSchema = z.object({
   submitted_height_cm: z.number().int().positive(),
   declared_value_paise: z.number().int().nonnegative(),
 
-  // Payment
-  payment_type: z.enum(["PREPAID", "COD"]).default("PREPAID"),
-  cod_amount_paise: z.number().int().nonnegative().default(0),
+  // Payment (Strictly prepaid, no COD settlement)
+  payment_type: z.string().optional().default("PREPAID"),
+  cod_amount_paise: z.number().int().nonnegative().optional().default(0),
 
   // Address Book persistence (§Customer Saved Address Book, §5)
   save_sender_address: z.boolean().optional(),
@@ -171,8 +176,8 @@ export async function POST(req: NextRequest) {
           total_inr_paise: declaredValueInr,
           created_by: createdById!,
           status: "REQUESTED",
-          payment_type: data.payment_type,
-          cod_amount: data.payment_type === "COD" ? data.cod_amount_paise : 0,
+          payment_type: "PREPAID",
+          cod_amount: 0,
 
           // Sender Snapshot frozen at booking time
           sender_name: data.sender_name,
@@ -331,10 +336,24 @@ export async function POST(req: NextRequest) {
       return booking;
     });
 
+    // Save pre-printed AWB sticker metadata if provided by business or admin
+    if (data.manual_awb && data.manual_awb.trim()) {
+      try {
+        await saveTrackingMetadata(newBooking.id, newBooking.booking_number, {
+          manual_awb: data.manual_awb.trim(),
+          awb_date: data.awb_date?.trim() || new Date().toISOString().split("T")[0],
+        });
+      } catch (metaErr) {
+        console.warn("Could not save manual AWB metadata:", metaErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: "Booking request created successfully",
       booking: newBooking,
+      manual_awb: data.manual_awb?.trim() || null,
+      awb_date: data.awb_date?.trim() || null,
     });
   } catch (error: any) {
     console.error("Booking Creation API Error:", error);

@@ -49,7 +49,6 @@ export default function AdminLayout({
     { href: "/admin/couriers", label: "Courier Partners", icon: Building2 },
 
     { section: "Finance & Support" },
-    { href: "/admin/cod", label: "COD Settlements", icon: DollarSign },
     { href: "/admin/payments", label: "Payments", icon: CreditCard },
     { href: "/admin/support", label: "Support Tickets", icon: LifeBuoy },
 

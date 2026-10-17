@@ -16,8 +16,12 @@ import {
   Trash2,
   XCircle,
   AlertTriangle,
+  Truck,
+  ExternalLink,
+  Barcode,
 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
+import { UpdateTrackingModal } from "@/components/admin/UpdateTrackingModal";
 
 export default function AdminBookingsPage() {
   const [viewState, setViewState] = useState<"populated" | "loading" | "empty" | "error">("loading");
@@ -27,6 +31,7 @@ export default function AdminBookingsPage() {
   const [courierFilter, setCourierFilter] = useState("ALL");
   const [paymentFilter, setPaymentFilter] = useState("ALL");
   const [selectedForLabel, setSelectedForLabel] = useState<any | null>(null);
+  const [bookingForTracking, setBookingForTracking] = useState<any | null>(null);
 
   // Delete & Reject Modals State
   const [bookingToDelete, setBookingToDelete] = useState<any | null>(null);
@@ -257,7 +262,6 @@ export default function AdminBookingsPage() {
             >
               <option value="ALL">All Payment Types</option>
               <option value="PREPAID">Prepaid Only</option>
-              <option value="COD">COD Only</option>
             </select>
           </div>
         </div>
@@ -279,9 +283,9 @@ export default function AdminBookingsPage() {
                   <th className="px-4 py-3 font-semibold">Customer / Source</th>
                   <th className="px-4 py-3 font-semibold">Origin → Dest</th>
                   <th className="px-4 py-3 font-semibold">Weight (Sub / Ver)</th>
-                  <th className="px-4 py-3 font-semibold">Payment / COD</th>
+                  <th className="px-4 py-3 font-semibold">Payment</th>
                   <th className="px-4 py-3 font-semibold">Shipping Charge</th>
-                  <th className="px-4 py-3 font-semibold">Courier / AWB</th>
+                  <th className="px-4 py-3 font-semibold">Courier / AWB / Tracking</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold text-right">Actions</th>
                 </tr>
@@ -328,15 +332,9 @@ export default function AdminBookingsPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        {b.payment_type === "COD" ? (
-                          <span className="text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded font-bold text-[11px] border border-amber-200">
-                            COD: {formatPaiseToRupees(b.cod_amount)}
-                          </span>
-                        ) : (
-                          <span className="text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded font-semibold text-[11px] border border-emerald-200">
-                            Prepaid
-                          </span>
-                        )}
+                        <span className="text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-semibold text-[11px] border border-emerald-200">
+                          Prepaid
+                        </span>
                       </td>
                       <td className="px-4 py-3 font-mono font-bold">
                         {b.charges ? (
@@ -355,14 +353,35 @@ export default function AdminBookingsPage() {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        {b.shipment ? (
-                          <div>
-                            <div className="font-semibold text-text-primary">
-                              {b.shipment.courier_partner?.name || "Assigned Partner"}
+                        {b.shipment || b.courier_name || b.third_party_tracking_id || b.manual_awb ? (
+                          <div className="space-y-0.5">
+                            <div className="font-semibold text-text-primary flex items-center gap-1.5 flex-wrap">
+                              <span>{b.courier_name || b.shipment?.courier_partner?.name || "Carrier Assigned"}</span>
+                              {b.third_party_tracking_url && (
+                                <a
+                                  href={b.third_party_tracking_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="Redirect to official carrier tracking"
+                                  className="text-[#2563EB] hover:text-[#1d4ed8] inline-flex items-center"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
                             </div>
                             <div className="font-mono text-[11px] text-brand-primary">
-                              {b.shipment.awb}
+                              {b.third_party_tracking_id ? (
+                                <span title="Carrier Tracking ID">ID: {b.third_party_tracking_id}</span>
+                              ) : (
+                                <span>{b.shipment?.awb || b.manual_awb || "—"}</span>
+                              )}
                             </div>
+                            {(b.manual_awb || (b.shipment?.awb_source === "MANUAL")) && (
+                              <div className="text-[10px] text-emerald-700 font-mono flex items-center gap-1">
+                                <Barcode className="w-2.5 h-2.5" />
+                                <span>Tag: {b.manual_awb || b.shipment?.awb}</span>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <span className="text-slate-400 italic">Unassigned</span>
@@ -372,6 +391,16 @@ export default function AdminBookingsPage() {
                         <StatusBadge status={b.shipment?.status || b.status} />
                       </td>
                       <td className="px-4 py-3 text-right space-x-1.5 whitespace-nowrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title="Assign Courier Company & Third-Party Tracking ID"
+                          className="border-blue-200 text-[#030164] hover:bg-blue-50 text-[11px]"
+                          onClick={() => setBookingForTracking(b)}
+                        >
+                          <Truck className="w-3 h-3 mr-1 text-[#2563EB]" />
+                          Update Tracking
+                        </Button>
                         <Link href={`/admin/bookings/${b.booking_number}/review`}>
                           <Button
                             variant={b.status === "REQUESTED" ? "accent" : "outline"}
@@ -523,6 +552,20 @@ export default function AdminBookingsPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Third-Party Courier Tracking & Pre-Printed AWB Modal */}
+      {bookingForTracking && (
+        <UpdateTrackingModal
+          isOpen={!!bookingForTracking}
+          onClose={() => setBookingForTracking(null)}
+          booking={bookingForTracking}
+          onSuccess={(updatedBooking) => {
+            setBookings((prev) =>
+              prev.map((b) => (b.id === updatedBooking.id ? { ...b, ...updatedBooking } : b))
+            );
+          }}
+        />
+      )}
     </div>
   );
 }

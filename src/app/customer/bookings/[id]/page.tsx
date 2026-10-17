@@ -121,7 +121,7 @@ export default function CustomerBookingDetailPage() {
           >
             <Printer className="w-4 h-4 mr-1.5" /> Print Label / Receipt
           </Button>
-          <Link href={`/track/${trackingToken}`}>
+          <Link href={`/track?booking_id=${booking.booking_number}`}>
             <Button variant="primary" size="sm">
               <Truck className="w-4 h-4 mr-1.5" /> Live Tracking <ExternalLink className="w-3 h-3 ml-1" />
             </Button>
@@ -219,14 +219,10 @@ export default function CustomerBookingDetailPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-text-muted">Payment Type:</span>
-              <span className="font-semibold text-text-primary">{booking.payment_type || "PREPAID"}</span>
+              <span className="font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                Prepaid
+              </span>
             </div>
-            {booking.payment_type === "COD" && (
-              <div className="flex justify-between text-amber-700 font-semibold">
-                <span>COD Amount:</span>
-                <span className="font-mono">{formatPaiseToRupees(booking.cod_amount)}</span>
-              </div>
-            )}
             <div className="flex justify-between pt-2 border-t border-border-default font-bold text-text-primary">
               <span>Shipping Charge:</span>
               <span className="font-mono text-brand-primary">
@@ -239,16 +235,27 @@ export default function CustomerBookingDetailPage() {
 
       {/* Shipment & Live Tracking Card */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="space-y-0.5">
             <CardTitle className="text-base">Shipment & Delivery Timeline</CardTitle>
             <p className="text-xs text-text-muted">
-              Handled via {booking.shipment?.courier_partner?.name || "SS International Courier Fleet"} • AWB:{" "}
+              Handled via {booking.shipment?.courier_partner?.name || "SS International Courier Partner Network"} • AWB:{" "}
               <span className="font-mono font-semibold text-text-primary">
                 {booking.shipment?.awb || "Pending Assignment"}
               </span>
             </p>
           </div>
+          {booking.shipment?.label_url && (
+            <a
+              href={booking.shipment.label_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#030164] hover:bg-[#120e7a] text-white text-xs font-semibold shadow-xs transition-colors"
+            >
+              <span>Track on Official Website</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
         </CardHeader>
         <CardContent className="p-6">
           {booking.shipment?.tracking_events && booking.shipment.tracking_events.length > 0 ? (

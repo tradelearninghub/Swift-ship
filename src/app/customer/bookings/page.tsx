@@ -223,8 +223,8 @@ export default function CustomerBookingsPage() {
                               b.currency === "USD" ? `$${(amountPaise / 100).toFixed(2)} USD` : formatPaiseToRupees(amountPaise)
                             ) : "Pending"}
                           </div>
-                          <div className="text-[10px] text-text-muted uppercase">
-                            {b.payment_type === "COD" ? `COD (₹${Math.round(b.cod_amount / 100)})` : "Prepaid"}
+                          <div className="text-[10px] text-emerald-700 font-semibold uppercase">
+                            Prepaid
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -232,7 +232,7 @@ export default function CustomerBookingsPage() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Link href={`/track/${trackingToken}`}>
+                            <Link href={`/track?booking_id=${b.booking_number}`}>
                               <Button variant="outline" size="sm" title="Track Live">
                                 Track <ExternalLink className="w-3 h-3 ml-1" />
                               </Button>
