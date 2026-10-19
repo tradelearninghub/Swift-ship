@@ -59,25 +59,26 @@ export function WhatsAppFloatingButton({
         rel="noopener noreferrer"
         aria-label="Chat with SS International Courier on WhatsApp"
         title="Chat on WhatsApp"
-        className="relative w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-md border border-slate-200/90 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 group/btn cursor-pointer"
+        className="relative w-22 h-22 sm:w-26 sm:h-26 flex items-center justify-center rounded-full bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 group/btn cursor-pointer"
       >
         {/* Radar Pulse Effect */}
-        <span className="absolute inset-4 rounded-full bg-[#25D366] opacity-25 animate-ping -z-10 pointer-events-none"></span>
+        <span className="absolute inset-3 rounded-full bg-[#25D366] opacity-25 animate-ping -z-10 pointer-events-none"></span>
 
-        {/* Circular Rotating Text SVG */}
+        {/* Circular Static Text SVG (Fixed in circle without rotation) */}
         <svg
-          className="absolute inset-0 w-full h-full pointer-events-none animate-[spin_14s_linear_infinite] group-hover/btn:[animation-duration:8s] select-none"
-          viewBox="0 0 120 120"
+          className="absolute inset-0 w-full h-full pointer-events-none select-none"
+          viewBox="0 0 100 100"
         >
           <defs>
             <path
-              id="whatsappCirclePath"
-              d="M 60, 60 m -44, 0 a 44,44 0 1,1 88,0 a 44,44 0 1,1 -88,0"
+              id="whatsappStaticCirclePath"
+              d="M 50,50 m -39,0 a 39,39 0 1,1 78,0 a 39,39 0 1,1 -78,0"
+              fill="none"
             />
           </defs>
-          <text className="text-[9px] font-black uppercase tracking-[0.24em] fill-[#0B1536]">
-            <textPath href="#whatsappCirclePath" startOffset="0%">
-              • CHAT WITH US • WE ARE ONLINE •
+          <text className="text-[9px] font-black uppercase tracking-[0.22em] fill-[#0B1536]">
+            <textPath href="#whatsappStaticCirclePath" startOffset="25%" textAnchor="middle">
+              • CHAT WITH US •
             </textPath>
           </text>
         </svg>

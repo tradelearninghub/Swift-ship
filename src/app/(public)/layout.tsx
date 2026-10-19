@@ -69,8 +69,8 @@ export default async function PublicLayout({
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* TOPBAR (Sleek single-line dark contact & action bar) */}
-      <div className="bg-[#070D1B] text-slate-300 text-xs py-2.5 border-b border-slate-800/80">
-        <div className="main-container flex items-center justify-between gap-4 overflow-x-auto no-scrollbar whitespace-nowrap">
+      <div className="bg-[#070D1B] text-slate-300 text-xs py-2.5 border-b border-slate-800/80 overflow-hidden select-none">
+        <div className="main-container flex items-center justify-between gap-4 whitespace-nowrap">
           {/* Left: Phone & Support Email */}
           <div className="flex items-center gap-x-3 sm:gap-x-4 shrink-0">
             <span className="flex items-center gap-1.5 text-slate-300">
@@ -92,15 +92,15 @@ export default async function PublicLayout({
           </div>
 
           {/* Right: Tracking, Login & Socials */}
-          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0 pr-1">
             <Link href="/track" className="text-slate-300 hover:text-white transition-colors flex items-center gap-1.5">
               <i className="fas fa-search-location text-[#2563EB]"></i>
-              <span>Live Tracking</span>
+              <span className="hidden xs:inline">Live Tracking</span>
             </Link>
             <span className="w-px h-3.5 bg-slate-700 hidden sm:inline"></span>
             <Link href="/login" className="text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 font-medium">
               <i className="fas fa-user-circle text-slate-400"></i>
-              <span>Customer Login</span>
+              <span className="hidden xs:inline">Login</span>
             </Link>
 
             {/* Direct WhatsApp Quick Chat Pill */}
@@ -111,7 +111,7 @@ export default async function PublicLayout({
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[11px] font-bold shadow-xs transition-all hover:scale-105"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[11px] font-bold shadow-xs transition-colors"
                   title="Chat on WhatsApp"
                 >
                   <i className="fab fa-whatsapp text-xs !text-white !mr-0"></i>
@@ -131,7 +131,7 @@ export default async function PublicLayout({
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`w-6 h-6 rounded-full bg-slate-800 ${s.hover} text-white flex items-center justify-center transition-all text-[11px] hover:scale-110`}
+                      className={`w-6 h-6 rounded-full bg-slate-800 ${s.hover} text-white flex items-center justify-center transition-colors text-[11px]`}
                       title={s.label}
                       aria-label={s.label}
                     >

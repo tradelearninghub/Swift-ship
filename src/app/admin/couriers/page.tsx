@@ -174,7 +174,7 @@ export default function AdminCouriersPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 flex-wrap sm:flex-nowrap">
           <Button
             variant="outline"
             size="sm"
@@ -183,7 +183,7 @@ export default function AdminCouriersPage() {
               loadPartners();
             }}
             disabled={refreshing}
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-1.5 shrink-0 whitespace-nowrap"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
             <span>Refresh</span>
@@ -191,10 +191,10 @@ export default function AdminCouriersPage() {
 
           <Button
             onClick={() => setAddModalOpen(true)}
-            className="flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-md shadow-blue-500/20"
+            className="flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-md shadow-blue-500/20 shrink-0 whitespace-nowrap px-4 py-2"
           >
-            <Plus className="w-4 h-4" />
-            <span>Add Delivery Partner</span>
+            <Plus className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap font-semibold">Add Delivery Partner</span>
           </Button>
         </div>
       </div>
