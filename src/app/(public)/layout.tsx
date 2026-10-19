@@ -423,21 +423,6 @@ export default async function PublicLayout({
                   </a>
                 </div>
 
-                {/* Direct WhatsApp Support Corner Button in Footer */}
-                {whatsappUrl && (
-                  <div className="pt-2">
-                    <a
-                      href={whatsappUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-semibold text-xs transition-all shadow-sm hover:shadow-md hover:scale-102 group"
-                      title="Chat on WhatsApp"
-                    >
-                      <i className="fab fa-whatsapp text-base group-hover:scale-110 transition-transform"></i>
-                      <span>WhatsApp Support (+91 {waNumber})</span>
-                    </a>
-                  </div>
-                )}
               </div>
             </div>
           </div>

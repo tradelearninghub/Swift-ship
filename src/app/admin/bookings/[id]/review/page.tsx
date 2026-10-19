@@ -12,6 +12,7 @@ import { MilestoneUpdateModal } from "@/components/ui/MilestoneUpdateModal";
 import { Modal } from "@/components/ui/Modal";
 import { UpdateTrackingModal } from "@/components/admin/UpdateTrackingModal";
 import { formatPaiseToRupees, formatGramsToKg } from "@/lib/utils";
+import { getThirdPartyTrackingUrl } from "@/lib/trackingUrls";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -29,6 +30,9 @@ import {
   MapPin,
   Globe,
   FileCheck,
+  Barcode,
+  ExternalLink,
+  Calendar,
 } from "lucide-react";
 
 export default function AdminBookingReviewPage() {
@@ -59,6 +63,15 @@ export default function AdminBookingReviewPage() {
   const [isLabelModalOpen, setIsLabelModalOpen] = useState(false);
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
+
+  // Delivery Courier Assignment State (§Direct Inline Form)
+  const [assignPartner, setAssignPartner] = useState("");
+  const [assignTrackingId, setAssignTrackingId] = useState("");
+  const [assignTrackingUrl, setAssignTrackingUrl] = useState("");
+  const [assignAwb, setAssignAwb] = useState("");
+  const [assignDate, setAssignDate] = useState("");
+  const [isSavingAssign, setIsSavingAssign] = useState(false);
+  const [assignSuccessMsg, setAssignSuccessMsg] = useState("");
 
   // Rejection modal
   const [showRejectBox, setShowRejectBox] = useState(false);
@@ -116,6 +129,25 @@ export default function AdminBookingReviewPage() {
         setCouriers(courierList);
         if (b.shipment?.courier_partner_id) {
           setSelectedCourier(b.shipment.courier_partner_id);
+        }
+
+        // Also fetch existing third-party tracking assignment
+        try {
+          const tRes = await fetch(`/api/admin/bookings/${bookingId}/tracking`);
+          if (tRes.ok) {
+            const tData = await tRes.json();
+            setAssignPartner(tData.courier_name || tData.courier_code || "");
+            setAssignTrackingId(tData.third_party_tracking_id || "");
+            setAssignTrackingUrl(tData.third_party_tracking_url || "");
+            setAssignAwb(tData.manual_awb || b.shipment?.awb || "");
+            setAssignDate(tData.awb_date || new Date().toISOString().split("T")[0]);
+          } else {
+            setAssignAwb(b.shipment?.awb || "");
+            setAssignDate(new Date().toISOString().split("T")[0]);
+          }
+        } catch {
+          setAssignAwb(b.shipment?.awb || "");
+          setAssignDate(new Date().toISOString().split("T")[0]);
         }
       } catch (err: any) {
         setErrorMsg(err.message || "Failed to load booking details");
@@ -692,66 +724,191 @@ export default function AdminBookingReviewPage() {
 
         {/* Right Column (4 cols): Courier Assignment & Activity Timeline */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Courier Selection Card */}
-          <Card>
-            <CardHeader className="py-3 bg-surface-subtle">
-              <CardTitle className="text-xs uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-                <Truck className="w-4 h-4 text-brand-primary" /> Delivery Courier Assignment
+          {/* Delivery Courier Assignment Card (§Direct Inline Controls) */}
+          <Card className="border border-slate-200/90 shadow-xs">
+            <CardHeader className="py-3.5 bg-slate-50/80 border-b border-slate-200/80 flex flex-row items-center justify-between">
+              <CardTitle className="text-xs uppercase tracking-wider text-slate-800 flex items-center gap-2 font-bold">
+                <Truck className="w-4 h-4 text-[#2563EB]" />
+                <span>Delivery Courier Assignment</span>
               </CardTitle>
+              {assignSuccessMsg && (
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Saved
+                </span>
+              )}
             </CardHeader>
-            <CardContent className="p-4 space-y-3 text-xs">
-              <label className="block font-semibold text-text-primary">
-                Select Dispatch Method / Carrier:
-              </label>
-              <select
-                value={selectedCourier}
-                onChange={(e) => setSelectedCourier(e.target.value)}
-                className="w-full h-10 px-3 text-xs bg-surface-base border border-border-default rounded-lg focus:ring-1 focus:ring-brand-primary font-medium"
-              >
-                <option value="">Select Dispatch Method / Carrier</option>
-                {couriers.map((c) => {
-                  const isInHouse = c.code === "IN_HOUSE";
-                  return (
-                    <option key={c.id} value={c.id}>
-                      {isInHouse ? "🏢 [IN-HOUSE] SS International Courier Self Fleet (Manual Milestones)" : `🌐 [3RD PARTY] ${c.name}`}
-                    </option>
-                  );
-                })}
-              </select>
-
-              {couriers.find((c) => c.id === selectedCourier)?.code === "IN_HOUSE" ? (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-1.5 text-xs text-blue-900">
-                  <div className="font-bold flex items-center gap-1.5 text-blue-800">
-                    <Truck className="w-4 h-4" /> SS International Courier In-House Delivery Selected
-                  </div>
-                  <p className="text-[11px] text-blue-700 leading-relaxed">
-                    • Generates official consignment <strong className="font-mono bg-blue-100 px-1 py-0.5 rounded">SSC-XXXXXXX</strong> AWB.<br />
-                    • Admins directly log tracking milestones & hub checkpoints.<br />
-                    • Checkpoint updates reflect instantly on customer tracking (<code className="font-mono">/track</code>).
-                  </p>
-                </div>
-              ) : (
-                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1 text-[11px] text-text-secondary">
-                  <div className="font-semibold text-text-primary">Selected Partner Capabilities:</div>
-                  <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Automated Carrier AWB Generation
-                  </div>
-                  <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Real-time Polling & Webhooks
-                  </div>
+            <CardContent className="p-4 sm:p-5 space-y-4 text-xs">
+              {assignSuccessMsg && (
+                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{assignSuccessMsg}</span>
                 </div>
               )}
 
-              <div className="pt-2 border-t border-border-default">
+              {/* 1. Select Delivery Partner */}
+              <div>
+                <label className="block font-bold text-slate-800 mb-1.5 uppercase tracking-wider text-[11px]">
+                  Select Delivery Partner <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={assignPartner}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setAssignPartner(val);
+                    if (assignTrackingId.trim() && val) {
+                      const auto = getThirdPartyTrackingUrl(val, assignTrackingId.trim());
+                      setAssignTrackingUrl(auto);
+                    }
+                  }}
+                  className="w-full h-10 px-3 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2563EB] focus:outline-none font-medium text-slate-900"
+                >
+                  <option value="">-- Select Active Delivery Partner --</option>
+                  {couriers
+                    .filter((c) => c.status === "ACTIVE" || c.id === "partner-in-house" || c.name === assignPartner)
+                    .map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name} {c.website ? `(${c.website.replace(/^https?:\/\//i, '').split('/')[0]})` : ""}
+                      </option>
+                    ))}
+                </select>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Showing active delivery partners configured in admin courier channels.
+                </p>
+              </div>
+
+              {/* 2. Space to add Tracking ID */}
+              <div>
+                <label className="block font-bold text-slate-800 mb-1.5 uppercase tracking-wider text-[11px]">
+                  Carrier Tracking ID
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={assignTrackingId}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setAssignTrackingId(val);
+                      if (val.trim() && assignPartner) {
+                        const auto = getThirdPartyTrackingUrl(assignPartner, val.trim());
+                        setAssignTrackingUrl(auto);
+                      }
+                    }}
+                    placeholder="Enter Tracking ID given by courier partner"
+                    className="w-full h-10 pl-9 pr-3 text-xs font-mono bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2563EB] focus:outline-none font-semibold text-slate-900"
+                  />
+                  <Barcode className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                </div>
+              </div>
+
+              {/* 3. Space to add Tracking URL */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                    Carrier Tracking URL
+                  </label>
+                  {assignTrackingUrl.trim() && (
+                    <a
+                      href={assignTrackingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-[#2563EB] hover:underline flex items-center gap-1 font-semibold"
+                    >
+                      <span>Open Link</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type="url"
+                    value={assignTrackingUrl}
+                    onChange={(e) => setAssignTrackingUrl(e.target.value)}
+                    placeholder="Official carrier tracking link (e.g. https://www.fedex.com/...)"
+                    className="w-full h-10 pl-9 pr-3 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2563EB] focus:outline-none text-slate-900 font-mono text-[11px]"
+                  />
+                  <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                </div>
+              </div>
+
+              {/* 4 & 5. AWB Number and Date */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1.5 uppercase tracking-wider text-[11px]">
+                    Consignment AWB #
+                  </label>
+                  <input
+                    type="text"
+                    value={assignAwb}
+                    onChange={(e) => setAssignAwb(e.target.value)}
+                    placeholder="e.g. SSC-103192"
+                    className="w-full h-10 px-3 text-xs font-mono font-bold bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2563EB] focus:outline-none text-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1.5 uppercase tracking-wider text-[11px]">
+                    AWB Date
+                  </label>
+                  <input
+                    type="date"
+                    value={assignDate}
+                    onChange={(e) => setAssignDate(e.target.value)}
+                    className="w-full h-10 px-3 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2563EB] focus:outline-none font-medium text-slate-900"
+                  />
+                </div>
+              </div>
+
+              {/* Save Delivery Courier Assignment Action */}
+              <div className="pt-3 border-t border-slate-100">
                 <Button
                   type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsTrackingModalOpen(true)}
-                  className="w-full text-xs font-bold text-[#030164] border-blue-200 hover:bg-blue-50 flex items-center justify-center gap-1.5"
+                  onClick={async () => {
+                    if (!booking) return;
+                    setIsSavingAssign(true);
+                    setAssignSuccessMsg("");
+                    try {
+                      const partnerObj = couriers.find(
+                        (c) => c.name === assignPartner || c.code === assignPartner
+                      );
+                      const courierCode = partnerObj?.code || assignPartner || "CARRIER";
+                      const courierName = partnerObj?.name || assignPartner || "Carrier Assigned";
+
+                      const res = await fetch(`/api/admin/bookings/${bookingId}/tracking`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          courier_code: courierCode,
+                          courier_name: courierName,
+                          third_party_tracking_id: assignTrackingId.trim(),
+                          third_party_tracking_url: assignTrackingUrl.trim(),
+                          manual_awb: assignAwb.trim(),
+                          awb_date: assignDate,
+                        }),
+                      });
+
+                      if (res.ok) {
+                        setAssignSuccessMsg("Courier assignment & tracking details saved!");
+                        setTimeout(() => setAssignSuccessMsg(""), 4000);
+                        const refresh = await fetch(`/api/admin/bookings/${bookingId}/review`);
+                        if (refresh.ok) {
+                          const d = await refresh.json();
+                          setBooking(d.booking);
+                        }
+                      }
+                    } catch {}
+                    setIsSavingAssign(false);
+                  }}
+                  disabled={isSavingAssign}
+                  className="w-full h-10 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Truck className="w-3.5 h-3.5 text-[#2563EB]" />
-                  <span>Update Third-Party Carrier Tracking & AWB</span>
+                  {isSavingAssign ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Save Delivery Courier Assignment</span>
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>

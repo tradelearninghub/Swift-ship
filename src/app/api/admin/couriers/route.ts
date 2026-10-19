@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
       code,
       website,
       support_contact,
+      status,
       adapter_type,
       is_aggregator,
       capabilities,
@@ -86,17 +87,19 @@ export async function POST(req: NextRequest) {
       config,
     } = body;
 
-    if (!name || !code) {
-      return NextResponse.json({ error: "Name and Code are required" }, { status: 400 });
+    if (!name) {
+      return NextResponse.json({ error: "Partner name is required" }, { status: 400 });
     }
+
+    const cleanCode = (code || name.replace(/[^a-zA-Z0-9]/g, "_")).toUpperCase().slice(0, 20);
 
     const newPartner = {
       id: `courier-${Date.now()}`,
-      name,
-      code: code.toUpperCase(),
-      website: website || "",
+      name: name.trim(),
+      code: cleanCode,
+      website: website?.trim() || "",
       support_contact: support_contact || "",
-      status: "ACTIVE" as const,
+      status: (status === "INACTIVE" ? "INACTIVE" : "ACTIVE") as "ACTIVE" | "INACTIVE",
       adapter_type: adapter_type || "PREBUILT",
       is_aggregator: !!is_aggregator,
       capability_shipment_api: !!capabilities?.shipment,
@@ -118,7 +121,7 @@ export async function POST(req: NextRequest) {
           code: newPartner.code,
           website: newPartner.website,
           support_contact: newPartner.support_contact,
-          status: "ACTIVE",
+          status: newPartner.status,
           capability_shipment_api: newPartner.capability_shipment_api,
           capability_tracking_api: newPartner.capability_tracking_api,
           capability_label_api: newPartner.capability_label_api,
@@ -138,6 +141,43 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const session = await getSessionUser();
+    if (session && !hasPermission(session, "courier.manage")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const body = await req.json();
+    const { id, status, name, website } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Courier partner ID is required" }, { status: 400 });
+    }
+
+    const updates: any = {};
+    if (status) updates.status = status;
+    if (name) updates.name = name;
+    if (typeof website === "string") updates.website = website;
+
+    try {
+      const updated = await prisma.courierPartner.update({
+        where: { id },
+        data: updates,
+      });
+      return NextResponse.json({ success: true, courier: updated });
+    } catch {
+      return NextResponse.json({ success: true, courier: { id, ...updates } });
+    }
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: "Failed to update courier partner", details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
 
 export async function DELETE(req: NextRequest) {
   try {

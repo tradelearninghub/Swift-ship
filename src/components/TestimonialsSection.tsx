@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Testimonial, INITIAL_TESTIMONIALS } from "@/lib/testimonials";
-import { Star, Quote, CheckCircle2, Globe2, ShieldCheck, MapPin } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, Quote, MapPin } from "lucide-react";
 
 interface TestimonialsSectionProps {
   initialData?: Testimonial[];
@@ -12,7 +12,8 @@ export function TestimonialsSection({ initialData }: TestimonialsSectionProps) {
   const [testimonials, setTestimonials] = useState<Testimonial[]>(
     initialData && initialData.length > 0 ? initialData : INITIAL_TESTIMONIALS
   );
-  const [loading, setLoading] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     fetch("/api/testimonials")
@@ -25,140 +26,154 @@ export function TestimonialsSection({ initialData }: TestimonialsSectionProps) {
       .catch(() => {});
   }, []);
 
+  // Auto-slide every 5.5 seconds unless paused by hover
+  useEffect(() => {
+    if (testimonials.length <= 1 || isPaused) return;
+
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    }, 5500);
+
+    return () => clearInterval(timer);
+  }, [testimonials.length, isPaused]);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+  };
+
+  if (!testimonials || testimonials.length === 0) {
+    return null;
+  }
+
+  const current = testimonials[currentIndex] || testimonials[0];
+
+  const initials = (current.client_name || "SS")
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   return (
-    <section className="py-20 sm:py-28 bg-[#F8FAFC] relative overflow-hidden border-t border-slate-200/80">
-      {/* Subtle background decoration */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-10 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="main-container relative z-10">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#2563EB] text-xs font-bold mb-3 shadow-2xs">
-            <Star className="w-3.5 h-3.5 fill-[#2563EB]" />
-            <span>Verified Customer Testimonials</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
-            Trusted by <span className="text-[#2563EB]">Exporters &amp; Global Senders</span>
+    <section className="py-16 sm:py-24 bg-white relative overflow-hidden border-t border-slate-100">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
+        {/* Minimal Section Header */}
+        <div className="text-center mb-10 sm:mb-14">
+          <span className="text-[11px] font-bold text-[#2563EB] uppercase tracking-widest bg-blue-50/80 px-3 py-1 rounded-full border border-blue-100 inline-block mb-3">
+            Client Feedback
+          </span>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B1536] tracking-tight">
+            Trusted by Exporters &amp; Senders
           </h2>
-          <p className="text-slate-600 text-sm sm:text-base mt-3 leading-relaxed">
-            See how SS International Courier empowers businesses and individuals with punctual cross-border delivery, paperless customs clearance, and dedicated care.
-          </p>
+        </div>
 
-          {/* Aggregate Rating Pill */}
-          <div className="inline-flex items-center gap-3 bg-white px-5 py-2.5 rounded-2xl border border-slate-200/90 shadow-xs mt-6">
-            <div className="flex items-center text-amber-500">
-              {[...Array(5)].map((_, i) => (
+        {/* Minimal Slide Card */}
+        <div
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          className="relative bg-slate-50/70 border border-slate-200/80 rounded-3xl p-8 sm:p-12 shadow-2xs transition-all duration-300"
+        >
+          {/* Subtle Quote Icon Watermark */}
+          <Quote className="w-10 h-10 text-slate-200/80 absolute top-6 left-6 -scale-x-100 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col items-center text-center">
+            {/* Star Rating */}
+            <div className="flex items-center text-amber-400 gap-1 mb-5">
+              {[...Array(Math.max(1, Math.min(5, current.rating || 5)))].map((_, i) => (
                 <Star key={i} className="w-4 h-4 fill-current" />
               ))}
             </div>
-            <span className="font-extrabold text-sm text-slate-900">4.9 / 5.0</span>
-            <span className="text-slate-300">|</span>
-            <span className="text-xs text-slate-500 font-medium">Over 10,000+ Cross-Border Parcels Handled</span>
-          </div>
-        </div>
 
-        {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 sm:gap-8">
-          {testimonials.map((item) => {
-            const initials = item.client_name
-              .split(" ")
-              .map((n) => n[0])
-              .slice(0, 2)
-              .join("")
-              .toUpperCase();
+            {/* Quote Review Text */}
+            <blockquote className="text-base sm:text-lg lg:text-xl text-slate-800 font-medium leading-relaxed max-w-2xl mx-auto mb-8 min-h-[90px] flex items-center justify-center">
+              &ldquo;{current.review}&rdquo;
+            </blockquote>
 
-            return (
-              <div
-                key={item.id}
-                className="bg-white rounded-3xl p-7 sm:p-8 border border-slate-200/90 shadow-xs hover:shadow-xl hover:border-blue-300 transition-all duration-300 flex flex-col justify-between relative group"
-              >
-                {/* Quote Icon watermark */}
-                <Quote className="absolute top-6 right-6 w-10 h-10 text-slate-100 group-hover:text-blue-50 transition-colors pointer-events-none" />
-
-                <div>
-                  {/* Top Bar: Route Badge & Rating */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-                    {item.destination_route ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[#2563EB] text-xs font-semibold border border-blue-200/80">
-                        <MapPin className="w-3.5 h-3.5 shrink-0" />
-                        <span>{item.destination_route}</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
-                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                        <span>Verified Shipment</span>
-                      </span>
-                    )}
-
-                    <div className="flex items-center text-amber-400">
-                      {[...Array(Math.max(1, Math.min(5, item.rating)))].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-current" />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Review Text */}
-                  <p className="text-slate-700 text-sm sm:text-base leading-relaxed mb-6 font-normal">
-                    &ldquo;{item.review}&rdquo;
-                  </p>
+            {/* Author Profile */}
+            <div className="flex flex-col items-center">
+              {current.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={current.avatar_url}
+                  alt={current.client_name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-xs mb-2.5"
+                />
+              ) : (
+                <div className="w-11 h-11 rounded-full bg-blue-100 text-[#2563EB] font-bold text-sm flex items-center justify-center mb-2.5 shadow-2xs">
+                  {initials}
                 </div>
+              )}
 
-                {/* Bottom: Client Profile Card */}
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {item.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.avatar_url}
-                        alt={item.client_name}
-                        className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm shrink-0"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#0B1536] to-blue-600 text-white font-black text-sm flex items-center justify-center shadow-sm shrink-0">
-                        {initials}
-                      </div>
-                    )}
+              <h4 className="font-bold text-sm sm:text-base text-slate-900 tracking-tight">
+                {current.client_name}
+              </h4>
 
-                    <div className="min-w-0">
-                      <h4 className="font-bold text-sm text-slate-900 tracking-tight truncate">
-                        {item.client_name}
-                      </h4>
-                      <p className="text-xs text-slate-500 truncate">
-                        {item.client_role}
-                      </p>
-                      {item.company_name && (
-                        <p className="text-[11px] text-[#2563EB] font-medium truncate">
-                          {item.company_name}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {item.tag && (
-                    <span className="hidden sm:inline-block text-[10px] font-semibold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shrink-0">
-                      {item.tag}
+              <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                {current.client_role && <span>{current.client_role}</span>}
+                {current.company_name && (
+                  <>
+                    <span className="opacity-40">•</span>
+                    <span>{current.company_name}</span>
+                  </>
+                )}
+                {current.destination_route && (
+                  <>
+                    <span className="opacity-40">•</span>
+                    <span className="text-[#2563EB] font-medium flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {current.destination_route}
                     </span>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
-            );
-          })}
+            </div>
+          </div>
+
+          {/* Minimal Slide Arrows */}
+          {testimonials.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={handlePrev}
+                aria-label="Previous testimonial"
+                className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-[#2563EB] hover:border-blue-200 hover:shadow-xs flex items-center justify-center transition-all cursor-pointer z-20"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                aria-label="Next testimonial"
+                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-[#2563EB] hover:border-blue-200 hover:shadow-xs flex items-center justify-center transition-all cursor-pointer z-20"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Bottom Banner */}
-        <div className="mt-12 text-center bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-left">
-            <h4 className="font-bold text-sm text-slate-900">Are you sending an urgent parcel?</h4>
-            <p className="text-xs text-slate-500">Experience our priority air cargo network with free doorstep collection.</p>
+        {/* Minimal Pagination Dots */}
+        {testimonials.length > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-6">
+            {testimonials.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setCurrentIndex(idx)}
+                aria-label={`Go to slide ${idx + 1}`}
+                className={`transition-all duration-300 rounded-full cursor-pointer ${
+                  idx === currentIndex
+                    ? "w-7 h-2 bg-[#2563EB]"
+                    : "w-2 h-2 bg-slate-300 hover:bg-slate-400"
+                }`}
+              />
+            ))}
           </div>
-          <a
-            href="/book"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all shrink-0"
-          >
-            <span>Book a Shipment</span>
-          </a>
-        </div>
+        )}
       </div>
     </section>
   );
