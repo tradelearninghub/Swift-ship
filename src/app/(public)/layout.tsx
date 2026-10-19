@@ -255,7 +255,7 @@ export default async function PublicLayout({
                     SS INTERNATIONAL
                   </span>
                   <span className="text-[10px] font-bold text-[#2563EB] tracking-[0.25em] uppercase leading-none">
-                    COURIER &amp; CARGO
+                    COURIER
                   </span>
                 </div>
               </Link>
