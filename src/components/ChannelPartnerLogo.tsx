@@ -135,6 +135,88 @@ export function ChannelPartnerLogo({ company, className = "" }: ChannelPartnerLo
     );
   }
 
+  if (nameLower.includes("canada post") || websiteLower.includes("canadapost")) {
+    return (
+      <div className={`flex items-center gap-1.5 justify-center ${className}`}>
+        <span className="font-black text-base sm:text-lg text-[#002F6C] tracking-tight uppercase">
+          CANADA <span className="text-[#DA291C]">POST</span>
+        </span>
+      </div>
+    );
+  }
+
+  if (nameLower.includes("india post") || nameLower.includes("indian post") || websiteLower.includes("indiapost")) {
+    return (
+      <div className={`flex items-center gap-1.5 justify-center ${className}`}>
+        <div className="w-6 h-6 rounded bg-[#E41C23] flex items-center justify-center text-white font-bold text-xs">
+          ✉
+        </div>
+        <span className="font-extrabold text-base sm:text-lg text-[#E41C23] tracking-tight">
+          India <span className="text-[#FDB813]">Post</span>
+        </span>
+      </div>
+    );
+  }
+
+  if (nameLower.includes("yodel") || websiteLower.includes("yodel")) {
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <span className="font-black text-2xl text-[#00A551] tracking-tighter uppercase">
+          YODEL
+        </span>
+      </div>
+    );
+  }
+
+  if (nameLower.includes("toll") || websiteLower.includes("tollgroup")) {
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <span className="font-black text-2xl text-[#E31837] tracking-wider uppercase">
+          TOLL
+        </span>
+      </div>
+    );
+  }
+
+  if (nameLower.includes("skynet") || websiteLower.includes("skynet")) {
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <span className="font-black italic text-xl sm:text-2xl text-[#003896] tracking-tight">
+          SKY<span className="text-[#E31837]">NET</span>
+        </span>
+      </div>
+    );
+  }
+
+  if (nameLower.includes("ship global") || websiteLower.includes("shipglobal")) {
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <span className="font-extrabold text-xl text-[#0B2545] tracking-tight">
+          Ship<span className="text-[#FF6B35]">Global</span>
+        </span>
+      </div>
+    );
+  }
+
+  if (nameLower.includes("xportal") || websiteLower.includes("xportal")) {
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <span className="font-black text-xl text-[#0F172A] tracking-wider uppercase">
+          X<span className="text-[#7C3AED]">PORTAL</span>
+        </span>
+      </div>
+    );
+  }
+
+  if (nameLower.includes("dhl") && (nameLower.includes("ecommerce") || nameLower.includes("e-commerce"))) {
+    return (
+      <div className={`flex items-center gap-1.5 justify-center ${className}`}>
+        <span className="font-black text-2xl text-[#D40511] tracking-tighter">DHL</span>
+        <span className="font-semibold text-xs text-slate-700 uppercase tracking-widest">eCommerce</span>
+      </div>
+    );
+  }
+
   // 2. Fallback to image (either custom logo_url or domain favicon) if available and not failed
   const effectiveLogoUrl = company.logo_url?.trim() || (company.website ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.website.replace(/^https?:\/\//i, "").split("/")[0])}&sz=128` : "");
 

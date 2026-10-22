@@ -143,23 +143,101 @@ export default function HomePage() {
     <div className="bg-white text-slate-800">
       {/* ========================================================================= */}
       {/* ========================================================================= */}
-      {/* 1. HERO SECTION (Using hero-section image as requested) */}
+      {/* 1. HERO SECTION (Designed using background image as reference) */}
       {/* ========================================================================= */}
-      <section className="relative w-full bg-[#EBF3FB] overflow-hidden border-b border-slate-200/60">
-        <div className="relative w-full max-w-[1440px] mx-auto">
+      <section className="relative w-full overflow-hidden bg-gradient-to-r from-[#D7E8F8] via-[#E2EFFB] to-[#EEF5FC] border-b border-slate-200/80">
+        {/* Panoramic Hero Illustration Background */}
+        <div className="absolute inset-0 pointer-events-none select-none z-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/hero-section.jpg"
-            alt="SS International Courier - Your World, Our Delivery"
-            className="w-full h-auto block select-none"
+            src="/images/hero-bg.png"
+            alt="SS International Courier Logistics Network"
+            className="w-full h-full object-cover object-right md:object-[right_center]"
           />
-          {/* Clickable Overlay Link for 'Track Your Shipment' button */}
-          <Link
-            href="/track"
-            className="absolute left-[4.8%] top-[64.5%] w-[16.5%] h-[9.5%] rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#C58B24] transition-opacity hover:opacity-10 bg-white opacity-0"
-            title="Track Your Shipment"
-            aria-label="Track Your Shipment"
-          />
+          {/* Subtle gradient fill on left for crystal clear readability on smaller viewports */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#D7E8F8] via-[#D7E8F8]/90 md:via-[#D7E8F8]/60 to-transparent w-full md:w-3/5" />
+        </div>
+
+        <div className="main-container relative z-10 py-12 sm:py-16 lg:py-24">
+          <div className="max-w-xl lg:max-w-2xl space-y-5 sm:space-y-6">
+            {/* Category Tag with Gold Accent Line */}
+            <div className="flex items-center gap-3">
+              <span className="w-10 sm:w-12 h-1 bg-[#C58B24] rounded-full shrink-0"></span>
+              <span className="text-xs sm:text-sm font-black tracking-widest text-[#06122C] uppercase">
+                GLOBAL COURIER &amp; LOGISTICS SOLUTIONS
+              </span>
+            </div>
+
+            {/* Main Headline matching reference */}
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#0B1536] tracking-tight leading-[1.08]">
+              Your World, <br />
+              <span className="text-[#C58B24]">Our Delivery</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-slate-700 text-sm sm:text-base lg:text-lg max-w-xl font-medium leading-relaxed">
+              Fast, secure and reliable courier services to anywhere in the world. We connect your business, your loved ones and your dreams.
+            </p>
+
+            {/* Action Button: Gold Track Your Shipment pill button */}
+            <div className="pt-2">
+              <Link
+                href="/track"
+                className="inline-flex items-center gap-2.5 px-6 sm:px-7 py-3 sm:py-3.5 rounded-full bg-[#C58B24] hover:bg-[#b07b1d] text-white font-bold text-sm sm:text-base shadow-lg shadow-[#C58B24]/30 hover:shadow-[#C58B24]/45 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <MapPin className="w-4 h-4 text-white" />
+                <span>Track Your Shipment</span>
+                <ArrowRight className="w-4 h-4 text-white ml-0.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* 4-FEATURE PILL STRIP (Worldwide Delivery | Air Freight | Sea Freight | Land Courier) */}
+        <div className="relative z-10 bg-white/95 backdrop-blur-xs border-t border-slate-200/80 py-4 sm:py-5 shadow-2xs">
+          <div className="main-container">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+              {/* Worldwide Delivery */}
+              <div className="flex items-center justify-center gap-3 py-2 px-3 sm:px-4">
+                <div className="w-10 h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Globe2 className="w-5 h-5 text-[#C58B24]" />
+                </div>
+                <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
+                  WORLDWIDE DELIVERY
+                </p>
+              </div>
+
+              {/* Air Freight */}
+              <div className="flex items-center justify-center gap-3 py-2 px-3 sm:px-4">
+                <div className="w-10 h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Plane className="w-5 h-5 text-[#C58B24]" />
+                </div>
+                <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
+                  AIR FREIGHT
+                </p>
+              </div>
+
+              {/* Sea Freight */}
+              <div className="flex items-center justify-center gap-3 py-2 px-3 sm:px-4">
+                <div className="w-10 h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Ship className="w-5 h-5 text-[#C58B24]" />
+                </div>
+                <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
+                  SEA FREIGHT
+                </p>
+              </div>
+
+              {/* Land Courier */}
+              <div className="flex items-center justify-center gap-3 py-2 px-3 sm:px-4">
+                <div className="w-10 h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Truck className="w-5 h-5 text-[#C58B24]" />
+                </div>
+                <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
+                  LAND COURIER
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -234,11 +312,6 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-
-      {/* ========================================================================= */}
-      {/* 2b. PARTNER CHANNELS MARQUEE (India & Major US/International Couriers) */}
-      {/* ========================================================================= */}
-      <PartnerMarquee />
 
       {/* ========================================================================= */}
       {/* 3. BENTO GRID: Reliability. Speed & Efficiency. (Crisp white canvas) */}
@@ -616,6 +689,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ========================================================================= */}
+      {/* 9. PARTNER CHANNELS MARQUEE (Positioned right above the footer) */}
+      {/* ========================================================================= */}
+      <PartnerMarquee />
     </div>
   );
 }

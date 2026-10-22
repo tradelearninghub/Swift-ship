@@ -82,6 +82,62 @@ export const DEFAULT_PARTNER_COMPANIES: ChannelPartnerCompany[] = [
     logo_url: "",
     is_visible: true,
   },
+  {
+    id: "ship-global",
+    name: "Ship Global",
+    website: "https://www.shipglobal.in",
+    logo_url: "https://www.shipglobal.in/wp-content/uploads/2023/04/ShipGlobal-Logo.png",
+    is_visible: true,
+  },
+  {
+    id: "xportal",
+    name: "Xportal",
+    website: "https://xportal.com",
+    logo_url: "",
+    is_visible: true,
+  },
+  {
+    id: "skynet",
+    name: "SkyNet Worldwide",
+    website: "https://www.skynetworldwide.com",
+    logo_url: "https://upload.wikimedia.org/wikipedia/commons/9/90/SkyNet_Worldwide_Express_logo.svg",
+    is_visible: true,
+  },
+  {
+    id: "canada-post",
+    name: "Canada Post",
+    website: "https://www.canadapost-postescanada.ca",
+    logo_url: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Canada_Post_Logo.svg",
+    is_visible: true,
+  },
+  {
+    id: "yodel",
+    name: "Yodel",
+    website: "https://www.yodel.co.uk",
+    logo_url: "https://upload.wikimedia.org/wikipedia/en/9/90/Yodel_logo.svg",
+    is_visible: true,
+  },
+  {
+    id: "toll",
+    name: "Toll Group",
+    website: "https://www.tollgroup.com",
+    logo_url: "https://upload.wikimedia.org/wikipedia/en/7/7b/Toll_Group_logo.svg",
+    is_visible: true,
+  },
+  {
+    id: "india-post",
+    name: "India Post",
+    website: "https://www.indiapost.gov.in",
+    logo_url: "https://upload.wikimedia.org/wikipedia/en/2/23/India_Post_Logo.svg",
+    is_visible: true,
+  },
+  {
+    id: "dhl-ecommerce",
+    name: "DHL eCommerce",
+    website: "https://www.dhl.com",
+    logo_url: "https://upload.wikimedia.org/wikipedia/commons/a/ac/DHL_Logo.svg",
+    is_visible: true,
+  },
 ];
 
 export const DEFAULT_PARTNER_CHANNEL_SETTINGS: PartnerChannelSettings = {
@@ -118,9 +174,22 @@ export async function getPartnerChannelSettings(): Promise<PartnerChannelSetting
 
     if (setting && setting.value) {
       const parsed = typeof setting.value === "string" ? JSON.parse(setting.value) : setting.value;
-      const companies = Array.isArray(parsed.companies) && parsed.companies.length > 0
-        ? parsed.companies
-        : DEFAULT_PARTNER_COMPANIES;
+      let companies: ChannelPartnerCompany[] = [];
+
+      if (Array.isArray(parsed.companies) && parsed.companies.length > 0) {
+        // Merge missing default partners if not already in the saved list
+        const existingNames = new Set(
+          parsed.companies.map((c: ChannelPartnerCompany) => (c.name || "").toLowerCase().trim())
+        );
+        companies = [...parsed.companies];
+        for (const def of DEFAULT_PARTNER_COMPANIES) {
+          if (!existingNames.has(def.name.toLowerCase().trim())) {
+            companies.push(def);
+          }
+        }
+      } else {
+        companies = DEFAULT_PARTNER_COMPANIES;
+      }
 
       return {
         ...DEFAULT_PARTNER_CHANNEL_SETTINGS,
