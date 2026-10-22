@@ -68,11 +68,14 @@ export default function AdminLayout({
     <div className="min-h-screen bg-surface-admin-base flex flex-col md:flex-row text-sm">
       {/* Mobile Header Bar */}
       <div className="md:hidden bg-slate-900 text-white h-14 px-4 flex items-center justify-between border-b border-slate-800 shrink-0">
-        <Link href="/admin" className="flex items-center gap-2 font-bold text-base text-white">
-          <div className="w-7 h-7 rounded-md bg-brand-primary flex items-center justify-center text-white">
-            <Truck className="w-4 h-4" />
-          </div>
-          <span>Admin Operations</span>
+        <Link href="/admin" className="flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/ss-logo.jpg"
+            alt="SS International Courier"
+            className="h-8 w-auto object-contain bg-white rounded-md p-1"
+          />
+          <span className="font-bold text-sm text-white">Admin Operations</span>
         </Link>
         <button
           type="button"
@@ -89,12 +92,18 @@ export default function AdminLayout({
           mobileMenuOpen ? "block" : "hidden"
         } md:flex w-full md:w-60 bg-slate-900 text-slate-300 flex-col shrink-0 border-r border-slate-800 z-30`}
       >
-        <div className="hidden md:flex h-14 px-4 border-b border-slate-800 items-center justify-between">
-          <Link href="/admin" className="flex items-center gap-2 font-bold text-base text-white">
-            <div className="w-7 h-7 rounded-md bg-brand-primary flex items-center justify-center text-white">
-              <Truck className="w-4 h-4" />
+        <div className="hidden md:flex h-16 px-4 border-b border-slate-800 items-center justify-between">
+          <Link href="/admin" className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/ss-logo.jpg"
+              alt="SS International Courier"
+              className="h-9 w-auto object-contain bg-white rounded-md p-1"
+            />
+            <div className="flex flex-col">
+              <span className="font-bold text-xs text-white leading-tight">SS International</span>
+              <span className="text-[9px] text-[#C58B24] uppercase tracking-wider font-semibold">Admin Panel</span>
             </div>
-            <span>Admin Operations</span>
           </Link>
           <span className="text-[10px] font-semibold uppercase bg-slate-800 text-brand-accent px-1.5 py-0.5 rounded">
             v2.0

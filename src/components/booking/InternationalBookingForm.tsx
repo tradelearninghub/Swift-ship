@@ -706,39 +706,6 @@ export function InternationalBookingForm({
   // ----------------------------------------------------
   return (
     <div className="space-y-8">
-      {/* 4-PART VERTICAL PROGRESS & SECTION JUMP NAVIGATOR */}
-      <div className="bg-white/95 border border-slate-200 rounded-2xl p-3 shadow-xs sticky top-20 z-20 backdrop-blur-md">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-semibold">
-          {[
-            { id: "part-sender", num: "Part 1", label: "Sender Details", icon: User },
-            { id: "part-receiver", num: "Part 2", label: "Receiver & Country", icon: Globe },
-            { id: "part-customs", num: "Part 3", label: "Customs & Package", icon: Package },
-            { id: "part-review", num: "Part 4", label: "Review & Dispatch", icon: CheckCircle2 },
-          ].map((part) => {
-            const Icon = part.icon;
-            return (
-              <a
-                key={part.id}
-                href={`#${part.id}`}
-                className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200/80 hover:border-[#030164]/40 hover:bg-slate-50 transition-all text-slate-700 group"
-              >
-                <div className="w-6 h-6 rounded-lg bg-[#030164]/10 text-[#030164] flex items-center justify-center shrink-0 group-hover:bg-[#030164] group-hover:text-white transition-colors">
-                  <Icon className="w-3.5 h-3.5" />
-                </div>
-                <div className="truncate">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block leading-none">
-                    {part.num}
-                  </span>
-                  <span className="font-bold text-slate-800 text-xs truncate block mt-0.5">
-                    {part.label}
-                  </span>
-                </div>
-              </a>
-            );
-          })}
-        </div>
-      </div>
-
       <form onSubmit={handleSubmit} noValidate className="space-y-8">
         {/* ============================================================== */}
         {/* TOP OF FORM: PRE-PRINTED AWB STICKER & DISPATCH DATE */}
@@ -751,10 +718,10 @@ export function InternationalBookingForm({
               </span>
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>Pre-Printed AWB Sticker & Dispatch Date</span>
+                  <span>Pre-Printed AWB Sticker &amp; Dispatch Date</span>
                 </h3>
                 <p className="text-xs text-emerald-100">
-                  Required for business & corporate accounts with pre-printed barcode stickers / tags
+                  Required for business &amp; corporate accounts with pre-printed barcode stickers / tags
                 </p>
               </div>
             </div>
@@ -767,7 +734,7 @@ export function InternationalBookingForm({
             <p className="text-xs text-slate-600">
               If you have physical pre-printed AWB sticker tags, enter the barcode number and consignment date below to link directly with courier company tracking.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className={`grid grid-cols-1 ${isAdminMode ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4`}>
               <div>
                 <Input
                   label="Pre-Printed AWB Sticker / Barcode Number"
@@ -791,6 +758,28 @@ export function InternationalBookingForm({
                   helperText="Date of consignment dispatch"
                 />
               </div>
+
+              {/* Assign International Carrier (Optional) — Positioned to top with AWB in Admin Section */}
+              {isAdminMode && (
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Assign International Carrier (Optional)
+                  </label>
+                  <select
+                    value={adminCourierId}
+                    onChange={(e) => setAdminCourierId(e.target.value)}
+                    className="w-full h-10 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  >
+                    <option value="">Manual / Allocate Later</option>
+                    {adminCouriers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.code})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-slate-500">Primary foreign carrier partner allocation</p>
+                </div>
+              )}
             </div>
           </div>
         </Card>
@@ -862,50 +851,22 @@ export function InternationalBookingForm({
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="Sender Full Name"
-                name="senderName"
-                id="senderName"
-                value={senderName}
-                onChange={(e) => {
-                  setSenderName(e.target.value);
-                  clearError("senderName");
-                }}
-                placeholder="e.g. Ramesh Sharma"
-                error={errors.senderName}
-                required
-              />
-              <Input
-                label="Sender Mobile Number"
-                name="senderMobile"
-                id="senderMobile"
-                type="tel"
-                maxLength={10}
-                value={senderMobile}
-                onChange={(e) => {
-                  setSenderMobile(e.target.value);
-                  clearError("senderMobile");
-                }}
-                placeholder="10-digit Indian mobile"
-                helperText="Origin dispatch updates & pickup verification"
-                error={errors.senderMobile}
-                required
-              />
               <div className="sm:col-span-2">
                 <Input
-                  label="Sender Email (Optional)"
-                  name="senderEmail"
-                  id="senderEmail"
-                  type="email"
-                  value={senderEmail}
+                  label="Sender Full Name"
+                  name="senderName"
+                  id="senderName"
+                  value={senderName}
                   onChange={(e) => {
-                    setSenderEmail(e.target.value);
-                    clearError("senderEmail");
+                    setSenderName(e.target.value);
+                    clearError("senderName");
                   }}
-                  placeholder="sender@example.com"
-                  error={errors.senderEmail}
+                  placeholder="e.g. Ramesh Sharma"
+                  error={errors.senderName}
+                  required
                 />
               </div>
+
               <div className="sm:col-span-2">
                 <Input
                   label="Pickup Street Address Line 1"
@@ -1003,6 +964,39 @@ export function InternationalBookingForm({
                 placeholder="6-digit pincode"
                 error={errors.senderPincode}
                 required
+              />
+
+              {/* Number and Email positioned at the bottom in sender details */}
+              <Input
+                label="Sender Mobile Number"
+                name="senderMobile"
+                id="senderMobile"
+                type="tel"
+                maxLength={10}
+                value={senderMobile}
+                onChange={(e) => {
+                  setSenderMobile(e.target.value);
+                  clearError("senderMobile");
+                }}
+                placeholder="10-digit Indian mobile"
+                helperText="Origin dispatch updates & pickup verification"
+                error={errors.senderMobile}
+                required
+              />
+
+              <Input
+                label="Sender Email (Optional)"
+                name="senderEmail"
+                id="senderEmail"
+                type="email"
+                value={senderEmail}
+                onChange={(e) => {
+                  setSenderEmail(e.target.value);
+                  clearError("senderEmail");
+                }}
+                placeholder="sender@example.com"
+                helperText="Digital dispatch receipts & tracking links"
+                error={errors.senderEmail}
               />
             </div>
 
@@ -1354,23 +1348,6 @@ export function InternationalBookingForm({
           </div>
 
           <div className="p-6 sm:p-8 space-y-6">
-            {/* Live Exchange Rate & Conversion Banner */}
-            <div className="flex items-center justify-between flex-wrap gap-2 p-3 bg-blue-50/80 border border-blue-200 rounded-xl text-xs text-blue-900">
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-[#2563EB]" />
-                <span>
-                  Live Central Bank Exchange Rate: <strong>$1.00 USD = ₹{exchangeRate.toFixed(2)} INR</strong>
-                </span>
-              </div>
-              <div className="font-semibold text-slate-700">
-                Total Customs Value:{" "}
-                <span className="font-mono font-bold text-[#030164] text-sm">
-                  {currency === "USD"
-                    ? `$${totalDeclaredValue.toFixed(2)} USD (≈ ₹${totalDeclaredInrEquivalent.toLocaleString()} INR)`
-                    : `₹${totalDeclaredValue.toLocaleString()} INR (≈ $${(totalDeclaredValue / exchangeRate).toFixed(2)} USD)`}
-                </span>
-              </div>
-            </div>
 
             {/* International Commercial Details */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1896,25 +1873,7 @@ export function InternationalBookingForm({
                   </h4>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Assign International Carrier (Optional)
-                    </label>
-                    <select
-                      value={adminCourierId}
-                      onChange={(e) => setAdminCourierId(e.target.value)}
-                      className="w-full h-10 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#030164]"
-                    >
-                      <option value="">Manual / Allocate Later</option>
-                      {adminCouriers.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} ({c.code})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
+                <div className="max-w-md">
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-slate-700">
                       Shipping Charge ({currency})

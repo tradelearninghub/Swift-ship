@@ -10,11 +10,13 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen bg-surface-subtle flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link href="/" className="inline-flex items-center gap-2 font-bold text-2xl text-text-primary">
-          <div className="w-10 h-10 rounded-xl bg-brand-primary flex items-center justify-center text-white shadow-md">
-            <Truck className="w-6 h-6" />
-          </div>
-          <span>SS International <span className="text-brand-primary">Courier Service</span></span>
+        <Link href="/" className="inline-block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/ss-logo.jpg"
+            alt="SS International Courier"
+            className="h-14 w-auto mx-auto object-contain hover:scale-102 transition-transform"
+          />
         </Link>
       </div>
 

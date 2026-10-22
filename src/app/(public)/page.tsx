@@ -17,8 +17,8 @@ import {
   Star,
   Globe2,
   Package,
-  FileText,
-  Clock,
+  Plane,
+  Ship,
   Sparkles,
   ChevronDown,
   ChevronUp,
@@ -142,125 +142,116 @@ export default function HomePage() {
   return (
     <div className="bg-white text-slate-800">
       {/* ========================================================================= */}
-      {/* 1. HERO SECTION (Fast. Reliable Courier Service.) */}
       {/* ========================================================================= */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#070E24] via-[#0B1536] to-[#081226] text-white pt-16 pb-28 md:pt-20 md:pb-36">
-        {/* Subtle decorative glow accents */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 right-10 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div className="main-container relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      {/* 1. HERO SECTION (Matches Image 3 mockup exactly) */}
+      {/* ========================================================================= */}
+      <section className="relative overflow-hidden bg-[#F5F8FC] border-b border-slate-200">
+        <div className="main-container py-12 md:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Content Column */}
-            <div className="lg:col-span-7 space-y-6">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/15 border border-blue-400/25 text-blue-300 text-xs font-semibold backdrop-blur-sm">
-                <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                <span>Global Express Air Freight &amp; International Courier</span>
+            <div className="lg:col-span-6 space-y-6 z-10">
+              {/* Category Tag with Gold Accent Line */}
+              <div className="flex items-center gap-3">
+                <span className="w-12 h-0.5 bg-[#C58B24]"></span>
+                <span className="text-xs font-black tracking-widest text-slate-800 uppercase">
+                  GLOBAL COURIER &amp; LOGISTICS SOLUTIONS
+                </span>
               </div>
 
-              {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.08]">
-                Fast. Reliable <br />
-                <span className="text-white">Courier Service.</span>
+              {/* Main Headline from Image 3 */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#0B1536] tracking-tight leading-[1.08]">
+                Your World, <br />
+                <span className="text-[#C58B24]">Our Delivery</span>
               </h1>
 
-              {/* Subtitle */}
-              <p className="text-slate-300 text-base sm:text-lg max-w-xl font-normal leading-relaxed">
-                Send parcels from India to 220+ countries worldwide starting from ₹599.
-                Free doorstep pickup, real-time live GPS tracking, and paperless customs clearance.
+              {/* Subtitle from Image 3 */}
+              <p className="text-slate-600 text-base sm:text-lg max-w-xl font-normal leading-relaxed">
+                Fast, secure and reliable courier services to anywhere in the world. We connect your business, your loved ones and your dreams.
               </p>
-
-              {/* Social Proof / Trustpilot Rating Badge */}
-              <div className="flex flex-wrap items-center gap-4 pt-1">
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15">
-                  <span className="text-white font-bold text-sm">4.5</span>
-                  <div className="flex items-center text-emerald-400">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                    ))}
-                  </div>
-                  <span className="text-xs text-slate-300 font-medium border-l border-white/20 pl-2">
-                    Trustpilot Verified
-                  </span>
-                </div>
-                <div className="text-xs text-slate-300 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
-                  <span>99.8% On-Time International Deliveries</span>
-                </div>
-              </div>
 
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
-                  href="/book"
-                  className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                  href="/track"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-[#C58B24] hover:bg-[#b07b1d] text-white font-bold text-sm shadow-lg shadow-[#C58B24]/25 hover:shadow-[#C58B24]/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
                 >
-                  <Package className="w-4 h-4" />
-                  <span>Book a Parcel Now</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <MapPin className="w-4 h-4" />
+                  <span>Track Your Shipment</span>
+                  <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
                 <Link
-                  href="/calculator"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-sm border border-white/20 transition-all hover:-translate-y-0.5"
+                  href="/book"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-[#06122C] hover:bg-[#0c1d42] text-white font-bold text-sm shadow-md transition-all hover:-translate-y-0.5"
                 >
-                  <span>Calculate Shipping Rate</span>
+                  <Package className="w-4 h-4 text-[#C58B24]" />
+                  <span>Book Now</span>
                 </Link>
               </div>
             </div>
 
-            {/* Right Visual Column (Delivery Specialist + Live Floating Cards) */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto max-w-md lg:max-w-none">
-                {/* Main Courier Showcase Card */}
-                <div className="relative rounded-3xl overflow-hidden border border-white/15 shadow-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="https://images.unsplash.com/photo-1580674684081-7617fbf3d745?auto=format&fit=crop&w=800&q=80"
-                    alt="SS International Courier Specialist"
-                    className="w-full h-80 sm:h-96 object-cover rounded-2xl"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B1536]/90 via-transparent to-transparent rounded-2xl"></div>
+            {/* Right Visual Graphic (Hero Artwork from Image 3) */}
+            <div className="lg:col-span-6 relative">
+              <div className="relative mx-auto max-w-lg lg:max-w-none rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/hero-layout.jpg"
+                  alt="SS International Courier - Global Logistics"
+                  className="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
 
-                  {/* Overlay Tag inside card */}
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-white font-bold text-base">SS International Courier</p>
-                        <p className="text-xs text-blue-300">Fast · Doorstep · Trackable</p>
-                      </div>
-                      <div className="w-9 h-9 rounded-full bg-[#2563EB] text-white flex items-center justify-center shadow-md">
-                        <Globe2 className="w-5 h-5" />
-                      </div>
-                    </div>
-                  </div>
+        {/* 4-FEATURE PILL STRIP (Directly under Hero, matching Image 3) */}
+        <div className="bg-white border-t border-slate-200 py-6 shadow-xs">
+          <div className="main-container">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+              {/* Feature 1 */}
+              <div className="flex items-center justify-center gap-3.5 py-2 px-4">
+                <div className="w-11 h-11 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Globe2 className="w-5 h-5 text-[#C58B24]" />
                 </div>
-
-                {/* Floating Micro-Card 1: Live Status */}
-                <div className="absolute -top-4 -left-4 sm:-left-6 bg-white text-slate-800 p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 backdrop-blur-md animate-fade-in">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                    <Truck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                      <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Live In Transit</p>
-                    </div>
-                    <p className="text-xs font-bold text-slate-900">Consignment #DEL9824</p>
-                    <p className="text-[10px] text-slate-500">Departed Delhi Hub → London, UK</p>
-                  </div>
+                <div className="text-left">
+                  <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase leading-tight m-0">
+                    WORLDWIDE DELIVERY
+                  </p>
                 </div>
+              </div>
 
-                {/* Floating Micro-Card 2: Doorstep Collection */}
-                <div className="absolute -bottom-5 -right-4 sm:-right-6 bg-white text-slate-800 p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 backdrop-blur-md">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Instant Pickup</p>
-                    <p className="text-xs font-bold text-slate-900">Doorstep Collection in India</p>
-                    <p className="text-[10px] text-slate-500">Same-Day Hub Handover</p>
-                  </div>
+              {/* Feature 2 */}
+              <div className="flex items-center justify-center gap-3.5 py-2 px-4">
+                <div className="w-11 h-11 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Plane className="w-5 h-5 text-[#C58B24]" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase leading-tight m-0">
+                    AIR FREIGHT
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="flex items-center justify-center gap-3.5 py-2 px-4">
+                <div className="w-11 h-11 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Ship className="w-5 h-5 text-[#C58B24]" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase leading-tight m-0">
+                    SEA FREIGHT
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 4 */}
+              <div className="flex items-center justify-center gap-3.5 py-2 px-4">
+                <div className="w-11 h-11 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Truck className="w-5 h-5 text-[#C58B24]" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase leading-tight m-0">
+                    LAND COURIER
+                  </p>
                 </div>
               </div>
             </div>

@@ -78,18 +78,13 @@ function AdminLoginForm() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Brand Logo & Tag */}
         <div className="flex flex-col items-center text-center">
-          <Link href="/" className="inline-flex items-center gap-2.5 group mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-primary to-orange-500 flex items-center justify-center text-white shadow-xl shadow-brand-primary/20 group-hover:scale-105 transition-transform duration-200">
-              <Truck className="w-6 h-6" />
-            </div>
-            <div className="text-left">
-              <span className="font-extrabold text-2xl text-white tracking-tight block">
-                SS International <span className="text-brand-primary">Courier Service</span>
-              </span>
-              <span className="text-[10px] tracking-wider uppercase font-semibold text-slate-400 block -mt-1">
-                Logistics & Parcel Management
-              </span>
-            </div>
+          <Link href="/" className="inline-block mb-4 p-2 bg-white rounded-2xl shadow-xl group">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/ss-logo.jpg"
+              alt="SS International Courier"
+              className="h-12 w-auto object-contain group-hover:scale-102 transition-transform"
+            />
           </Link>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-semibold text-slate-300 shadow-sm mb-2">
