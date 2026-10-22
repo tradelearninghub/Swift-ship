@@ -202,20 +202,6 @@ CREATE TABLE IF NOT EXISTS `booking_charges` (
   `tax` INT NOT NULL DEFAULT 0,
   `total` INT NOT NULL DEFAULT 0,
   `total_inr` INT NOT NULL DEFAULT 0,
-  INDEX `idx_parcels_booking` (`booking_id`),
-  CONSTRAINT `fk_parcels_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_parcels_verifier` FOREIGN KEY (`verified_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- 10. Booking Charges
-CREATE TABLE IF NOT EXISTS `booking_charges` (
-  `id` VARCHAR(191) NOT NULL PRIMARY KEY,
-  `booking_id` VARCHAR(191) NOT NULL UNIQUE,
-  `shipping_charge` INT NOT NULL DEFAULT 0,
-  `additional_charge` INT NOT NULL DEFAULT 0,
-  `discount` INT NOT NULL DEFAULT 0,
-  `tax` INT NOT NULL DEFAULT 0,
-  `total` INT NOT NULL DEFAULT 0,
   `set_by` VARCHAR(191) NOT NULL,
   `set_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

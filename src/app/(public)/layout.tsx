@@ -67,41 +67,41 @@ export default async function PublicLayout({
   const otherSocials = activeSocials.filter((s) => s.label !== "WhatsApp");
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white overflow-x-hidden w-full">
       {/* TOPBAR (Matches Image 3 mockup: Dark Navy #06122C) */}
-      <div className="bg-[#06122C] text-slate-300 text-xs py-2 border-b border-slate-800/80 overflow-hidden select-none">
-        <div className="main-container flex items-center justify-between gap-4 whitespace-nowrap">
-          {/* Left: Global Reach, Support Email, Phone */}
-          <div className="flex items-center gap-x-2.5 sm:gap-x-4 shrink-0 text-slate-300">
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-slate-300 font-medium">
+      <div className="bg-[#06122C] text-slate-300 text-xs py-2 border-b border-slate-800/80 select-none w-full">
+        <div className="main-container flex items-center justify-between gap-2 sm:gap-4">
+          {/* Left: Global Reach (lg+), Support Email (sm+), Phone (all viewports) */}
+          <div className="flex items-center gap-x-2 sm:gap-x-4 shrink-0 text-slate-300 min-w-0">
+            <span className="hidden lg:inline-flex items-center gap-1.5 text-slate-300 font-medium shrink-0">
               <i className="fas fa-map-marker-alt text-[#C58B24] text-[11px]"></i>
               <span>Global Reach, Local Support</span>
             </span>
-            <span className="hidden sm:inline text-slate-700">|</span>
-            <span className="flex items-center gap-1.5">
+            <span className="hidden lg:inline text-slate-700">|</span>
+            <span className="hidden sm:inline-flex items-center gap-1.5 shrink-0">
               <i className="fas fa-envelope text-[#C58B24] text-[11px]"></i>
               <a href={`mailto:${profile.support_email}`} className="hover:text-white transition-colors">
                 {profile.support_email}
               </a>
             </span>
-            <span className="text-slate-700">|</span>
-            <span className="flex items-center gap-1.5">
+            <span className="hidden sm:inline text-slate-700">|</span>
+            <span className="flex items-center gap-1.5 shrink-0 font-medium">
               <i className="fas fa-phone-alt text-[#C58B24] text-[11px]"></i>
-              <a href={`tel:+91${phone1.replace(/^\+91/, "").trim()}`} className="hover:text-white transition-colors">
+              <a href={`tel:+91${phone1.replace(/^\+91/, "").trim()}`} className="hover:text-white transition-colors whitespace-nowrap">
                 +91 {phone1.replace(/^\+91/, "").trim()}
               </a>
             </span>
           </div>
 
           {/* Right: Social Channels | Language / Tracking */}
-          <div className="flex items-center gap-3 shrink-0">
-            {/* Social Icons matching Image 3: FB, IG, LI, YT */}
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Social Icons: Perfectly visible on all mobile and desktop viewports */}
+            <div className="flex items-center gap-1 sm:gap-2">
               <a
                 href={profile.facebook_url || "https://facebook.com"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-5 h-5 rounded-full text-slate-300 hover:text-white flex items-center justify-center transition-colors text-xs"
+                className="w-6 h-6 rounded-full text-slate-300 hover:text-white flex items-center justify-center transition-colors"
                 title="Facebook"
               >
                 <i className="fab fa-facebook-f text-xs"></i>
@@ -110,7 +110,7 @@ export default async function PublicLayout({
                 href={profile.instagram_url || "https://instagram.com"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-5 h-5 rounded-full text-slate-300 hover:text-white flex items-center justify-center transition-colors text-xs"
+                className="w-6 h-6 rounded-full text-slate-300 hover:text-white flex items-center justify-center transition-colors"
                 title="Instagram"
               >
                 <i className="fab fa-instagram text-xs"></i>
@@ -119,7 +119,7 @@ export default async function PublicLayout({
                 href={profile.linkedin_url || "https://linkedin.com"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-5 h-5 rounded-full text-slate-300 hover:text-white flex items-center justify-center transition-colors text-xs"
+                className="w-6 h-6 rounded-full text-slate-300 hover:text-white flex items-center justify-center transition-colors"
                 title="LinkedIn"
               >
                 <i className="fab fa-linkedin-in text-xs"></i>
@@ -128,17 +128,17 @@ export default async function PublicLayout({
                 href={profile.youtube_url || "https://youtube.com"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-5 h-5 rounded-full text-slate-300 hover:text-white flex items-center justify-center transition-colors text-xs"
+                className="w-6 h-6 rounded-full text-slate-300 hover:text-white flex items-center justify-center transition-colors"
                 title="YouTube"
               >
                 <i className="fab fa-youtube text-xs"></i>
               </a>
             </div>
 
-            <span className="w-px h-3.5 bg-slate-700"></span>
+            <span className="w-px h-3.5 bg-slate-700 hidden sm:inline"></span>
 
             {/* Language Selector */}
-            <div className="flex items-center gap-1 text-slate-300 font-medium text-xs cursor-pointer hover:text-white transition-colors">
+            <div className="hidden sm:flex items-center gap-1 text-slate-300 font-medium text-xs cursor-pointer hover:text-white transition-colors">
               <i className="fas fa-globe text-xs"></i>
               <span>English</span>
               <i className="fas fa-chevron-down text-[9px] opacity-70"></i>
