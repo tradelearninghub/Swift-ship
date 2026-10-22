@@ -145,31 +145,35 @@ export default function HomePage() {
       {/* ========================================================================= */}
       {/* 1. HERO SECTION (Matches Image 3 mockup exactly) */}
       {/* ========================================================================= */}
-      <section className="relative overflow-hidden bg-[#F5F8FC] border-b border-slate-200">
-        <div className="main-container py-12 md:py-20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#EEF4FB] via-[#F6F9FD] to-white border-b border-slate-200">
+        {/* Subtle decorative background glows */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 right-10 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="main-container py-12 md:py-20 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Content Column */}
             <div className="lg:col-span-6 space-y-6 z-10">
               {/* Category Tag with Gold Accent Line */}
               <div className="flex items-center gap-3">
-                <span className="w-12 h-0.5 bg-[#C58B24]"></span>
-                <span className="text-xs font-black tracking-widest text-slate-800 uppercase">
+                <span className="w-12 h-1 bg-[#C58B24] rounded-full"></span>
+                <span className="text-xs font-black tracking-widest text-[#06122C] uppercase">
                   GLOBAL COURIER &amp; LOGISTICS SOLUTIONS
                 </span>
               </div>
 
-              {/* Main Headline from Image 3 */}
+              {/* Main Headline */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#0B1536] tracking-tight leading-[1.08]">
                 Your World, <br />
                 <span className="text-[#C58B24]">Our Delivery</span>
               </h1>
 
-              {/* Subtitle from Image 3 */}
+              {/* Subtitle */}
               <p className="text-slate-600 text-base sm:text-lg max-w-xl font-normal leading-relaxed">
                 Fast, secure and reliable courier services to anywhere in the world. We connect your business, your loved ones and your dreams.
               </p>
 
-              {/* Action Buttons */}
+              {/* Action Buttons matching reference design */}
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
                   href="/track"
@@ -187,17 +191,66 @@ export default function HomePage() {
                   <span>Book Now</span>
                 </Link>
               </div>
+
+              {/* Verified Trust Badges */}
+              <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-500 font-medium">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>220+ Countries</span>
+                </div>
+                <span className="opacity-40">•</span>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Doorstep Collection</span>
+                </div>
+                <span className="opacity-40">•</span>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Automated Customs</span>
+                </div>
+              </div>
             </div>
 
-            {/* Right Visual Graphic (Hero Artwork from Image 3) */}
+            {/* Right Visual Column (Photorealistic 3D Logistics Visual with Floating Micro-Cards) */}
             <div className="lg:col-span-6 relative">
-              <div className="relative mx-auto max-w-lg lg:max-w-none rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white group">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/hero-layout.jpg"
-                  alt="SS International Courier - Global Logistics"
-                  className="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-500"
-                />
+              <div className="relative mx-auto max-w-lg lg:max-w-none">
+                {/* Main Logistics Visual Card */}
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/hero-logistics.jpg"
+                    alt="SS International Courier - Global Air Freight & Express Delivery"
+                    className="w-full h-80 sm:h-96 object-cover transform group-hover:scale-102 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#06122C]/40 via-transparent to-transparent pointer-events-none"></div>
+                </div>
+
+                {/* Floating Micro-Card 1: Live Status */}
+                <div className="absolute -top-3 -left-3 sm:-left-5 bg-white/95 text-slate-800 p-3 sm:p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 backdrop-blur-md">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Truck className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                      <p className="text-[10px] sm:text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Live Express Air</p>
+                    </div>
+                    <p className="text-xs font-bold text-slate-900">Flight In-Transit</p>
+                    <p className="text-[10px] text-slate-500">Delhi Hub → London, Heathrow</p>
+                  </div>
+                </div>
+
+                {/* Floating Micro-Card 2: Doorstep Collection */}
+                <div className="absolute -bottom-4 -right-3 sm:-right-5 bg-white/95 text-slate-800 p-3 sm:p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 backdrop-blur-md">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 text-[#C58B24] flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] sm:text-[11px] font-bold text-amber-700 uppercase tracking-wider">Fast Pickup</p>
+                    <p className="text-xs font-bold text-slate-900">Doorstep Collection in India</p>
+                    <p className="text-[10px] text-slate-500">Same-Day Departure</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
