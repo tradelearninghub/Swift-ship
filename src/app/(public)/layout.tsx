@@ -162,7 +162,7 @@ export default async function PublicLayout({
           <Link href="/" className="flex items-center gap-2 group text-decoration-none py-0.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/ss-logo.jpg"
+              src="/images/header-logo.jpg"
               alt="SS International Courier"
               className="h-10 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-102"
             />
@@ -244,18 +244,18 @@ export default async function PublicLayout({
       {/* MAIN CONTENT */}
       <main className="flex-1 bg-white">{children}</main>
 
-      {/* FOOTER (Matching Image 3: Deep Midnight Navy #06122C with Gold Accent) */}
-      <footer className="bg-[#06122C] text-slate-300 pt-16 pb-0 border-t border-slate-800">
+      {/* FOOTER (Matching reference: Deep Blue #012351 with Gold Angled Accent) */}
+      <footer className="bg-[#012351] text-slate-300 pt-14 pb-0 border-t border-blue-900/40">
         <div className="main-container">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
             {/* Column 1: Brand Logo & Mission */}
             <div className="space-y-4">
-              <Link href="/" className="inline-block bg-white p-2 rounded-xl shadow-md">
+              <Link href="/" className="inline-block">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/images/ss-logo.jpg"
+                  src="/images/footer-logo-transparent.png"
                   alt="SS International Courier"
-                  className="h-10 w-auto object-contain"
+                  className="h-14 sm:h-16 w-auto object-contain block"
                 />
               </Link>
               <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
@@ -386,7 +386,7 @@ export default async function PublicLayout({
                 <li>
                   <Link href="/services" className="text-slate-300 hover:text-[#C58B24] transition-colors flex items-center gap-2">
                     <span className="text-[#C58B24] text-xs font-bold">&gt;</span>
-                    <span>E-Commerce &amp; Amazon FBA</span>
+                    <span>E-Commerce Solutions</span>
                   </Link>
                 </li>
               </ul>
@@ -423,29 +423,32 @@ export default async function PublicLayout({
           </div>
         </div>
 
-        {/* Bottom bar with Gold Angled Banner (Image 3) */}
-        <div className="border-t border-slate-800/80 bg-[#040C1E]">
+        {/* Bottom bar with Gold Angled Banner */}
+        <div className="border-t border-blue-900/50 bg-[#001F4B]">
           <div className="main-container flex flex-col md:flex-row items-center justify-between py-3 gap-3">
-            <p className="text-xs text-slate-400 m-0">
-              © {new Date().getFullYear()} {profile.company_name || "SS International Courier"}. All Rights Reserved.
+            <p className="text-xs text-slate-300 m-0">
+              © 2025 {profile.company_name || "SS International Courier"}. All Rights Reserved.
             </p>
 
-            <div className="flex items-center gap-4 text-xs text-slate-400">
+            <div className="flex items-center gap-4 text-xs text-slate-300">
               <Link href="/privacy-policy" className="hover:text-white transition-colors">
                 Privacy Policy
               </Link>
-              <span>|</span>
+              <span className="text-slate-500">|</span>
               <Link href="/terms" className="hover:text-white transition-colors">
                 Terms &amp; Conditions
               </Link>
-              <span>|</span>
+              <span className="text-slate-500">|</span>
               <Link href="/shipping-policy" className="hover:text-white transition-colors">
                 Disclaimer
               </Link>
             </div>
 
             {/* Gold Angled Accent Badge */}
-            <div className="bg-[#C58B24] text-slate-950 font-black italic tracking-wide text-xs px-5 py-1.5 rounded-sm shadow-md">
+            <div
+              className="bg-[#C58B24] text-slate-950 font-black italic tracking-wide text-xs px-6 py-2 shadow-md hidden sm:block"
+              style={{ clipPath: "polygon(16px 0, 100% 0, 100% 100%, 0 100%)" }}
+            >
               Fast. Secure. Global.
             </div>
           </div>
