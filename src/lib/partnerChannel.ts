@@ -17,7 +17,7 @@ export interface PartnerChannelSettings {
   updated_at?: string;
 }
 
-// 12 Channel Partners matching the user's specification exactly
+// Channel Partners matching user specification
 export const PARTNER_LOGO_MAP: Record<string, string> = {
   aramex: "/partners-logo/aramex.jpg",
   dhl: "/partners-logo/DHL-Logo.png",
@@ -26,6 +26,7 @@ export const PARTNER_LOGO_MAP: Record<string, string> = {
   gofo: "/partners-logo/GOFO_Logo.jpg",
   "india post": "/partners-logo/indiapost.jfif",
   indiapost: "/partners-logo/indiapost.jfif",
+  "indian post": "/partners-logo/indiapost.jfif",
   "royal mail": "/partners-logo/royal mail.png",
   royalmail: "/partners-logo/royal mail.png",
   skynet: "/partners-logo/skynet.png",
@@ -34,6 +35,18 @@ export const PARTNER_LOGO_MAP: Record<string, string> = {
   usps: "/partners-logo/usps logo.png",
   "yun express": "/partners-logo/yun express.jfif",
   yunexpress: "/partners-logo/yun express.jfif",
+  "ship global": "/partners-logo/shipglobal.png",
+  shipglobal: "/partners-logo/shipglobal.png",
+  xportal: "/partners-logo/xportal.png",
+  xportel: "/partners-logo/xportal.png",
+  "canada post": "/partners-logo/canadapost.png",
+  canadapost: "/partners-logo/canadapost.png",
+  yodel: "/partners-logo/yodel.png",
+  toll: "/partners-logo/toll.png",
+  "toll group": "/partners-logo/toll.png",
+  "dhl ecommerce": "/partners-logo/dhl-ecommerce.png",
+  "dhl e-commerce": "/partners-logo/dhl-ecommerce.png",
+  dhlecommerce: "/partners-logo/dhl-ecommerce.png",
 };
 
 export function getPartnerLogo(nameOrId: string, customLogo?: string): string {
@@ -131,6 +144,48 @@ export const DEFAULT_PARTNER_COMPANIES: ChannelPartnerCompany[] = [
     name: "Yun Express",
     website: "https://www.yunexpress.com",
     logo_url: "/partners-logo/yun express.jfif",
+    is_visible: true,
+  },
+  {
+    id: "ship-global",
+    name: "Ship Global",
+    website: "https://www.shipglobal.in",
+    logo_url: "/partners-logo/shipglobal.png",
+    is_visible: true,
+  },
+  {
+    id: "xportal",
+    name: "Xportal",
+    website: "https://xportel.com",
+    logo_url: "/partners-logo/xportal.png",
+    is_visible: true,
+  },
+  {
+    id: "canada-post",
+    name: "Canada Post",
+    website: "https://www.canadapost-postescanada.ca",
+    logo_url: "/partners-logo/canadapost.png",
+    is_visible: true,
+  },
+  {
+    id: "yodel",
+    name: "Yodel",
+    website: "https://www.yodel.co.uk",
+    logo_url: "/partners-logo/yodel.png",
+    is_visible: true,
+  },
+  {
+    id: "toll",
+    name: "Toll Group",
+    website: "https://www.tollgroup.com",
+    logo_url: "/partners-logo/toll.png",
+    is_visible: true,
+  },
+  {
+    id: "dhl-ecommerce",
+    name: "DHL eCommerce",
+    website: "https://www.dhl.com",
+    logo_url: "/partners-logo/dhl-ecommerce.png",
     is_visible: true,
   },
 ];
