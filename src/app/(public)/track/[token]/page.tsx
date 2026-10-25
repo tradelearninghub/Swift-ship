@@ -92,7 +92,7 @@ export default function QrTrackingTokenPage() {
           <div className="pt-2">
             <Link href="/track">
               <Button variant="primary" size="sm">
-                Search via AWB or Mobile Number
+                Search via AWB or Tracking ID
               </Button>
             </Link>
           </div>

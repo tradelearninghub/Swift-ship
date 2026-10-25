@@ -194,45 +194,45 @@ export default function HomePage() {
         </div>
 
         {/* 4-FEATURE PILL STRIP (Worldwide Delivery | Air Freight | Sea Freight | Land Courier) */}
-        <div className="relative z-10 bg-white/95 backdrop-blur-xs border-t border-slate-200/80 py-4 sm:py-5 shadow-2xs">
+        <div className="relative z-10 bg-white border-t border-slate-200 py-4 sm:py-5 shadow-xs">
           <div className="main-container">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-0 md:divide-x divide-slate-200">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-slate-200">
               {/* Worldwide Delivery */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3 py-2 px-2 sm:px-4 min-w-0">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
-                  <Globe2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#C58B24]" />
+              <div className="flex items-center justify-center gap-3 py-2 px-3 sm:px-4">
+                <div className="w-10 h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Globe2 className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-[11px] sm:text-xs md:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
+                <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
                   WORLDWIDE DELIVERY
                 </p>
               </div>
 
               {/* Air Freight */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3 py-2 px-2 sm:px-4 min-w-0">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
-                  <Plane className="w-4 h-4 sm:w-5 sm:h-5 text-[#C58B24]" />
+              <div className="flex items-center justify-center gap-3 py-2 px-3 sm:px-4">
+                <div className="w-10 h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Plane className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-[11px] sm:text-xs md:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
+                <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
                   AIR FREIGHT
                 </p>
               </div>
 
               {/* Sea Freight */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3 py-2 px-2 sm:px-4 min-w-0">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
-                  <Ship className="w-4 h-4 sm:w-5 sm:h-5 text-[#C58B24]" />
+              <div className="flex items-center justify-center gap-3 py-2 px-3 sm:px-4">
+                <div className="w-10 h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Ship className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-[11px] sm:text-xs md:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
+                <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
                   SEA FREIGHT
                 </p>
               </div>
 
               {/* Land Courier */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3 py-2 px-2 sm:px-4 min-w-0">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
-                  <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-[#C58B24]" />
+              <div className="flex items-center justify-center gap-3 py-2 px-3 sm:px-4">
+                <div className="w-10 h-10 rounded-full bg-[#06122C] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Truck className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-[11px] sm:text-xs md:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
+                <p className="text-xs sm:text-sm font-black text-[#06122C] tracking-wide uppercase m-0 leading-tight">
                   LAND COURIER
                 </p>
               </div>
@@ -244,7 +244,7 @@ export default function HomePage() {
       {/* ========================================================================= */}
       {/* 2. FLOATING QUICK TRACKING & ACTION BAR (Lowered to prevent overlap) */}
       {/* ========================================================================= */}
-      <div className="relative z-30 max-w-6xl mx-auto px-4 mt-6 sm:mt-12 mb-12 sm:mb-16">
+      <div className="relative z-30 max-w-6xl mx-auto px-4 mt-8 sm:mt-12 mb-12 sm:mb-16">
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 p-4 sm:p-7">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-center">
             {/* Tracking Search Form */}
@@ -259,21 +259,23 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <form onSubmit={handleQuickTrack} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                <input
-                  type="text"
-                  value={quickAwb}
-                  onChange={(e) => setQuickAwb(e.target.value)}
-                  placeholder="Enter Tracking ID (e.g. DEL98234123)"
-                  className="w-full flex-1 min-w-0 h-11 px-3.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB] text-slate-900 placeholder:text-slate-400"
-                  required
-                />
+              <form onSubmit={handleQuickTrack} className="flex items-center gap-2 w-full">
+                <div className="relative flex-1 min-w-0">
+                  <input
+                    type="text"
+                    value={quickAwb}
+                    onChange={(e) => setQuickAwb(e.target.value)}
+                    placeholder="Enter Tracking ID (e.g. DEL...)"
+                    className="w-full h-11 px-3 sm:px-3.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB] text-slate-900 placeholder:text-slate-400 truncate"
+                    required
+                  />
+                </div>
                 <button
                   type="submit"
-                  className="h-11 px-5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all shrink-0 flex items-center justify-center gap-1.5"
+                  className="h-11 px-3.5 sm:px-5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all shrink-0 flex items-center justify-center gap-1.5 whitespace-nowrap"
                 >
                   <span>Track &amp; Trace</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                 </button>
               </form>
             </div>

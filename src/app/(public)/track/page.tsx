@@ -18,20 +18,18 @@ import {
   ArrowRight,
   Loader2,
   FileText,
-  Phone,
   Barcode,
   ExternalLink,
   Tag,
 } from "lucide-react";
 
-type SearchMode = "AWB" | "ORDER_ID" | "TRACKING_ID" | "MOBILE";
+type SearchMode = "AWB" | "ORDER_ID" | "TRACKING_ID";
 
 function TrackingContent() {
   const searchParams = useSearchParams();
   const initialAwb = searchParams.get("awb") || "";
   const initialBookingId = searchParams.get("booking_id") || searchParams.get("order_id") || "";
   const initialTrackingId = searchParams.get("tracking_id") || "";
-  const initialMobile = searchParams.get("mobile") || "";
   const initialQuery = searchParams.get("q") || initialAwb || initialBookingId || initialTrackingId;
 
   const [activeTab, setActiveTab] = useState<SearchMode>(
@@ -41,8 +39,6 @@ function TrackingContent() {
       ? "AWB"
       : initialBookingId
       ? "ORDER_ID"
-      : initialMobile
-      ? "MOBILE"
       : "AWB"
   );
 
@@ -50,7 +46,6 @@ function TrackingContent() {
   const [awbInput, setAwbInput] = useState(initialAwb);
   const [bookingIdInput, setBookingIdInput] = useState(initialBookingId);
   const [trackingIdInput, setTrackingIdInput] = useState(initialTrackingId);
-  const [mobileInput, setMobileInput] = useState(initialMobile);
 
   // Search Results State
   const [matchedBookings, setMatchedBookings] = useState<any[]>([]);
@@ -63,10 +58,8 @@ function TrackingContent() {
   useEffect(() => {
     if (initialQuery) {
       handleDirectLookup(initialQuery);
-    } else if (initialMobile) {
-      handleMobileLookup(initialMobile);
     }
-  }, [initialQuery, initialMobile]);
+  }, [initialQuery]);
 
   // Direct AWB / Booking ID Lookup via real /api/track
   const handleDirectLookup = async (query: string) => {
@@ -88,38 +81,6 @@ function TrackingContent() {
       }
     } catch (e) {
       console.error("Direct lookup error:", e);
-      setSelectedBooking(null);
-      setMatchedBookings([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Mobile-Only Search via real /api/track
-  const handleMobileLookup = async (mobVal: string) => {
-    const mob = mobVal.trim().replace(/\D/g, "");
-    if (!mob) return;
-    setIsLoading(true);
-    setHasSearched(true);
-
-    try {
-      const res = await fetch(`/api/track?mobile=${encodeURIComponent(mob)}`);
-      const data = await res.json();
-
-      if (res.ok && data.found) {
-        if (data.type === "SINGLE" && data.shipment) {
-          setSelectedBooking(data.shipment);
-          setMatchedBookings([data.shipment]);
-        } else if (data.type === "MULTIPLE" && Array.isArray(data.results)) {
-          setSelectedBooking(null);
-          setMatchedBookings(data.results);
-        }
-      } else {
-        setSelectedBooking(null);
-        setMatchedBookings([]);
-      }
-    } catch (e) {
-      console.error("Mobile lookup error:", e);
       setSelectedBooking(null);
       setMatchedBookings([]);
     } finally {
@@ -175,8 +136,8 @@ function TrackingContent() {
 
       {/* 3-Option Search Container */}
       <div className="max-w-2xl mx-auto bg-surface-base border border-border-default rounded-2xl p-6 shadow-md space-y-6">
-        {/* 4 Distinct Search Option Tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 rounded-xl bg-surface-subtle p-1 border border-border-default text-xs font-semibold gap-1">
+        {/* 3 Distinct Search Option Tabs */}
+        <div className="grid grid-cols-3 rounded-xl bg-surface-subtle p-1 border border-border-default text-xs font-semibold gap-1">
           <button
             type="button"
             onClick={() => setActiveTab("AWB")}
@@ -214,19 +175,6 @@ function TrackingContent() {
           >
             <Truck className="w-4 h-4 hidden sm:inline" />
             <span>Tracking ID</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("MOBILE")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg transition-all ${
-              activeTab === "MOBILE"
-                ? "bg-surface-base text-brand-primary shadow-sm font-bold"
-                : "text-text-secondary hover:text-text-primary"
-            }`}
-          >
-            <Phone className="w-4 h-4 hidden sm:inline" />
-            <span>Mobile No.</span>
           </button>
         </div>
 
@@ -340,47 +288,6 @@ function TrackingContent() {
             </Button>
           </form>
         )}
-
-        {/* Option 3: Mobile Number Only Search */}
-        {activeTab === "MOBILE" && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleMobileLookup(mobileInput);
-            }}
-            className="space-y-4"
-          >
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-text-primary">
-                Enter Registered 10-Digit Mobile Number
-              </label>
-              <div className="relative">
-                <input
-                  type="tel"
-                  maxLength={10}
-                  value={mobileInput}
-                  onChange={(e) => setMobileInput(e.target.value.replace(/\D/g, ""))}
-                  placeholder="e.g. 9876543210 or 8000151117"
-                  className="w-full h-12 pl-4 pr-12 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:outline-none transition-all"
-                  required
-                />
-                <Phone className="w-5 h-5 text-text-muted absolute right-4 top-3.5" />
-              </div>
-            </div>
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full shadow-md"
-              isLoading={isLoading}
-            >
-              Track by Mobile Number
-            </Button>
-            <p className="text-center text-[11px] text-text-muted">
-              Searches shipments where this mobile number is either sender or receiver.
-            </p>
-          </form>
-        )}
       </div>
 
       {/* Multiple Matches Disambiguation List (§26) */}
@@ -393,7 +300,7 @@ function TrackingContent() {
                 Multiple Shipments Found ({matchedBookings.length})
               </span>
               <span className="text-xs font-normal text-text-muted">
-                Showing all consignments associated with your mobile number
+                Showing all consignments matching your query
               </span>
             </CardTitle>
             <p className="text-xs text-text-secondary mt-1">
@@ -441,7 +348,7 @@ function TrackingContent() {
           <AlertCircle className="w-10 h-10 text-amber-500 mx-auto" />
           <h3 className="text-base font-bold text-text-primary">No Consignment Found</h3>
           <p className="text-xs text-text-secondary max-w-sm mx-auto">
-            We could not find any active shipment matching your query. Please double-check your AWB, Booking ID, or Mobile Number.
+            We could not find any active shipment matching your query. Please double-check your AWB, Booking ID, or Courier Tracking ID.
           </p>
         </div>
       )}

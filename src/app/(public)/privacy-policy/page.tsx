@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage() {
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-text-primary">3. Tracking Privacy & Data Masking</h2>
           <p>
-            In compliance with our privacy standards (Section 27), public tracking queries via AWB or Mobile Number display masked telephone numbers and city-level origin/destination routes only, ensuring sender and recipient personal privacy against enumeration.
+            In compliance with our privacy standards (Section 27), public tracking queries via AWB or Tracking ID display masked telephone numbers and city-level origin/destination routes only, ensuring sender and recipient personal privacy against enumeration.
           </p>
         </section>
 

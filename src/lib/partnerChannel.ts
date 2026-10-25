@@ -17,125 +17,120 @@ export interface PartnerChannelSettings {
   updated_at?: string;
 }
 
-// Initial default companies matching the user's uploaded image exactly
+// 12 Channel Partners matching the user's specification exactly
+export const PARTNER_LOGO_MAP: Record<string, string> = {
+  aramex: "/partners-logo/aramex.jpg",
+  dhl: "/partners-logo/DHL-Logo.png",
+  dpd: "/partners-logo/DPD_logo.png",
+  fedex: "/partners-logo/fedex logo.png",
+  gofo: "/partners-logo/GOFO_Logo.jpg",
+  "india post": "/partners-logo/indiapost.jfif",
+  indiapost: "/partners-logo/indiapost.jfif",
+  "royal mail": "/partners-logo/royal mail.png",
+  royalmail: "/partners-logo/royal mail.png",
+  skynet: "/partners-logo/skynet.png",
+  uniuni: "/partners-logo/uniuni.png",
+  ups: "/partners-logo/ups logo.jpg",
+  usps: "/partners-logo/usps logo.png",
+  "yun express": "/partners-logo/yun express.jfif",
+  yunexpress: "/partners-logo/yun express.jfif",
+};
+
+export function getPartnerLogo(nameOrId: string, customLogo?: string): string {
+  if (customLogo && customLogo.startsWith("/partners-logo/")) return customLogo;
+  const key = (nameOrId || "").toLowerCase().trim();
+  for (const [k, url] of Object.entries(PARTNER_LOGO_MAP)) {
+    if (key === k || key.includes(k) || k.includes(key)) {
+      return url;
+    }
+  }
+  return customLogo || "";
+}
+
+// Initial default companies matching the user's specification exactly in order
 export const DEFAULT_PARTNER_COMPANIES: ChannelPartnerCompany[] = [
-  {
-    id: "uniuni",
-    name: "UniUni",
-    website: "https://www.uniuni.com",
-    logo_url: "https://www.uniuni.com/wp-content/uploads/2023/04/uniuni-logo.png",
-    is_visible: true,
-  },
-  {
-    id: "ups",
-    name: "UPS",
-    website: "https://www.ups.com",
-    logo_url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/United_Parcel_Service_logo_2014.svg",
-    is_visible: true,
-  },
-  {
-    id: "usps",
-    name: "United States Postal Service",
-    website: "https://www.usps.com",
-    logo_url: "https://upload.wikimedia.org/wikipedia/commons/4/4b/United_States_Postal_Service_logo_%282000s%29.svg",
-    is_visible: true,
-  },
-  {
-    id: "yunexpress",
-    name: "YunExpress",
-    website: "https://www.yunexpress.com",
-    logo_url: "https://upload.wikimedia.org/wikipedia/commons/e/e6/YunExpress_Logo.png",
-    is_visible: true,
-  },
   {
     id: "aramex",
     name: "Aramex",
     website: "https://www.aramex.com",
-    logo_url: "https://upload.wikimedia.org/wikipedia/commons/2/29/Aramex_logo.svg",
+    logo_url: "/partners-logo/aramex.jpg",
     is_visible: true,
   },
   {
     id: "dhl",
-    name: "DHL Express",
+    name: "DHL",
     website: "https://www.dhl.com",
-    logo_url: "https://upload.wikimedia.org/wikipedia/commons/a/ac/DHL_Logo.svg",
+    logo_url: "/partners-logo/DHL-Logo.png",
     is_visible: true,
   },
   {
     id: "dpd",
     name: "DPD",
     website: "https://www.dpd.com",
-    logo_url: "https://upload.wikimedia.org/wikipedia/commons/a/ab/DPD_logo_%282015%29.svg",
+    logo_url: "/partners-logo/DPD_logo.png",
     is_visible: true,
   },
   {
     id: "fedex",
     name: "FedEx",
     website: "https://www.fedex.com",
-    logo_url: "https://upload.wikimedia.org/wikipedia/commons/b/b9/FedEx_Corporation_-_2016_logo.svg",
+    logo_url: "/partners-logo/fedex logo.png",
     is_visible: true,
   },
   {
     id: "gofo",
-    name: "GOFO Express",
+    name: "GOFO",
     website: "https://www.gofoexpress.com",
-    logo_url: "",
-    is_visible: true,
-  },
-  {
-    id: "ship-global",
-    name: "Ship Global",
-    website: "https://www.shipglobal.in",
-    logo_url: "https://www.shipglobal.in/wp-content/uploads/2023/04/ShipGlobal-Logo.png",
-    is_visible: true,
-  },
-  {
-    id: "xportal",
-    name: "Xportal",
-    website: "https://xportal.com",
-    logo_url: "",
-    is_visible: true,
-  },
-  {
-    id: "skynet",
-    name: "SkyNet Worldwide",
-    website: "https://www.skynetworldwide.com",
-    logo_url: "https://upload.wikimedia.org/wikipedia/commons/9/90/SkyNet_Worldwide_Express_logo.svg",
-    is_visible: true,
-  },
-  {
-    id: "canada-post",
-    name: "Canada Post",
-    website: "https://www.canadapost-postescanada.ca",
-    logo_url: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Canada_Post_Logo.svg",
-    is_visible: true,
-  },
-  {
-    id: "yodel",
-    name: "Yodel",
-    website: "https://www.yodel.co.uk",
-    logo_url: "https://upload.wikimedia.org/wikipedia/en/9/90/Yodel_logo.svg",
-    is_visible: true,
-  },
-  {
-    id: "toll",
-    name: "Toll Group",
-    website: "https://www.tollgroup.com",
-    logo_url: "https://upload.wikimedia.org/wikipedia/en/7/7b/Toll_Group_logo.svg",
+    logo_url: "/partners-logo/GOFO_Logo.jpg",
     is_visible: true,
   },
   {
     id: "india-post",
     name: "India Post",
     website: "https://www.indiapost.gov.in",
-    logo_url: "https://upload.wikimedia.org/wikipedia/en/2/23/India_Post_Logo.svg",
+    logo_url: "/partners-logo/indiapost.jfif",
     is_visible: true,
   },
   {
-    id: "dhl-ecommerce",
-    name: "DHL eCommerce",
-    website: "https://www.dhl.com",
-    logo_url: "https://upload.wikimedia.org/wikipedia/commons/a/ac/DHL_Logo.svg",
+    id: "royal-mail",
+    name: "Royal Mail",
+    website: "https://www.royalmail.com",
+    logo_url: "/partners-logo/royal mail.png",
+    is_visible: true,
+  },
+  {
+    id: "skynet",
+    name: "SkyNet",
+    website: "https://www.skynetww.com",
+    logo_url: "/partners-logo/skynet.png",
+    is_visible: true,
+  },
+  {
+    id: "uniuni",
+    name: "UniUni",
+    website: "https://www.uniuni.com",
+    logo_url: "/partners-logo/uniuni.png",
+    is_visible: true,
+  },
+  {
+    id: "ups",
+    name: "UPS",
+    website: "https://www.ups.com",
+    logo_url: "/partners-logo/ups logo.jpg",
+    is_visible: true,
+  },
+  {
+    id: "usps",
+    name: "USPS",
+    website: "https://www.usps.com",
+    logo_url: "/partners-logo/usps logo.png",
+    is_visible: true,
+  },
+  {
+    id: "yun-express",
+    name: "Yun Express",
+    website: "https://www.yunexpress.com",
+    logo_url: "/partners-logo/yun express.jfif",
     is_visible: true,
   },
 ];
@@ -177,11 +172,16 @@ export async function getPartnerChannelSettings(): Promise<PartnerChannelSetting
       let companies: ChannelPartnerCompany[] = [];
 
       if (Array.isArray(parsed.companies) && parsed.companies.length > 0) {
+        // Ensure all companies use the correct /partners-logo/ files
+        companies = parsed.companies.map((c: ChannelPartnerCompany) => ({
+          ...c,
+          logo_url: getPartnerLogo(c.name || c.id, c.logo_url),
+        }));
+
         // Merge missing default partners if not already in the saved list
         const existingNames = new Set(
-          parsed.companies.map((c: ChannelPartnerCompany) => (c.name || "").toLowerCase().trim())
+          companies.map((c: ChannelPartnerCompany) => (c.name || "").toLowerCase().trim())
         );
-        companies = [...parsed.companies];
         for (const def of DEFAULT_PARTNER_COMPANIES) {
           if (!existingNames.has(def.name.toLowerCase().trim())) {
             companies.push(def);
