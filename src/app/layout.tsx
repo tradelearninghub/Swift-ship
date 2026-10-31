@@ -15,14 +15,14 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+import { buildPageMetadata } from "@/lib/seo";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export const metadata: Metadata = {
-  title: "SS International Courier | Fast & Reliable Multi-Courier Tracking & Booking",
-  description:
-    "Fast, reliable multi-courier booking and real-time shipment tracking with verified status updates by SS International Courier.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/");
+}
 
 export default function RootLayout({
   children,

@@ -198,6 +198,33 @@ async function seedAdmin() {
       } catch (e) {}
     }
 
+    // 5. SAFEGUARD: Ensure SEO Settings exist (NEVER overwrite existing SEO config!)
+    const existingSeo = await prisma.setting.findFirst({
+      where: { key: "seo_global" },
+    });
+    if (!existingSeo) {
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO \`settings\` (\`id\`, \`group\`, \`key\`, \`value\`, \`updated_at\`)
+        VALUES (
+          'setting-seo-global',
+          'seo',
+          'seo_global',
+          JSON_OBJECT(
+            'site_name', 'SS International Courier',
+            'title_template', '%s | SS International Courier',
+            'default_meta_description', 'Fast, customs-cleared global parcel dispatch across 220+ countries with automated commercial invoices, live tracking, and door-to-door transit.',
+            'default_share_image', '/images/ss-logo.jpg',
+            'canonical_base_url', 'https://ssinternationalcourier.com',
+            'favicon', '/favicon.ico'
+          ),
+          NOW(3)
+        );
+      `).catch(() => {});
+      console.log("[ADMIN-SEED] ✅ Initialized default Global SEO config.");
+    } else {
+      console.log("[ADMIN-SEED] 🛡️ Safeguard: Existing SEO settings found. Preserving all admin SEO customizations across deployments.");
+    }
+
     console.log("--------------------------------------------------");
     console.log("[ADMIN-SEED] ✅ Safe admin check completed successfully!");
     console.log("--------------------------------------------------");

@@ -253,6 +253,39 @@ async function main() {
     });
   }
 
+  // 6. Safe Seed: SEO Configuration (Safeguard: Never reset admin SEO settings on deploy)
+  const existingSeoGlobal = await prisma.setting.findFirst({ where: { key: "seo_global" } });
+  if (!existingSeoGlobal) {
+    await prisma.setting.create({
+      data: {
+        group: "seo",
+        key: "seo_global",
+        value: {
+          site_name: "SS International Courier",
+          title_template: "%s | SS International Courier",
+          default_meta_description:
+            "Fast, customs-cleared global parcel dispatch across 220+ countries with automated commercial invoices, live tracking, and door-to-door transit.",
+          default_share_image: "/images/ss-logo.jpg",
+          canonical_base_url: "https://ssinternationalcourier.com",
+          favicon: "/favicon.ico",
+        },
+      },
+    });
+  }
+
+  const existingSeoRobots = await prisma.setting.findFirst({ where: { key: "seo_robots" } });
+  if (!existingSeoRobots) {
+    await prisma.setting.create({
+      data: {
+        group: "seo",
+        key: "seo_robots",
+        value: {
+          content: `# SS International Courier - Robots Exclusion Protocol\nUser-agent: *\nAllow: /\n\n# Protected Admin, Internal API & Authenticated Customer Portals\nDisallow: /admin\nDisallow: /admin/\nDisallow: /api\nDisallow: /api/\nDisallow: /customer\nDisallow: /customer/\nDisallow: /login\nDisallow: /register\nDisallow: /forgot-password\nDisallow: /track/*\n\n# Sitemap Index\nSitemap: https://ssinternationalcourier.com/sitemap.xml\n`,
+        },
+      },
+    });
+  }
+
   console.log("✅ Seed completed successfully!");
 }
 

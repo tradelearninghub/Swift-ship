@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -19,7 +19,16 @@ import {
   ShieldCheck,
   Truck,
   PlusCircle,
+  UserCheck,
+  LogOut,
 } from "lucide-react";
+
+export interface MobileNavUser {
+  id?: string;
+  name?: string;
+  email?: string;
+  role?: string;
+}
 
 interface MobileNavProps {
   phones: string[];
@@ -27,6 +36,7 @@ interface MobileNavProps {
   address: string;
   socials?: { url?: string; isSvg?: boolean; hover?: string; label?: string; icon?: string }[];
   whatsappUrl?: string;
+  user?: MobileNavUser | null;
 }
 
 export function MobileNav({
@@ -35,9 +45,36 @@ export function MobileNav({
   address,
   socials = [],
   whatsappUrl,
+  user: initialUser = null,
 }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<MobileNavUser | null>(initialUser);
   const pathname = usePathname();
+
+  useEffect(() => {
+    let isMounted = true;
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setCurrentUser(data.user || null);
+          }
+        } else if (isMounted) {
+          setCurrentUser(null);
+        }
+      } catch {
+        // preserve current state on error
+      }
+    }
+    checkAuth();
+    return () => {
+      isMounted = false;
+    };
+  }, [pathname]);
+
+  const displayEmail = email || "support@sscourierservice.in";
 
   const navLinks = [
     { href: "/", label: "Home", icon: Home },
@@ -98,16 +135,27 @@ export function MobileNav({
               </button>
             </div>
 
-            {/* Quick Action Button */}
+            {/* Quick Action Button: Book a Parcel when logged in, Login when not logged in */}
             <div className="p-3 border-b border-slate-100 bg-slate-50 shrink-0">
-              <Link
-                href="/book"
-                onClick={() => setIsOpen(false)}
-                className="w-full flex items-center justify-center gap-2 bg-[#C58B24] hover:bg-[#b07b1d] text-white font-bold py-2 px-4 rounded-xl shadow-sm text-sm transition-all"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>Book a Parcel</span>
-              </Link>
+              {currentUser ? (
+                <Link
+                  href="/book"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 bg-[#C58B24] hover:bg-[#b07b1d] text-white font-bold py-2.5 px-4 rounded-xl shadow-sm text-sm transition-all"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Book a Parcel</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 bg-[#C58B24] hover:bg-[#b07b1d] text-white font-bold py-2.5 px-4 rounded-xl shadow-sm text-sm transition-all"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Login</span>
+                </Link>
+              )}
             </div>
 
             {/* Scrollable Nav Content (with proper padding to ensure all buttons are visible) */}
@@ -146,33 +194,66 @@ export function MobileNav({
                 <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1">
                   Portals &amp; Access
                 </div>
-                <Link
-                  href="/login"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-semibold text-[#06122C] hover:bg-slate-50"
-                >
-                  <LogIn className="w-4 h-4 text-slate-400" />
-                  <span>Customer Sign In</span>
-                </Link>
-                <Link
-                  href="/register"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-semibold text-[#06122C] hover:bg-slate-50"
-                >
-                  <UserPlus className="w-4 h-4 text-slate-400" />
-                  <span>Register Free Account</span>
-                </Link>
-                <Link
-                  href="/admin/login"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-[#C58B24]"
-                >
-                  <ShieldCheck className="w-4 h-4 text-slate-400" />
-                  <span>Admin Operations →</span>
-                </Link>
+                {currentUser ? (
+                  <>
+                    <div className="px-3.5 py-1 text-xs text-slate-600 flex items-center justify-between">
+                      <span>Logged in as</span>
+                      <strong className="text-[#06122C] font-semibold">{currentUser.name}</strong>
+                    </div>
+                    <Link
+                      href={currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN" ? "/admin" : "/customer"}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-semibold text-[#06122C] hover:bg-slate-50 transition-colors"
+                    >
+                      <UserCheck className="w-4 h-4 text-emerald-600" />
+                      <span>{currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN" ? "Admin Operations" : "Customer Dashboard"}</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setIsOpen(false);
+                        try {
+                          await fetch("/api/auth/logout", { method: "POST" });
+                        } catch {}
+                        window.location.href = "/login";
+                      }}
+                      className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors text-left cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4 text-rose-500" />
+                      <span>Sign Out</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-semibold text-[#06122C] hover:bg-slate-50"
+                    >
+                      <LogIn className="w-4 h-4 text-slate-400" />
+                      <span>Customer Sign In</span>
+                    </Link>
+                    <Link
+                      href="/register"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-semibold text-[#06122C] hover:bg-slate-50"
+                    >
+                      <UserPlus className="w-4 h-4 text-slate-400" />
+                      <span>Register Free Account</span>
+                    </Link>
+                    <Link
+                      href="/admin/login"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-[#C58B24]"
+                    >
+                      <ShieldCheck className="w-4 h-4 text-slate-400" />
+                      <span>Admin Operations →</span>
+                    </Link>
+                  </>
+                )}
               </div>
 
-              {/* Direct Call Helplines */}
+              {/* Direct Call Helplines & Support Email (Fully visible on mobile) */}
               <div className="pt-3 border-t border-slate-100 space-y-2 px-3 text-xs">
                 <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                   Direct Contact
@@ -185,17 +266,17 @@ export function MobileNav({
                       href={`tel:+91${cleanP}`}
                       className="flex items-center gap-2 font-semibold text-[#06122C] hover:text-[#C58B24]"
                     >
-                      <Phone className="w-3.5 h-3.5 text-[#C58B24]" />
+                      <Phone className="w-3.5 h-3.5 text-[#C58B24] shrink-0" />
                       <span>+91 {cleanP}</span>
                     </a>
                   );
                 })}
                 <a
-                  href={`mailto:${email}`}
-                  className="flex items-center gap-2 text-slate-600 hover:text-[#C58B24]"
+                  href={`mailto:${displayEmail}`}
+                  className="flex items-center gap-2 text-slate-600 hover:text-[#C58B24] py-0.5"
                 >
-                  <Mail className="w-3.5 h-3.5 text-[#C58B24]" />
-                  <span className="truncate">{email}</span>
+                  <Mail className="w-3.5 h-3.5 text-[#C58B24] shrink-0" />
+                  <span className="break-all font-medium text-xs">{displayEmail}</span>
                 </a>
               </div>
 
@@ -249,3 +330,4 @@ export function MobileNav({
     </>
   );
 }
+

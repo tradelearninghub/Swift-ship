@@ -32,8 +32,10 @@ import {
   Eye,
   EyeOff,
   MessageSquareQuote,
+  Globe,
 } from "lucide-react";
 import Link from "next/link";
+import { SeoSettingsTab } from "@/components/admin/SeoSettingsTab";
 
 interface SettingRow {
   key: string;
@@ -67,7 +69,7 @@ interface NotificationTemplateItem {
 
 export default function AdminSettingsPage() {
   const [activeGroup, setActiveGroup] = useState<
-    "company" | "website" | "templates" | "social" | "smtp" | "whatsapp" | "sms" | "security" | "currency"
+    "company" | "seo" | "website" | "templates" | "social" | "smtp" | "whatsapp" | "sms" | "security" | "currency"
   >("company");
   const [isSaving, setIsSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -468,6 +470,7 @@ export default function AdminSettingsPage() {
 
   const navItems = [
     { key: "company" as const, label: "Company Profile", icon: Building },
+    { key: "seo" as const, label: "SEO & Search Engine", icon: Globe },
     { key: "website" as const, label: "Partner Marquee & Reviews", icon: Sparkles },
     { key: "templates" as const, label: "Email Templates (§39)", icon: FileText },
     { key: "social" as const, label: "Social Media Links", icon: Share2 },
@@ -536,6 +539,11 @@ export default function AdminSettingsPage() {
         {/* Content Form Canvas */}
         <div className="md:col-span-8">
           <Card className="p-6">
+            {/* ============================================================== */}
+            {/* 0. SEO SETTINGS TAB                                            */}
+            {/* ============================================================== */}
+            {activeGroup === "seo" && <SeoSettingsTab />}
+
             {/* ============================================================== */}
             {/* 1. EMAIL TEMPLATES TAB (§39)                                   */}
             {/* ============================================================== */}

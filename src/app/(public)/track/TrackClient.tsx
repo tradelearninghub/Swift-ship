@@ -1,0 +1,549 @@
+"use client";
+
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { ShipmentTimeline } from "@/components/ui/ShipmentTimeline";
+import {
+  Search,
+  Truck,
+  Layers,
+  MapPin,
+  Calendar,
+  RefreshCw,
+  AlertCircle,
+  ArrowRight,
+  Loader2,
+  FileText,
+  Barcode,
+  ExternalLink,
+  Tag,
+} from "lucide-react";
+
+type SearchMode = "AWB" | "ORDER_ID" | "TRACKING_ID";
+
+function TrackingContent() {
+  const searchParams = useSearchParams();
+  const initialAwb = searchParams.get("awb") || "";
+  const initialBookingId = searchParams.get("booking_id") || searchParams.get("order_id") || "";
+  const initialTrackingId = searchParams.get("tracking_id") || "";
+  const initialQuery = searchParams.get("q") || initialAwb || initialBookingId || initialTrackingId;
+
+  const [activeTab, setActiveTab] = useState<SearchMode>(
+    initialTrackingId
+      ? "TRACKING_ID"
+      : initialAwb
+      ? "AWB"
+      : initialBookingId
+      ? "ORDER_ID"
+      : "AWB"
+  );
+
+  // Search fields
+  const [awbInput, setAwbInput] = useState(initialAwb);
+  const [bookingIdInput, setBookingIdInput] = useState(initialBookingId);
+  const [trackingIdInput, setTrackingIdInput] = useState(initialTrackingId);
+
+  // Search Results State
+  const [matchedBookings, setMatchedBookings] = useState<any[]>([]);
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Perform initial search on mount if URL parameters exist
+  useEffect(() => {
+    if (initialQuery) {
+      handleDirectLookup(initialQuery);
+    }
+  }, [initialQuery]);
+
+  // Direct AWB / Booking ID Lookup via real /api/track
+  const handleDirectLookup = async (query: string) => {
+    const q = query.trim().toUpperCase();
+    if (!q) return;
+    setIsLoading(true);
+    setHasSearched(true);
+
+    try {
+      const res = await fetch(`/api/track?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+
+      if (res.ok && data.found && data.shipment) {
+        setSelectedBooking(data.shipment);
+        setMatchedBookings([data.shipment]);
+      } else {
+        setSelectedBooking(null);
+        setMatchedBookings([]);
+      }
+    } catch (e) {
+      console.error("Direct lookup error:", e);
+      setSelectedBooking(null);
+      setMatchedBookings([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLiveRefresh = async () => {
+    if (!selectedBooking) return;
+    const key = selectedBooking.awb || selectedBooking.booking_number;
+    if (!key) return;
+    setIsRefreshing(true);
+    try {
+      const res = await fetch(`/api/track?q=${encodeURIComponent(key)}`);
+      const data = await res.json();
+      if (res.ok && data.found && data.shipment) {
+        setSelectedBooking(data.shipment);
+      }
+    } catch (e) {
+      console.error("Refresh error:", e);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Mask sensitive data per §27
+  const maskPhone = (phone?: string) => {
+    if (!phone) return "••••••";
+    if (phone.includes("••")) return phone;
+    if (phone.length < 5) return "••••••";
+    return phone.slice(0, 2) + "••••••" + phone.slice(-2);
+  };
+
+  const maskAwb = (awb?: string) => {
+    if (!awb) return "Allocating";
+    if (awb.includes("••")) return awb;
+    if (awb.length <= 4) return "••••";
+    return awb.slice(0, 3) + "••••" + awb.slice(-3);
+  };
+
+  return (
+    <div className="max-w-container mx-auto px-4 py-10 space-y-10">
+      {/* Tracking Header */}
+      <div className="text-center max-w-2xl mx-auto space-y-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-brand-primary bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+          Real-Time Consignment Tracking
+        </span>
+        <h1 className="text-h1">Track Your Shipment</h1>
+        <p className="text-body text-sm">
+          Unified multi-carrier status updates across Delhivery, Blue Dart, DTDC, and XpressBees by SS International Courier.
+        </p>
+      </div>
+
+      {/* 3-Option Search Container */}
+      <div className="max-w-2xl mx-auto bg-surface-base border border-border-default rounded-2xl p-6 shadow-md space-y-6">
+        {/* 3 Distinct Search Option Tabs */}
+        <div className="grid grid-cols-3 rounded-xl bg-surface-subtle p-1 border border-border-default text-xs font-semibold gap-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab("AWB")}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg transition-all ${
+              activeTab === "AWB"
+                ? "bg-surface-base text-brand-primary shadow-sm font-bold"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            <Barcode className="w-4 h-4 hidden sm:inline" />
+            <span>AWB / Tag</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("ORDER_ID")}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg transition-all ${
+              activeTab === "ORDER_ID"
+                ? "bg-surface-base text-brand-primary shadow-sm font-bold"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            <FileText className="w-4 h-4 hidden sm:inline" />
+            <span>Booking ID</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("TRACKING_ID")}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg transition-all ${
+              activeTab === "TRACKING_ID"
+                ? "bg-surface-base text-brand-primary shadow-sm font-bold"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            <Truck className="w-4 h-4 hidden sm:inline" />
+            <span>Tracking ID</span>
+          </button>
+        </div>
+
+        {/* Option 1: AWB Number Search */}
+        {activeTab === "AWB" && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleDirectLookup(awbInput);
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-text-primary">
+                Enter Air Waybill (AWB) or Pre-Printed Tag Number
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={awbInput}
+                  onChange={(e) => setAwbInput(e.target.value)}
+                  placeholder="e.g. DEL98234123, BLU77491021 or AWB-98214012"
+                  className="w-full h-12 pl-4 pr-12 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:outline-none transition-all"
+                  required
+                />
+                <Search className="w-5 h-5 text-text-muted absolute right-4 top-3.5" />
+              </div>
+            </div>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full shadow-md"
+              isLoading={isLoading}
+            >
+              Track by AWB
+            </Button>
+          </form>
+        )}
+
+        {/* Option 2: Order ID / Booking ID Search */}
+        {activeTab === "ORDER_ID" && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleDirectLookup(bookingIdInput);
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-text-primary">
+                Enter Booking ID / Consignment Reference
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={bookingIdInput}
+                  onChange={(e) => setBookingIdInput(e.target.value)}
+                  placeholder="e.g. BK-1025 or BK-INT-1035"
+                  className="w-full h-12 pl-4 pr-12 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:outline-none transition-all"
+                  required
+                />
+                <Search className="w-5 h-5 text-text-muted absolute right-4 top-3.5" />
+              </div>
+            </div>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full shadow-md"
+              isLoading={isLoading}
+            >
+              Track by Booking ID
+            </Button>
+          </form>
+        )}
+
+        {/* Option 3: Third-Party Carrier Tracking ID Search */}
+        {activeTab === "TRACKING_ID" && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleDirectLookup(trackingIdInput);
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-text-primary">
+                Enter Third-Party Courier Tracking Number
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={trackingIdInput}
+                  onChange={(e) => setTrackingIdInput(e.target.value)}
+                  placeholder="e.g. 78219401293 or DEL9812401 (FedEx, DHL, Delhivery, Blue Dart...)"
+                  className="w-full h-12 pl-4 pr-12 text-sm font-mono bg-surface-subtle border border-border-default rounded-xl focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:outline-none transition-all"
+                  required
+                />
+                <Search className="w-5 h-5 text-text-muted absolute right-4 top-3.5" />
+              </div>
+            </div>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full shadow-md bg-[#030164] hover:bg-[#120e7a] text-white"
+              isLoading={isLoading}
+            >
+              Track by Courier Tracking ID
+            </Button>
+          </form>
+        )}
+      </div>
+
+      {/* Multiple Matches Disambiguation List (§26) */}
+      {!selectedBooking && matchedBookings.length > 1 && (
+        <Card className="max-w-3xl mx-auto border-blue-200 bg-blue-50/20 shadow-md">
+          <CardHeader className="pb-3 border-b border-border-default bg-surface-subtle/50">
+            <CardTitle className="text-base text-text-primary flex items-center justify-between">
+              <span className="flex items-center gap-2 font-bold">
+                <Layers className="w-5 h-5 text-brand-primary" />
+                Multiple Shipments Found ({matchedBookings.length})
+              </span>
+              <span className="text-xs font-normal text-text-muted">
+                Showing all consignments matching your query
+              </span>
+            </CardTitle>
+            <p className="text-xs text-text-secondary mt-1">
+              Select any consignment below to inspect full delivery timeline and courier checkpoints:
+            </p>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border-default max-h-96 overflow-y-auto">
+              {matchedBookings.map((b) => (
+                <div
+                  key={b.booking_number || b.id}
+                  onClick={() => handleDirectLookup(b.booking_number)}
+                  className="p-4 hover:bg-blue-50/60 cursor-pointer transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono font-bold text-brand-primary">
+                        {b.booking_number}
+                      </span>
+                      <StatusBadge status={b.status || b.shipment?.status} />
+                    </div>
+                    <div className="text-xs text-text-secondary flex flex-wrap gap-x-3 gap-y-1">
+                      <span>
+                        Route: <strong>{b.sender_city} → {b.receiver_city}</strong>
+                      </span>
+                      <span>•</span>
+                      <span>AWB: {b.awb_masked || maskAwb(b.shipment?.awb || b.awb)}</span>
+                      <span>•</span>
+                      <span>{b.payment_type === "COD" ? "Cash on Delivery" : "Prepaid"}</span>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" className="self-start sm:self-center">
+                    View Timeline <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* No Match Result */}
+      {hasSearched && !isLoading && matchedBookings.length === 0 && (
+        <div className="max-w-xl mx-auto text-center p-10 bg-surface-subtle border border-border-default rounded-2xl space-y-3">
+          <AlertCircle className="w-10 h-10 text-amber-500 mx-auto" />
+          <h3 className="text-base font-bold text-text-primary">No Consignment Found</h3>
+          <p className="text-xs text-text-secondary max-w-sm mx-auto">
+            We could not find any active shipment matching your query. Please double-check your AWB, Booking ID, or Courier Tracking ID.
+          </p>
+        </div>
+      )}
+
+      {/* Detailed Tracking Result Display */}
+      {selectedBooking && (
+        <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in-50">
+          {/* Back button if disambiguated from multiple */}
+          {matchedBookings.length > 1 && (
+            <button
+              type="button"
+              onClick={() => setSelectedBooking(null)}
+              className="text-xs font-semibold text-brand-primary hover:underline flex items-center gap-1"
+            >
+              ← Back to {matchedBookings.length} results
+            </button>
+          )}
+
+          {/* Shipment Header Banner */}
+          <Card className="border-brand-primary/30 shadow-md">
+            <CardHeader className="bg-surface-subtle py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xl font-bold text-brand-primary">
+                    {selectedBooking.booking_number}
+                  </span>
+                  <StatusBadge
+                    status={selectedBooking.status || selectedBooking.shipment?.status}
+                  />
+                </div>
+                <div className="text-xs text-text-muted font-mono flex flex-wrap gap-x-4 gap-y-1.5 pt-1">
+                  <span>
+                    AWB:{" "}
+                    <strong className="text-text-primary">
+                      {selectedBooking.awb || selectedBooking.shipment?.awb || "Pending Allocation"}
+                    </strong>
+                  </span>
+                  {selectedBooking.awb_date && (
+                    <span>
+                      Tag Date:{" "}
+                      <strong className="text-text-primary">{selectedBooking.awb_date}</strong>
+                    </span>
+                  )}
+                  <span>
+                    Courier Partner:{" "}
+                    <strong className="text-text-primary">
+                      {selectedBooking.courier_name || selectedBooking.shipment?.courier_name || "Assigned Partner"}
+                    </strong>
+                  </span>
+                  {selectedBooking.third_party_tracking_id && (
+                    <span>
+                      Carrier Tracking ID:{" "}
+                      {selectedBooking.tracking_url ? (
+                        <a
+                          href={selectedBooking.tracking_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Click to redirect to courier tracking page"
+                          className="font-bold text-[#2563EB] hover:underline inline-flex items-center gap-1"
+                        >
+                          {selectedBooking.third_party_tracking_id}
+                          <ExternalLink className="w-3 h-3 text-[#2563EB]" />
+                        </a>
+                      ) : (
+                        <strong className="text-text-primary">{selectedBooking.third_party_tracking_id}</strong>
+                      )}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLiveRefresh}
+                isLoading={isRefreshing}
+                className="self-start sm:self-center"
+              >
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Refresh Status
+              </Button>
+            </CardHeader>
+
+            <CardContent className="p-6 space-y-6">
+              {/* Third-Party Official Courier Website Redirection Banner */}
+              {selectedBooking.tracking_url && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 via-indigo-50/70 to-blue-50 border border-blue-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#030164] text-white flex items-center justify-center shrink-0 shadow-sm">
+                      <Truck className="w-5 h-5 text-[#2563EB]" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <div className="text-xs font-bold text-[#030164] flex items-center gap-1.5 flex-wrap">
+                        <span>Third-Party Courier Partner:</span>
+                        <span className="bg-blue-100 text-[#030164] px-2 py-0.5 rounded font-mono text-[11px] font-bold">
+                          {selectedBooking.courier_name || "Official Partner"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 font-mono">
+                        Tracking ID:{" "}
+                        <a
+                          href={selectedBooking.tracking_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-bold text-[#2563EB] hover:underline"
+                        >
+                          {selectedBooking.third_party_tracking_id || selectedBooking.awb}
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href={selectedBooking.tracking_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#030164] to-[#2563EB] hover:from-[#02004a] hover:to-[#1d4ed8] text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all"
+                  >
+                    <span>Track on {selectedBooking.courier_name || "Courier"} Official Website</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              )}
+
+              {/* Privacy Preserving Route Overview (§27) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                <div className="space-y-1">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+                    Origin
+                  </div>
+                  <div className="text-sm font-bold text-text-primary flex items-center gap-1">
+                    <MapPin className="w-4 h-4 text-brand-primary shrink-0" />
+                    {selectedBooking.sender_city}, {selectedBooking.sender_state}
+                  </div>
+                  <div className="text-xs text-text-muted font-mono">
+                    Sender: {selectedBooking.sender_mobile_masked || maskPhone(selectedBooking.sender_mobile)}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+                    Destination
+                  </div>
+                  <div className="text-sm font-bold text-text-primary flex items-center gap-1">
+                    <MapPin className="w-4 h-4 text-brand-accent shrink-0" />
+                    {selectedBooking.receiver_city}, {selectedBooking.receiver_state}
+                  </div>
+                  <div className="text-xs text-text-muted font-mono">
+                    Receiver: {selectedBooking.receiver_mobile_masked || maskPhone(selectedBooking.receiver_mobile)}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+                    Shipment Date & Type
+                  </div>
+                  <div className="text-sm font-semibold text-text-primary flex items-center gap-1">
+                    <Calendar className="w-4 h-4 text-slate-500 shrink-0" />
+                    {new Date(selectedBooking.created_at).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </div>
+                  <div className="text-xs font-medium text-emerald-700">
+                    Prepaid Dispatch
+                  </div>
+                </div>
+              </div>
+
+              {/* Standardized Tracking Timeline (§31) */}
+              <ShipmentTimeline
+                currentStatus={
+                  selectedBooking.status || selectedBooking.shipment?.status
+                }
+                events={selectedBooking.events || selectedBooking.shipment?.tracking_events || []}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function TrackClient() {
+  return (
+    <Suspense
+      fallback={
+        <div className="py-20 text-center flex flex-col items-center justify-center space-y-3">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+          <p className="text-xs text-text-muted">Loading tracking portal...</p>
+        </div>
+      }
+    >
+      <TrackingContent />
+    </Suspense>
+  );
+}

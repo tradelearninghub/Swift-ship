@@ -1,4 +1,13 @@
 import React from "react";
+import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/privacy-policy");
+}
 
 export default function PrivacyPolicyPage() {
   return (

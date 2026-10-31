@@ -3,6 +3,8 @@ import Link from "next/link";
 import { MobileNav } from "@/components/MobileNav";
 import { getCompanyProfile } from "@/lib/settings";
 import { WhatsAppFloatingButton } from "@/components/ui/WhatsAppFloatingButton";
+import { getSessionUser } from "@/lib/auth";
+import { NavAuthButton } from "@/components/NavAuthButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,6 +15,7 @@ export default async function PublicLayout({
   children: React.ReactNode;
 }) {
   const profile = await getCompanyProfile();
+  const sessionUser = await getSessionUser();
   const phone1 = profile.support_phones[0] || "8000151117";
   const phone2 = profile.support_phones[1] || "7689987368";
 
@@ -66,28 +69,49 @@ export default async function PublicLayout({
   const activeSocials = socialList.filter((s) => Boolean(s.url));
   const otherSocials = activeSocials.filter((s) => s.label !== "WhatsApp");
 
+  const navUser = sessionUser
+    ? {
+        id: sessionUser.id,
+        name: sessionUser.name,
+        email: sessionUser.email,
+        role: sessionUser.role,
+      }
+    : null;
+
   return (
     <div className="flex flex-col min-h-screen bg-white overflow-x-hidden w-full">
       {/* TOPBAR (Matches Image 3 mockup: Dark Navy #06122C) */}
-      <div className="bg-[#06122C] text-slate-300 text-xs py-2 border-b border-slate-800/80 select-none w-full">
+      <div className="bg-[#06122C] text-slate-300 text-xs py-1.5 sm:py-2 border-b border-slate-800/80 select-none w-full">
         <div className="main-container flex items-center justify-between gap-2 sm:gap-4">
-          {/* Left: Global Reach (lg+), Support Email (sm+), Phone (all viewports) */}
-          <div className="flex items-center gap-x-2 sm:gap-x-4 shrink-0 text-slate-300 min-w-0">
+          {/* Left: Global Reach (lg+), Support Email (visible on all screens including mobile), Phone (all viewports) */}
+          <div className="flex items-center gap-x-2 sm:gap-x-4 min-w-0 text-slate-300">
             <span className="hidden lg:inline-flex items-center gap-1.5 text-slate-300 font-medium shrink-0">
               <i className="fas fa-map-marker-alt text-[#C58B24] text-[11px]"></i>
               <span>Global Reach, Local Support</span>
             </span>
             <span className="hidden lg:inline text-slate-700">|</span>
-            <span className="hidden sm:inline-flex items-center gap-1.5 shrink-0">
-              <i className="fas fa-envelope text-[#C58B24] text-[11px]"></i>
-              <a href={`mailto:${profile.support_email}`} className="hover:text-white transition-colors">
+
+            {/* Support Email: fully visible on mobile & desktop */}
+            <span className="inline-flex items-center gap-1 sm:gap-1.5 min-w-0">
+              <i className="fas fa-envelope text-[#C58B24] text-[10px] sm:text-[11px] shrink-0"></i>
+              <a
+                href={`mailto:${profile.support_email}`}
+                className="hover:text-white transition-colors truncate max-w-[210px] sm:max-w-none text-[11px] sm:text-xs"
+                title={profile.support_email}
+              >
                 {profile.support_email}
               </a>
             </span>
-            <span className="hidden sm:inline text-slate-700">|</span>
-            <span className="flex items-center gap-1.5 shrink-0 font-medium">
-              <i className="fas fa-phone-alt text-[#C58B24] text-[11px]"></i>
-              <a href={`tel:+91${phone1.replace(/^\+91/, "").trim()}`} className="hover:text-white transition-colors whitespace-nowrap">
+
+            <span className="text-slate-700">|</span>
+
+            {/* Support Phone */}
+            <span className="flex items-center gap-1 sm:gap-1.5 shrink-0 font-medium text-[11px] sm:text-xs">
+              <i className="fas fa-phone-alt text-[#C58B24] text-[10px] sm:text-[11px] shrink-0"></i>
+              <a
+                href={`tel:+91${phone1.replace(/^\+91/, "").trim()}`}
+                className="hover:text-white transition-colors whitespace-nowrap"
+              >
                 +91 {phone1.replace(/^\+91/, "").trim()}
               </a>
             </span>
@@ -95,8 +119,8 @@ export default async function PublicLayout({
 
           {/* Right: Social Channels | Language / Tracking */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Social Icons: Perfectly visible on all mobile and desktop viewports */}
-            <div className="flex items-center gap-1 sm:gap-2">
+            {/* Social Icons */}
+            <div className="hidden sm:flex items-center gap-1 sm:gap-2">
               <a
                 href={profile.facebook_url || "https://facebook.com"}
                 target="_blank"
@@ -146,16 +170,30 @@ export default async function PublicLayout({
 
             <span className="w-px h-3.5 bg-slate-700 hidden md:inline"></span>
 
-            <Link href="/login" className="hidden md:inline-flex text-slate-300 hover:text-white transition-colors items-center gap-1 font-medium">
-              <i className="fas fa-user-circle text-xs text-[#C58B24]"></i>
-              <span>Login</span>
-            </Link>
+            {/* Topbar User / Login Link */}
+            {sessionUser ? (
+              <Link
+                href={sessionUser.role === "ADMIN" || sessionUser.role === "SUPER_ADMIN" ? "/admin" : "/customer"}
+                className="hidden md:inline-flex text-slate-300 hover:text-white transition-colors items-center gap-1 font-medium"
+              >
+                <i className="fas fa-user-circle text-xs text-[#C58B24]"></i>
+                <span>{sessionUser.name?.split(" ")[0] || "Dashboard"}</span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden md:inline-flex text-slate-300 hover:text-white transition-colors items-center gap-1 font-medium"
+              >
+                <i className="fas fa-user-circle text-xs text-[#C58B24]"></i>
+                <span>Login</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>
 
 
-      {/* NAVBAR (Crisp white header with official SS International Courier logo & gold Book Now CTA) */}
+      {/* NAVBAR (Crisp white header with official SS International Courier logo & gold CTA) */}
       <nav className="bg-white sticky top-0 z-40 border-b border-slate-100 shadow-xs py-2 sm:py-3">
         <div className="main-container flex items-center justify-between gap-4">
           {/* Official Brand Logo */}
@@ -203,15 +241,9 @@ export default async function PublicLayout({
             </li>
           </ul>
 
-          {/* Right Action: Gold Book Now Button + Search Icon */}
+          {/* Right Action: Gold Action Button + Search Icon */}
           <div className="hidden lg:flex items-center gap-3">
-            <Link
-              href="/book"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#C58B24] hover:bg-[#b07b1d] text-white font-bold text-sm shadow-md shadow-[#C58B24]/20 hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-            >
-              <i className="fas fa-box-open text-xs !mr-0"></i>
-              <span>Book Now</span>
-            </Link>
+            <NavAuthButton variant="desktop" initialUser={navUser} />
             <Link
               href="/track"
               className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-xs"
@@ -223,19 +255,14 @@ export default async function PublicLayout({
 
           {/* Mobile Quick Action & Side Drawer Trigger */}
           <div className="lg:hidden flex items-center gap-2">
-            <Link
-              href="/book"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#C58B24] text-white font-bold text-xs shadow-xs hover:bg-[#b07b1d] transition-colors"
-            >
-              <i className="fas fa-box-open text-xs !mr-0"></i>
-              <span>Book Now</span>
-            </Link>
+            <NavAuthButton variant="mobile" initialUser={navUser} />
             <MobileNav
               phones={[phone1, phone2]}
               email={profile.support_email}
               address={`${profile.address}, ${profile.city}, ${profile.state} ${profile.pincode}`}
               socials={activeSocials}
               whatsappUrl={whatsappUrl}
+              user={navUser}
             />
           </div>
         </div>

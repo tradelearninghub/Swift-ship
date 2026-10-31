@@ -2,6 +2,15 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Globe, Plane, FileText, ShieldCheck, Clock, Layers, ArrowRight, Package } from "lucide-react";
+import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/services");
+}
 
 export default function ServicesPage() {
   const services = [

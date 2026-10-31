@@ -3,6 +3,15 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight, CheckCircle2, ShieldCheck, Globe, Plane, Package, FileCheck } from "lucide-react";
 import { getCompanyProfile } from "@/lib/settings";
+import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/how-it-works");
+}
 
 export default async function HowItWorksPage() {
   const profile = await getCompanyProfile();
