@@ -40,6 +40,16 @@ function ensureEnvFile() {
     }
   }
 
+  // Auto-construct DATABASE_URL with URL-encoding for Hostinger MySQL credentials
+  if (process.env.DB_USER && process.env.DB_PASSWORD && process.env.DB_NAME) {
+    const user = encodeURIComponent(process.env.DB_USER);
+    const pass = encodeURIComponent(process.env.DB_PASSWORD);
+    const host = process.env.DB_HOST || "127.0.0.1";
+    const port = process.env.DB_PORT || "3306";
+    const name = process.env.DB_NAME;
+    process.env.DATABASE_URL = `mysql://${user}:${pass}@${host}:${port}/${name}?connection_limit=5`;
+  }
+
   if (!process.env.DATABASE_URL) {
     process.env.DATABASE_URL = DEFAULT_DATABASE_URL;
   }

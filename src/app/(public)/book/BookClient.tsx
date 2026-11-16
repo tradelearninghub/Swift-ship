@@ -36,17 +36,17 @@ export function BookClient() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-8 animate-in fade-in-50 duration-300">
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-10 space-y-6 animate-in fade-in-50 duration-300">
       {/* Header */}
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase bg-amber-50 text-amber-800 border border-amber-200 shadow-xs">
+      <div className="text-center space-y-2.5">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold tracking-wide uppercase bg-amber-50 text-amber-800 border border-amber-200 shadow-xs">
           <Plane className="w-3.5 h-3.5 text-[#C58B24] animate-pulse" />
           <span>Global Air Express Courier</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-[#06122C] tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#06122C] tracking-tight">
           Book International Shipment
         </h1>
-        <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed">
           Fast, customs-cleared global parcel dispatch across 220+ countries with automated commercial invoices, live tracking, and door-to-door transit.
         </p>
       </div>

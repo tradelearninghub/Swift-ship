@@ -22,8 +22,15 @@ async function initDatabase() {
   try {
     ({ PrismaClient } = require("@prisma/client"));
   } catch (e) {
-    console.log("[DB-INIT] Prisma client not yet generated. Skipping pre-build DB init.");
-    return;
+    console.log("[DB-INIT] Prisma client not yet generated. Attempting automated generation via prisma generate...");
+    try {
+      const { execSync } = require("child_process");
+      execSync("npx prisma generate", { stdio: "inherit" });
+      ({ PrismaClient } = require("@prisma/client"));
+    } catch (genErr) {
+      console.log("[DB-INIT] Prisma client generation notice: " + (genErr.message || "").split("\n")[0]);
+      return;
+    }
   }
 
   const prisma = new PrismaClient({

@@ -702,47 +702,44 @@ export function InternationalBookingForm({
   }
 
   // ----------------------------------------------------
-  // ONE LONG FORM — ALL 4 PARTS VERTICALLY ALIGNED
+  // UNIFIED SINGLE-BOX BOOKING FORM (ONE SEAMLESS STEP)
   // ----------------------------------------------------
   return (
-    <div className="space-y-8">
-      <form onSubmit={handleSubmit} noValidate className="space-y-8">
-        {/* ============================================================== */}
-        {/* TOP OF FORM: PRE-PRINTED AWB STICKER & DISPATCH DATE */}
-        {/* ============================================================== */}
-        <Card id="part-awb-sticker" className="shadow-md overflow-hidden border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-50/60 via-white to-blue-50/30">
-          <div className="bg-gradient-to-r from-emerald-700 via-emerald-800 to-[#030164] text-white p-4 sm:p-5 flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-white/10 text-white font-extrabold flex items-center justify-center text-xs border border-white/20">
-                <Barcode className="w-4 h-4" />
-              </span>
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>Pre-Printed AWB Sticker &amp; Dispatch Date</span>
+    <div className="w-full">
+      <form onSubmit={handleSubmit} noValidate>
+        {/* SINGLE UNIFIED CARD BOX */}
+        <Card className="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden transition-all">
+          {/* ============================================================== */}
+          {/* TOP SECTION: PRE-PRINTED AWB STICKER & DISPATCH DATE */}
+          {/* ============================================================== */}
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-emerald-50/80 via-teal-50/40 to-slate-50 border-b border-emerald-100/80">
+            <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center text-xs">
+                  <Barcode className="w-3.5 h-3.5" />
+                </span>
+                <h3 className="text-xs sm:text-sm font-bold text-slate-800">
+                  Pre-Printed AWB Sticker &amp; Dispatch Date (Optional)
                 </h3>
-                <p className="text-xs text-emerald-100">
-                  Required for business &amp; corporate accounts with pre-printed barcode stickers / tags
-                </p>
               </div>
+              <span className="text-[10px] sm:text-xs text-emerald-800 font-semibold flex items-center gap-1 bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-200/80">
+                <Tag className="w-3 h-3 text-emerald-700" /> Pre-Printed Tag
+              </span>
             </div>
-            <span className="text-xs text-emerald-950 font-bold flex items-center gap-1.5 bg-emerald-200/90 px-3 py-1 rounded-full border border-emerald-300">
-              <Tag className="w-3.5 h-3.5 text-emerald-900" /> Pre-Printed Tag
-            </span>
-          </div>
 
-          <div className="p-5 sm:p-6 space-y-3">
-            <p className="text-xs text-slate-600">
-              If you have physical pre-printed AWB sticker tags, enter the barcode number and consignment date below to link directly with courier company tracking.
+            <p className="text-[11px] sm:text-xs text-slate-500 mb-3">
+              If you have physical pre-printed AWB sticker tags, enter the barcode number and consignment date below to link directly with carrier tracking.
             </p>
-            <div className={`grid grid-cols-1 ${isAdminMode ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4`}>
+
+            <div className={`grid grid-cols-1 ${isAdminMode ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3.5 sm:gap-4`}>
               <div>
                 <Input
-                  label="Pre-Printed AWB Sticker / Barcode Number"
+                  label="Pre-Printed AWB Barcode Number"
                   name="manualAwb"
                   id="manualAwb"
                   value={manualAwb}
                   onChange={(e) => setManualAwb(e.target.value.toUpperCase())}
-                  placeholder="e.g. AWB-98214012 or sticker barcode"
+                  placeholder="e.g. AWB-98214012"
                   helperText="Physical barcode sticker number affixed on parcel"
                 />
               </div>
@@ -759,11 +756,10 @@ export function InternationalBookingForm({
                 />
               </div>
 
-              {/* Assign International Carrier (Optional) — Positioned to top with AWB in Admin Section */}
               {isAdminMode && (
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-slate-700">
-                    Assign International Carrier (Optional)
+                    Assign Carrier (Optional)
                   </label>
                   <select
                     value={adminCourierId}
@@ -777,53 +773,46 @@ export function InternationalBookingForm({
                       </option>
                     ))}
                   </select>
-                  <p className="text-[11px] text-slate-500">Primary foreign carrier partner allocation</p>
+                  <p className="text-[11px] text-slate-500">Foreign carrier partner allocation</p>
                 </div>
               )}
             </div>
           </div>
-        </Card>
 
-        {/* ============================================================== */}
-        {/* PART 1: SENDER INFORMATION (Origin: India) */}
-        {/* ============================================================== */}
-        <Card id="part-sender" className="shadow-md overflow-hidden border border-slate-200">
-          <div className="bg-gradient-to-r from-[#030164] to-[#120e7a] text-white p-4 sm:p-5 flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-white/10 text-white font-extrabold flex items-center justify-center text-xs border border-white/20">
+          {/* ============================================================== */}
+          {/* SECTION 1: SENDER INFORMATION (Origin: India) */}
+          {/* ============================================================== */}
+          <div className="px-4 py-3 sm:px-6 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-[#030164] text-white flex items-center justify-center text-[11px] sm:text-xs font-bold">
                 1
               </span>
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <User className="w-4 h-4 text-[#2563EB]" />
-                  <span>Sender Information (Origin: India)</span>
-                </h3>
-                <p className="text-xs text-slate-300">
-                  Registered Indian pickup hub & export consignor contact details
-                </p>
-              </div>
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-[#2563EB]" />
+                <span>Sender Information (Origin: India)</span>
+              </h3>
             </div>
             {savedAddresses.length > 0 && (
-              <span className="text-xs text-white font-semibold flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/20">
-                <BookMarked className="w-3.5 h-3.5 text-[#2563EB]" /> Address Book Active
+              <span className="text-[10px] sm:text-xs text-slate-600 font-medium flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                <BookMarked className="w-3 h-3 text-[#2563EB]" /> Address Book Active
               </span>
             )}
           </div>
 
-          <div className="p-6 sm:p-8 space-y-6">
-            {/* Saved Address Book Dropdown if available */}
+          <div className="p-4 sm:p-6 space-y-4">
+            {/* Saved Address Book Dropdown for Sender */}
             {savedAddresses.length > 0 && (
-              <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/50 border border-blue-200 rounded-xl p-3.5 space-y-2 shadow-xs">
+              <div className="bg-blue-50/60 border border-blue-200/80 rounded-xl p-3 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#030164] flex items-center gap-1.5">
-                    <BookMarked className="w-4 h-4 text-[#2563EB]" />
+                  <label className="text-[11px] sm:text-xs font-bold text-[#030164] flex items-center gap-1.5">
+                    <BookMarked className="w-3.5 h-3.5 text-[#2563EB]" />
                     Choose from Saved Addresses ({savedAddresses.length})
                   </label>
                   {!isAdminMode && (
                     <Link
                       href="/customer/addresses"
                       target="_blank"
-                      className="text-[11px] text-[#2563EB] hover:underline font-medium"
+                      className="text-[10px] sm:text-[11px] text-[#2563EB] hover:underline font-medium"
                     >
                       Manage Address Book ↗
                     </Link>
@@ -832,9 +821,9 @@ export function InternationalBookingForm({
                 <select
                   value={selectedSenderAddrId}
                   onChange={(e) => handleSelectSenderAddress(e.target.value)}
-                  className="w-full h-10 px-3 py-1.5 text-xs bg-white border border-blue-300 rounded-lg text-text-primary focus:ring-2 focus:ring-[#030164]/30 font-medium"
+                  className="w-full h-9 sm:h-10 px-3 text-xs bg-white border border-blue-300 rounded-lg text-text-primary focus:ring-2 focus:ring-[#030164]/30 font-medium"
                 >
-                  <option value="">-- Click to select a pickup address and auto-populate --</option>
+                  <option value="">-- Select a saved pickup address to auto-populate --</option>
                   {savedAddresses.map((addr) => (
                     <option key={addr.id} value={addr.id}>
                       {addr.label} {addr.is_default ? "★ (Default)" : ""}: {addr.address}, {addr.city} ({addr.pincode})
@@ -843,14 +832,14 @@ export function InternationalBookingForm({
                   ))}
                 </select>
                 {selectedSenderAddrId && (
-                  <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1 animate-in fade-in">
+                  <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Sender details auto-filled from Address Book
                   </div>
                 )}
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               <div className="sm:col-span-2">
                 <Input
                   label="Sender Full Name"
@@ -882,6 +871,7 @@ export function InternationalBookingForm({
                   required
                 />
               </div>
+
               <div className="sm:col-span-2">
                 <Input
                   label="Address Line 2 (Optional)"
@@ -891,6 +881,7 @@ export function InternationalBookingForm({
                   placeholder="Suite, floor, area details"
                 />
               </div>
+
               <div className="sm:col-span-2">
                 <Input
                   label="Landmark (Optional)"
@@ -914,6 +905,7 @@ export function InternationalBookingForm({
                 error={errors.senderCity}
                 required
               />
+
               <Input
                 label="District (Optional)"
                 name="senderDistrict"
@@ -923,7 +915,7 @@ export function InternationalBookingForm({
               />
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-text-primary">
+                <label className="block text-xs sm:text-sm font-medium text-text-primary">
                   State / Union Territory <span className="text-status-danger">*</span>
                 </label>
                 <select
@@ -934,7 +926,7 @@ export function InternationalBookingForm({
                     setSenderState(e.target.value);
                     clearError("senderState");
                   }}
-                  className={`w-full h-11 px-3 py-2 text-sm bg-surface-base border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#030164] ${
+                  className={`w-full h-10 sm:h-11 px-3 py-2 text-xs sm:text-sm bg-surface-base border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#030164] ${
                     errors.senderState ? "border-status-danger" : "border-border-default"
                   }`}
                 >
@@ -966,7 +958,6 @@ export function InternationalBookingForm({
                 required
               />
 
-              {/* Number and Email positioned at the bottom in sender details */}
               <Input
                 label="Sender Mobile Number"
                 name="senderMobile"
@@ -1000,8 +991,8 @@ export function InternationalBookingForm({
               />
             </div>
 
-            {/* Option to Save Sender Address to Address Book */}
-            <div className="pt-3 border-t border-border-default/60 space-y-2 bg-surface-subtle/50 p-3 rounded-xl">
+            {/* Option to Save Sender Address */}
+            <div className="pt-2 border-t border-slate-100 space-y-2">
               <label className="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer">
                 <input
                   type="checkbox"
@@ -1011,7 +1002,7 @@ export function InternationalBookingForm({
                 />
                 <span className="flex items-center gap-1.5">
                   <BookmarkCheck className="w-3.5 h-3.5 text-[#2563EB]" />
-                  Save this pickup address to Address Book for future bookings
+                  Save this pickup address to Address Book
                 </span>
               </label>
               {saveSenderAddress && (
@@ -1026,50 +1017,43 @@ export function InternationalBookingForm({
               )}
             </div>
           </div>
-        </Card>
 
-        {/* ============================================================== */}
-        {/* PART 2: RECEIVER / DESTINATION (International) */}
-        {/* ============================================================== */}
-        <Card id="part-receiver" className="shadow-md overflow-hidden border border-slate-200">
-          <div className="bg-gradient-to-r from-[#030164] to-[#120e7a] text-white p-4 sm:p-5 flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-white/10 text-white font-extrabold flex items-center justify-center text-xs border border-white/20">
+          {/* ============================================================== */}
+          {/* SECTION 2: RECEIVER / DESTINATION (Normal Address Layout) */}
+          {/* ============================================================== */}
+          <div className="px-4 py-3 sm:px-6 bg-slate-50 border-y border-slate-200/80 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-[#030164] text-white flex items-center justify-center text-[11px] sm:text-xs font-bold">
                 2
               </span>
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-[#2563EB]" />
-                  <span>Receiver & Destination Information</span>
-                </h3>
-                <p className="text-xs text-slate-300">
-                  Global recipient door delivery address and destination customs details
-                </p>
-              </div>
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5 text-[#2563EB]" />
+                <span>Receiver &amp; Destination Information</span>
+              </h3>
             </div>
             {savedAddresses.length > 0 && (
-              <span className="text-xs text-white font-semibold flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/20">
-                <BookMarked className="w-3.5 h-3.5 text-[#2563EB]" /> Address Book Active
+              <span className="text-[10px] sm:text-xs text-slate-600 font-medium flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                <BookMarked className="w-3 h-3 text-[#2563EB]" /> Address Book Active
               </span>
             )}
           </div>
 
-          <div className="p-6 sm:p-8 space-y-6">
+          <div className="p-4 sm:p-6 space-y-4">
             {/* Saved Address Book Dropdown for Receiver */}
             {savedAddresses.length > 0 && (
-              <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/50 border border-blue-200 rounded-xl p-3.5 space-y-2 shadow-xs">
+              <div className="bg-blue-50/60 border border-blue-200/80 rounded-xl p-3 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#030164] flex items-center gap-1.5">
-                    <BookMarked className="w-4 h-4 text-[#2563EB]" />
+                  <label className="text-[11px] sm:text-xs font-bold text-[#030164] flex items-center gap-1.5">
+                    <BookMarked className="w-3.5 h-3.5 text-[#2563EB]" />
                     Choose from Saved Recipients ({savedAddresses.length})
                   </label>
                 </div>
                 <select
                   value={selectedReceiverAddrId}
                   onChange={(e) => handleSelectReceiverAddress(e.target.value)}
-                  className="w-full h-10 px-3 py-1.5 text-xs bg-white border border-blue-300 rounded-lg text-text-primary focus:ring-2 focus:ring-[#030164]/30 font-medium"
+                  className="w-full h-9 sm:h-10 px-3 text-xs bg-white border border-blue-300 rounded-lg text-text-primary focus:ring-2 focus:ring-[#030164]/30 font-medium"
                 >
-                  <option value="">-- Click to select an address and auto-populate --</option>
+                  <option value="">-- Select a recipient address to auto-populate --</option>
                   {savedAddresses.map((addr) => (
                     <option key={addr.id} value={addr.id}>
                       {addr.label} {addr.is_default ? "★ (Default)" : ""}: {addr.address}, {addr.city} ({addr.country || "Abroad"})
@@ -1078,80 +1062,63 @@ export function InternationalBookingForm({
                   ))}
                 </select>
                 {selectedReceiverAddrId && (
-                  <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1 animate-in fade-in">
+                  <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Receiver details auto-filled from Address Book
                   </div>
                 )}
               </div>
             )}
 
-            {/* Recipient Contact Information */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="Recipient Contact Name"
-                name="receiverName"
-                id="receiverName"
-                value={receiverName}
-                onChange={(e) => {
-                  setReceiverName(e.target.value);
-                  clearError("receiverName");
-                }}
-                placeholder="e.g. John Doe / Global Tech Inc."
-                error={errors.receiverName}
-                required
-              />
-              <Input
-                label="Recipient Phone Number (with Country Dial Code)"
-                name="receiverMobile"
-                id="receiverMobile"
-                type="tel"
-                value={receiverMobile}
-                onChange={(e) => {
-                  setReceiverMobile(e.target.value);
-                  clearError("receiverMobile");
-                }}
-                placeholder="e.g. +1 415 555 2671"
-                helperText="Required by foreign courier for delivery alerts & OTP"
-                error={errors.receiverMobile}
-                required
-              />
+            {/* Recipient Address Fields in NORMAL SENDER-LIKE LAYOUT */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+              {/* 1. Recipient Full Name */}
               <div className="sm:col-span-2">
                 <Input
-                  label="Recipient Email Address (Optional)"
-                  name="receiverEmail"
-                  id="receiverEmail"
-                  type="email"
-                  value={receiverEmail}
+                  label="Recipient Full / Company Name"
+                  name="receiverName"
+                  id="receiverName"
+                  value={receiverName}
                   onChange={(e) => {
-                    setReceiverEmail(e.target.value);
-                    clearError("receiverEmail");
+                    setReceiverName(e.target.value);
+                    clearError("receiverName");
                   }}
-                  placeholder="recipient@company.com"
-                  helperText="Customs invoices & real-time tracking will be emailed to recipient"
-                  error={errors.receiverEmail}
-                />
-              </div>
-
-              {/* 1. Postal / ZIP Code */}
-              <div>
-                <Input
-                  label="Postal / ZIP Code"
-                  name="receiverPincode"
-                  id="receiverPincode"
-                  value={receiverPincode}
-                  onChange={(e) => {
-                    setReceiverPincode(e.target.value);
-                    clearError("receiverPincode");
-                  }}
-                  placeholder="e.g. 94103, SW1A 1AA, 75008"
-                  error={errors.receiverPincode}
+                  placeholder="e.g. John Doe / Global Tech Inc."
+                  error={errors.receiverName}
                   required
                 />
               </div>
 
-              {/* 2. Destination Country Selector */}
+              {/* 2. Street Address Line 1 */}
+              <div className="sm:col-span-2">
+                <Input
+                  label="Delivery Street Address Line 1"
+                  name="receiverAddress1"
+                  id="receiverAddress1"
+                  value={receiverAddress1}
+                  onChange={(e) => {
+                    setReceiverAddress1(e.target.value);
+                    clearError("receiverAddress1");
+                  }}
+                  placeholder="Building/House number, Street name, Avenue"
+                  error={errors.receiverAddress1}
+                  required
+                />
+              </div>
+
+              {/* 3. Address Line 2 (Optional) */}
+              <div className="sm:col-span-2">
+                <Input
+                  label="Address Line 2 (Optional)"
+                  name="receiverAddress2"
+                  value={receiverAddress2}
+                  onChange={(e) => setReceiverAddress2(e.target.value)}
+                  placeholder="Apartment, suite, unit, building, floor, etc."
+                />
+              </div>
+
+              {/* 4. Destination Country */}
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-text-primary">
+                <label className="block text-xs sm:text-sm font-medium text-text-primary">
                   Destination Country <span className="text-status-danger">*</span>
                 </label>
                 <select
@@ -1163,7 +1130,7 @@ export function InternationalBookingForm({
                     setReceiverState("");
                     clearError("receiverCountry");
                   }}
-                  className={`w-full h-11 px-3 py-2 text-sm bg-surface-base border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#030164] ${
+                  className={`w-full h-10 sm:h-11 px-3 py-2 text-xs sm:text-sm bg-surface-base border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#030164] ${
                     errors.receiverCountry ? "border-status-danger" : "border-border-default"
                   }`}
                 >
@@ -1178,9 +1145,24 @@ export function InternationalBookingForm({
                 )}
               </div>
 
-              {/* 3. State / Province / Region */}
+              {/* 5. Destination City */}
+              <Input
+                label="Destination City"
+                name="receiverCity"
+                id="receiverCity"
+                value={receiverCity}
+                onChange={(e) => {
+                  setReceiverCity(e.target.value);
+                  clearError("receiverCity");
+                }}
+                placeholder="e.g. San Francisco, London, Dubai"
+                error={errors.receiverCity}
+                required
+              />
+
+              {/* 6. State / Province / Region */}
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-text-primary">
+                <label className="block text-xs sm:text-sm font-medium text-text-primary">
                   State / Province / Region <span className="text-status-danger">*</span>
                 </label>
                 {receiverStatesList.length > 0 ? (
@@ -1192,7 +1174,7 @@ export function InternationalBookingForm({
                       setReceiverState(e.target.value);
                       clearError("receiverState");
                     }}
-                    className={`w-full h-11 px-3 py-2 text-sm bg-surface-base border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#030164] ${
+                    className={`w-full h-10 sm:h-11 px-3 py-2 text-xs sm:text-sm bg-surface-base border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#030164] ${
                       errors.receiverState ? "border-status-danger" : "border-border-default"
                     }`}
                   >
@@ -1222,54 +1204,57 @@ export function InternationalBookingForm({
                 )}
               </div>
 
-              {/* 4. City */}
-              <div>
-                <Input
-                  label="Destination City"
-                  name="receiverCity"
-                  id="receiverCity"
-                  value={receiverCity}
-                  onChange={(e) => {
-                    setReceiverCity(e.target.value);
-                    clearError("receiverCity");
-                  }}
-                  placeholder="e.g. San Francisco, London, Dubai"
-                  error={errors.receiverCity}
-                  required
-                />
-              </div>
+              {/* 7. Postal / ZIP Code */}
+              <Input
+                label="Postal / ZIP Code"
+                name="receiverPincode"
+                id="receiverPincode"
+                value={receiverPincode}
+                onChange={(e) => {
+                  setReceiverPincode(e.target.value);
+                  clearError("receiverPincode");
+                }}
+                placeholder="e.g. 94103, SW1A 1AA, 75008"
+                error={errors.receiverPincode}
+                required
+              />
 
-              {/* 5. Address Line 1 */}
-              <div className="sm:col-span-2">
-                <Input
-                  label="Street Address Line 1"
-                  name="receiverAddress1"
-                  id="receiverAddress1"
-                  value={receiverAddress1}
-                  onChange={(e) => {
-                    setReceiverAddress1(e.target.value);
-                    clearError("receiverAddress1");
-                  }}
-                  placeholder="Building/House number, Street name, Avenue"
-                  error={errors.receiverAddress1}
-                  required
-                />
-              </div>
+              {/* 8. Recipient Phone Number */}
+              <Input
+                label="Recipient Phone Number (with Country Code)"
+                name="receiverMobile"
+                id="receiverMobile"
+                type="tel"
+                value={receiverMobile}
+                onChange={(e) => {
+                  setReceiverMobile(e.target.value);
+                  clearError("receiverMobile");
+                }}
+                placeholder="e.g. +1 415 555 2671"
+                helperText="Required by carrier for delivery alerts & OTP"
+                error={errors.receiverMobile}
+                required
+              />
 
-              {/* 6. Address Line 2 */}
-              <div className="sm:col-span-2">
-                <Input
-                  label="Address Line 2 (Optional)"
-                  name="receiverAddress2"
-                  value={receiverAddress2}
-                  onChange={(e) => setReceiverAddress2(e.target.value)}
-                  placeholder="Apartment, suite, unit, building, floor, etc."
-                />
-              </div>
+              {/* 9. Recipient Email Address (Optional) */}
+              <Input
+                label="Recipient Email Address (Optional)"
+                name="receiverEmail"
+                id="receiverEmail"
+                type="email"
+                value={receiverEmail}
+                onChange={(e) => {
+                  setReceiverEmail(e.target.value);
+                  clearError("receiverEmail");
+                }}
+                placeholder="recipient@company.com"
+                helperText="Customs invoices & tracking will be emailed to recipient"
+                error={errors.receiverEmail}
+              />
             </div>
 
             {/* Option to Save Recipient Address */}
-            <div className="pt-3 border-t border-border-default/60 space-y-2 bg-surface-subtle/50 p-3 rounded-xl">
+            <div className="pt-2 border-t border-slate-100 space-y-2">
               <label className="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer">
                 <input
                   type="checkbox"
@@ -1294,40 +1279,33 @@ export function InternationalBookingForm({
               )}
             </div>
           </div>
-        </Card>
 
-        {/* ============================================================== */}
-        {/* PART 3: PACKAGE, CUSTOMS & COMMERCIAL INVOICE */}
-        {/* ============================================================== */}
-        <Card id="part-customs" className="shadow-md overflow-hidden border border-slate-200">
-          <div className="bg-gradient-to-r from-[#030164] to-[#120e7a] text-white p-4 sm:p-5 flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-white/10 text-white font-extrabold flex items-center justify-center text-xs border border-white/20">
+          {/* ============================================================== */}
+          {/* SECTION 3: CUSTOMS, COMMERCIAL INVOICE & PARCEL SPECS */}
+          {/* ============================================================== */}
+          <div className="px-4 py-3 sm:px-6 bg-slate-50 border-y border-slate-200/80 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-[#030164] text-white flex items-center justify-center text-[11px] sm:text-xs font-bold">
                 3
               </span>
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Package className="w-4 h-4 text-[#2563EB]" />
-                  <span>Customs Declaration, Commercial Invoice & Parcel Specs</span>
-                </h3>
-                <p className="text-xs text-slate-300">
-                  Itemized declaration for international clearance, multi-currency valuation & physical package dimensions
-                </p>
-              </div>
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <Package className="w-3.5 h-3.5 text-[#2563EB]" />
+                <span>Customs Declaration, Invoice &amp; Parcel Specs</span>
+              </h3>
             </div>
 
             {/* Currency Selector Pill */}
-            <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
-              <DollarSign className="w-4 h-4 text-[#2563EB]" />
-              <span className="text-xs font-semibold text-slate-200">Declared Currency:</span>
-              <div className="inline-flex rounded-lg bg-white/20 p-0.5">
+            <div className="flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+              <DollarSign className="w-3.5 h-3.5 text-[#2563EB]" />
+              <span className="text-[11px] font-semibold text-slate-600">Currency:</span>
+              <div className="inline-flex rounded-md bg-slate-100 p-0.5">
                 <button
                   type="button"
                   onClick={() => setCurrency("USD")}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${
+                  className={`px-2 py-0.5 text-xs font-bold rounded transition-all ${
                     currency === "USD"
                       ? "bg-white text-[#030164] shadow-xs"
-                      : "text-white/80 hover:text-white"
+                      : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   USD ($)
@@ -1335,10 +1313,10 @@ export function InternationalBookingForm({
                 <button
                   type="button"
                   onClick={() => setCurrency("INR")}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${
+                  className={`px-2 py-0.5 text-xs font-bold rounded transition-all ${
                     currency === "INR"
                       ? "bg-white text-[#030164] shadow-xs"
-                      : "text-white/80 hover:text-white"
+                      : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   INR (₹)
@@ -1347,10 +1325,9 @@ export function InternationalBookingForm({
             </div>
           </div>
 
-          <div className="p-6 sm:p-8 space-y-6">
-
+          <div className="p-4 sm:p-6 space-y-5">
             {/* International Commercial Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
               <div>
                 <label className="block text-xs font-bold text-text-primary mb-1.5">
                   Service Level <span className="text-status-danger">*</span>
@@ -1358,7 +1335,7 @@ export function InternationalBookingForm({
                 <select
                   value={serviceType}
                   onChange={(e) => setServiceType(e.target.value)}
-                  className="w-full h-11 px-3 py-2 text-xs bg-surface-base border border-border-default rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-[#030164] font-medium"
+                  className="w-full h-10 sm:h-11 px-3 py-2 text-xs bg-surface-base border border-border-default rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-[#030164] font-medium"
                 >
                   <option value="Express Worldwide (3-5 Days)">Express Worldwide (3-5 Days)</option>
                   <option value="Priority Air Freight (2-4 Days)">Priority Air Freight (2-4 Days)</option>
@@ -1391,20 +1368,20 @@ export function InternationalBookingForm({
                   value={iossNumber}
                   onChange={(e) => setIossNumber(e.target.value)}
                   placeholder="e.g. IM1234567890"
-                  helperText="For EU / UK customs expedited tax clearance"
+                  helperText="For EU / UK customs tax clearance"
                 />
               </div>
             </div>
 
             {/* Itemized Line Items Table */}
-            <div className="space-y-3 pt-2">
+            <div className="space-y-2.5 pt-1">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
-                    <FileText className="w-4 h-4 text-[#2563EB]" />
+                  <h4 className="text-xs sm:text-sm font-bold text-text-primary flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-[#2563EB]" />
                     Itemized Commercial Line Items (Customs Declaration)
                   </h4>
-                  <p className="text-xs text-text-muted">
+                  <p className="text-[11px] text-text-muted">
                     List every unique product in consignment with unit price in {currency}
                   </p>
                 </div>
@@ -1413,58 +1390,58 @@ export function InternationalBookingForm({
                   variant="outline"
                   size="sm"
                   onClick={addLineItem}
-                  className="text-xs flex items-center gap-1"
+                  className="text-xs flex items-center gap-1 h-8"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Add Product Item
+                  <Plus className="w-3 h-3" /> Add Product Item
                 </Button>
               </div>
 
               {errors.lineItems && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
+                <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                   <span>{errors.lineItems}</span>
                 </div>
               )}
 
               <div className="overflow-x-auto border border-border-default rounded-xl bg-surface-base">
-                <table className="w-full text-left text-xs">
+                <table className="w-full text-left text-xs min-w-[640px]">
                   <thead className="bg-surface-subtle border-b border-border-default text-text-secondary uppercase text-[10px] tracking-wider font-bold">
                     <tr>
-                      <th className="p-3">#</th>
-                      <th className="p-3 min-w-[160px]">Product Description *</th>
-                      <th className="p-3 min-w-[100px]">SKU / Ref</th>
-                      <th className="p-3 w-20">Qty *</th>
-                      <th className="p-3 w-28">Unit Price ({currency}) *</th>
-                      <th className="p-3 min-w-[100px]">HSN Code</th>
-                      <th className="p-3 w-20">Tax %</th>
-                      <th className="p-3 w-24 text-right">Subtotal</th>
-                      <th className="p-3 w-10 text-center"></th>
+                      <th className="p-2.5">#</th>
+                      <th className="p-2.5 min-w-[150px]">Product Description *</th>
+                      <th className="p-2.5 min-w-[90px]">SKU / Ref</th>
+                      <th className="p-2.5 w-16 text-center">Qty *</th>
+                      <th className="p-2.5 w-24">Unit Price ({currency}) *</th>
+                      <th className="p-2.5 min-w-[90px]">HSN Code</th>
+                      <th className="p-2.5 w-16 text-center">Tax %</th>
+                      <th className="p-2.5 w-24 text-right">Subtotal</th>
+                      <th className="p-2.5 w-8 text-center"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border-default">
                     {lineItems.map((item, index) => (
                       <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="p-3 font-mono text-text-muted">{index + 1}</td>
-                        <td className="p-2">
+                        <td className="p-2.5 font-mono text-text-muted text-[11px]">{index + 1}</td>
+                        <td className="p-1.5">
                           <input
                             type="text"
                             value={item.name}
                             onChange={(e) => handleLineItemChange(index, "name", e.target.value)}
-                            placeholder="e.g. Cotton Garments, Circuit Board"
-                            className="w-full h-9 px-2.5 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white"
+                            placeholder="e.g. Cotton T-Shirt, Circuit Board"
+                            className="w-full h-8 px-2 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white"
                             required
                           />
                         </td>
-                        <td className="p-2">
+                        <td className="p-1.5">
                           <input
                             type="text"
                             value={item.sku}
                             onChange={(e) => handleLineItemChange(index, "sku", e.target.value)}
                             placeholder="SKU-102"
-                            className="w-full h-9 px-2.5 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white font-mono"
+                            className="w-full h-8 px-2 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white font-mono"
                           />
                         </td>
-                        <td className="p-2">
+                        <td className="p-1.5">
                           <input
                             type="number"
                             min="1"
@@ -1472,12 +1449,12 @@ export function InternationalBookingForm({
                             onChange={(e) =>
                               handleLineItemChange(index, "quantity", Math.max(1, parseInt(e.target.value) || 1))
                             }
-                            className="w-full h-9 px-2 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white text-center font-bold"
+                            className="w-full h-8 px-1 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white text-center font-bold"
                           />
                         </td>
-                        <td className="p-2">
+                        <td className="p-1.5">
                           <div className="relative">
-                            <span className="absolute left-2.5 top-2 text-[10px] text-text-muted font-bold">
+                            <span className="absolute left-2 top-2 text-[10px] text-text-muted font-bold">
                               {currency === "USD" ? "$" : "₹"}
                             </span>
                             <input
@@ -1489,20 +1466,20 @@ export function InternationalBookingForm({
                                 handleLineItemChange(index, "unit_price", parseFloat(e.target.value) || 0)
                               }
                               placeholder="0.00"
-                              className="w-full h-9 pl-6 pr-2 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white font-mono text-right font-medium"
+                              className="w-full h-8 pl-5 pr-1 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white font-mono text-right font-medium"
                             />
                           </div>
                         </td>
-                        <td className="p-2">
+                        <td className="p-1.5">
                           <input
                             type="text"
                             value={item.hsn_code}
                             onChange={(e) => handleLineItemChange(index, "hsn_code", e.target.value)}
                             placeholder="e.g. 6204"
-                            className="w-full h-9 px-2.5 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white font-mono"
+                            className="w-full h-8 px-2 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white font-mono"
                           />
                         </td>
-                        <td className="p-2">
+                        <td className="p-1.5">
                           <input
                             type="number"
                             min="0"
@@ -1512,18 +1489,18 @@ export function InternationalBookingForm({
                               handleLineItemChange(index, "tax_rate", parseFloat(e.target.value) || 0)
                             }
                             placeholder="0"
-                            className="w-full h-9 px-2 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white text-center"
+                            className="w-full h-8 px-1 rounded-lg border border-border-default text-xs focus:ring-1 focus:ring-[#030164] bg-white text-center"
                           />
                         </td>
-                        <td className="p-3 text-right font-mono font-bold text-text-primary whitespace-nowrap">
+                        <td className="p-2.5 text-right font-mono font-bold text-text-primary whitespace-nowrap text-xs">
                           {currency === "USD" ? `$${item.total.toFixed(2)}` : `₹${item.total.toLocaleString()}`}
                         </td>
-                        <td className="p-2 text-center">
+                        <td className="p-1.5 text-center">
                           {lineItems.length > 1 && (
                             <button
                               type="button"
                               onClick={() => removeLineItem(index)}
-                              className="text-text-muted hover:text-rose-600 p-1.5 rounded-lg transition-colors"
+                              className="text-text-muted hover:text-rose-600 p-1 rounded-lg transition-colors"
                               title="Delete line item"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1535,10 +1512,10 @@ export function InternationalBookingForm({
                   </tbody>
                   <tfoot className="bg-surface-subtle font-bold border-t border-border-default">
                     <tr>
-                      <td colSpan={7} className="p-3 text-right text-text-secondary uppercase text-[11px]">
+                      <td colSpan={7} className="p-2.5 text-right text-text-secondary uppercase text-[10px] sm:text-[11px]">
                         Total Customs Valuation:
                       </td>
-                      <td className="p-3 text-right font-mono text-sm text-[#030164] whitespace-nowrap">
+                      <td className="p-2.5 text-right font-mono text-xs sm:text-sm text-[#030164] whitespace-nowrap">
                         {currency === "USD"
                           ? `$${totalDeclaredValue.toFixed(2)} USD`
                           : `₹${totalDeclaredValue.toLocaleString()} INR`}
@@ -1551,21 +1528,21 @@ export function InternationalBookingForm({
             </div>
 
             {/* Parcel Physical Details */}
-            <div className="pt-4 border-t border-border-default space-y-4">
-              <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
-                <Package className="w-4 h-4 text-emerald-600" />
-                Physical Package Dimensions & Specifications
+            <div className="pt-3 border-t border-border-default space-y-3.5">
+              <h4 className="text-xs sm:text-sm font-bold text-text-primary flex items-center gap-1.5">
+                <Package className="w-3.5 h-3.5 text-emerald-600" />
+                Physical Package Dimensions &amp; Specifications
               </h4>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
                 <div className="space-y-1.5 sm:col-span-2">
-                  <label className="block text-sm font-medium text-text-primary">
+                  <label className="block text-xs sm:text-sm font-medium text-text-primary">
                     Consignment Category <span className="text-status-danger">*</span>
                   </label>
                   <select
                     value={parcelType}
                     onChange={(e) => setParcelType(e.target.value)}
-                    className="w-full h-11 px-3 py-2 text-sm bg-surface-base border border-border-default rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-[#030164]"
+                    className="w-full h-10 sm:h-11 px-3 py-2 text-xs sm:text-sm bg-surface-base border border-border-default rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-[#030164]"
                   >
                     <option value="Commercial Merchandise">Commercial Merchandise (Standard Export)</option>
                     <option value="Documents / Legal Files">Documents / Legal Files (Air Courier)</option>
@@ -1589,24 +1566,24 @@ export function InternationalBookingForm({
                       clearError("weightKg");
                     }}
                     placeholder="e.g. 1.5"
-                    helperText="Actual scale weight in kilograms"
+                    helperText="Actual scale weight in kg"
                     error={errors.weightKg}
                     required
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-text-primary">
+                  <label className="block text-xs sm:text-sm font-medium text-text-primary">
                     Volumetric Weight (Estimated)
                   </label>
-                  <div className="h-11 px-3 flex items-center bg-surface-subtle border border-border-default rounded-lg text-xs font-mono font-bold text-text-secondary">
+                  <div className="h-10 sm:h-11 px-3 flex items-center bg-surface-subtle border border-border-default rounded-lg text-xs font-mono font-bold text-text-secondary">
                     {volumetricWeightKg ? `${volumetricWeightKg} kg (L×W×H / 5000)` : "Enter L, W, H below"}
                   </div>
                 </div>
               </div>
 
               {/* Dimensions: Length, Width, Height */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
                 <Input
                   label="Length (cm)"
                   name="lengthCm"
@@ -1655,7 +1632,7 @@ export function InternationalBookingForm({
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-text-primary">
+                <label className="block text-xs sm:text-sm font-medium text-text-primary">
                   Detailed Contents / Customs Description <span className="text-status-danger">*</span>
                 </label>
                 <textarea
@@ -1668,7 +1645,7 @@ export function InternationalBookingForm({
                     clearError("description");
                   }}
                   placeholder="Provide an exact, non-generic description of contents for customs agents (e.g. 5x Cotton Men's T-Shirts, 2x Bluetooth Headphones)."
-                  className={`w-full p-3 text-sm bg-surface-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#030164] transition-colors ${
+                  className={`w-full p-2.5 sm:p-3 text-xs sm:text-sm bg-surface-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#030164] transition-colors ${
                     errors.description ? "border-status-danger" : "border-border-default"
                   }`}
                   required
@@ -1679,214 +1656,61 @@ export function InternationalBookingForm({
               </div>
             </div>
           </div>
-        </Card>
 
-        {/* ============================================================== */}
-        {/* PART 4: CONSIGNMENT SUMMARY, DISPATCH & SUBMISSION */}
-        {/* ============================================================== */}
-        <Card id="part-review" className="shadow-md overflow-hidden border border-slate-200">
-          <div className="bg-gradient-to-r from-[#030164] to-[#120e7a] text-white p-4 sm:p-5 flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-white/10 text-white font-extrabold flex items-center justify-center text-xs border border-white/20">
-                4
+          {/* ============================================================== */}
+          {/* SECTION 4: DISPATCH & SUBMISSION */}
+          {/* ============================================================== */}
+          <div className="px-4 py-3 sm:px-6 bg-slate-50 border-y border-slate-200/80 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center text-[11px] sm:text-xs font-bold">
+                ✓
               </span>
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#2563EB]" />
-                  <span>Consignment Summary & Final Dispatch Confirmation</span>
-                </h3>
-                <p className="text-xs text-slate-300">
-                  Verify foreign destination, customs documentation & submit consignment booking
-                </p>
-              </div>
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Dispatch &amp; Submission</span>
+              </h3>
             </div>
           </div>
 
-          <div className="p-6 sm:p-8 space-y-6">
-            {/* Live Verification Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Sender Summary Card */}
-              <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-2 text-xs">
-                <div className="flex items-center justify-between border-b border-border-default pb-2">
-                  <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
-                    <User className="w-3.5 h-3.5 text-[#030164]" /> 1. Sender (Origin: India)
-                  </span>
-                  <a href="#part-sender" className="text-[11px] text-[#2563EB] font-semibold hover:underline">
-                    Edit
-                  </a>
-                </div>
-                <div className="font-bold text-sm text-text-primary">{senderName || "— (Name required)"}</div>
-                <div className="text-text-secondary leading-relaxed">{senderAddress1 || "—"}</div>
-                {senderAddress2 && <div className="text-text-secondary">{senderAddress2}</div>}
-                {senderLandmark && (
-                  <div className="text-[11px] text-text-muted">
-                    <span className="font-semibold text-text-secondary">Landmark:</span> {senderLandmark}
-                  </div>
-                )}
-                <div className="font-semibold text-text-primary">
-                  {senderCity || "City"}
-                  {senderDistrict ? `, ${senderDistrict}` : ""}
-                  {senderState ? `, ${senderState}` : ""} - {senderPincode || "Pincode"}, India
-                </div>
-                <div className="text-text-muted pt-1 border-t border-border-default/60 space-y-0.5">
-                  <div>
-                    <span className="font-medium text-text-secondary">Mobile:</span> +91 {senderMobile || "—"}
-                  </div>
-                  {senderEmail && (
-                    <div>
-                      <span className="font-medium text-text-secondary">Email:</span> {senderEmail}
-                    </div>
-                  )}
-                </div>
-                {saveSenderAddress && (
-                  <div className="pt-1.5">
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                      <BookmarkCheck className="w-3 h-3 text-emerald-600" /> Will save to Address Book ({senderAddressLabel || "Pickup"})
-                    </span>
-                  </div>
+          <div className="p-4 sm:p-6 space-y-4">
+            {/* Quick Live Snapshot Bar */}
+            <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-bold text-[#030164]">Consignment Overview:</span>
+                <span className="text-slate-600">India → {receiverCountry}</span>
+                <span className="text-slate-300">•</span>
+                <span className="text-slate-600">{serviceType}</span>
+                {weightKg && (
+                  <>
+                    <span className="text-slate-300">•</span>
+                    <span className="font-mono text-slate-700">{weightKg} kg</span>
+                  </>
                 )}
               </div>
-
-              {/* Receiver Summary Card */}
-              <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-2 text-xs">
-                <div className="flex items-center justify-between border-b border-border-default pb-2">
-                  <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
-                    <Globe className="w-3.5 h-3.5 text-[#2563EB]" /> 2. Receiver (Destination: Abroad)
-                  </span>
-                  <a href="#part-receiver" className="text-[11px] text-[#2563EB] font-semibold hover:underline">
-                    Edit
-                  </a>
-                </div>
-                <div className="font-bold text-sm text-text-primary">{receiverName || "— (Name required)"}</div>
-                <div className="text-text-secondary leading-relaxed">{receiverAddress1 || "—"}</div>
-                {receiverAddress2 && <div className="text-text-secondary">{receiverAddress2}</div>}
-                <div className="font-semibold text-text-primary">
-                  {receiverCity || "City"}, {receiverState || "State"} ({receiverPincode || "Postal Code"})
-                </div>
-                <div className="font-bold text-[#030164]">{receiverCountry}</div>
-                <div className="text-text-muted pt-1 border-t border-border-default/60 space-y-0.5">
-                  <div>
-                    <span className="font-medium text-text-secondary">Phone:</span> {receiverMobile || "—"}
-                  </div>
-                  {receiverEmail && (
-                    <div>
-                      <span className="font-medium text-text-secondary">Email:</span> {receiverEmail}
-                    </div>
-                  )}
-                </div>
-                {saveReceiverAddress && (
-                  <div className="pt-1.5">
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                      <BookmarkCheck className="w-3 h-3 text-emerald-600" /> Will save to Address Book ({receiverAddressLabel || "Delivery"})
-                    </span>
-                  </div>
-                )}
+              <div className="font-mono font-bold text-[#030164] text-xs sm:text-sm">
+                Value: {currency === "USD" ? `$${totalDeclaredValue.toFixed(2)} USD` : `₹${totalDeclaredValue.toLocaleString()} INR`}
               </div>
-            </div>
-
-            {/* Parcel & Customs Declaration Summary */}
-            <div className="p-4 bg-surface-subtle rounded-xl border border-border-default space-y-3 text-xs">
-              <div className="flex items-center justify-between border-b border-border-default pb-2">
-                <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
-                  <Package className="w-3.5 h-3.5 text-emerald-600" /> 3. Parcel & Customs Valuation
-                </span>
-                <a href="#part-customs" className="text-[11px] text-[#2563EB] font-semibold hover:underline">
-                  Edit
-                </a>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                <div>
-                  <span className="text-text-muted block">Classification:</span>
-                  <span className="font-medium text-text-primary">{parcelType}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted block">Actual Weight:</span>
-                  <span className="font-mono font-bold text-text-primary">{weightKg ? `${weightKg} kg` : "—"}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted block">Dimensions (L×W×H):</span>
-                  <span className="font-mono text-text-primary">
-                    {lengthCm && widthCm && heightCm ? `${lengthCm} × ${widthCm} × ${heightCm} cm` : "—"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-text-muted block">Total Customs Value:</span>
-                  <span className="font-mono font-bold text-[#030164] text-sm">
-                    {currency === "USD" ? `$${totalDeclaredValue.toFixed(2)} USD` : `₹${totalDeclaredValue.toLocaleString()} INR`}
-                  </span>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-border-default/60 flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <span className="text-text-muted">Description: </span>
-                  <span className="text-text-primary font-medium">{description || "—"}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted">Service Level: </span>
-                  <span className="font-bold text-[#030164]">{serviceType}</span>
-                </div>
-              </div>
-
-              {/* Line Items Snapshot */}
-              <div className="pt-2 border-t border-border-default/60">
-                <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">
-                  Itemized Line Items ({lineItems.filter((i) => i.name.trim().length > 0).length}):
-                </span>
-                <div className="space-y-1">
-                  {lineItems
-                    .filter((i) => i.name.trim().length > 0)
-                    .map((item, idx) => (
-                      <div key={item.id || idx} className="flex items-center justify-between text-xs py-1 border-b border-border-default/40 last:border-none">
-                        <span className="text-text-primary">
-                          {item.quantity}x {item.name} {item.sku ? `(${item.sku})` : ""}
-                        </span>
-                        <span className="font-mono font-bold text-text-primary">
-                          {currency === "USD" ? `$${item.total.toFixed(2)}` : `₹${item.total.toLocaleString()}`}
-                        </span>
-                      </div>
-                    ))}
-                </div>
-              </div>
-
-              {/* Pre-Printed Sticker Tag in Summary */}
-              {manualAwb && (
-                <div className="pt-2 border-t border-border-default/60 flex items-center justify-between flex-wrap gap-2 bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-200">
-                  <div className="flex items-center gap-2">
-                    <Barcode className="w-4 h-4 text-emerald-700" />
-                    <span className="font-semibold text-emerald-900">Pre-Printed Tag AWB:</span>
-                    <span className="font-mono font-bold text-emerald-800">{manualAwb}</span>
-                  </div>
-                  <span className="text-[11px] text-emerald-700 font-medium">Sticker Date: {awbDate || "Today"}</span>
-                </div>
-              )}
             </div>
 
             {/* Admin-only Allocation Controls (if in admin mode) */}
             {isAdminMode && (
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                  <Truck className="w-4 h-4 text-[#030164]" />
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                <div className="flex items-center gap-2 border-b border-slate-200 pb-1.5">
+                  <Truck className="w-3.5 h-3.5 text-[#030164]" />
                   <h4 className="font-bold text-xs uppercase tracking-wider text-[#030164]">
-                    Admin Dispatch & Carrier Allocation
+                    Admin Shipping Charge
                   </h4>
                 </div>
 
-                <div className="max-w-md">
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Shipping Charge ({currency})
+                <div className="max-w-xs">
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-slate-700">
+                      Charge ({currency})
                     </label>
                     <div className="flex rounded-lg border border-slate-300 focus-within:ring-1 focus-within:ring-[#030164] overflow-hidden bg-white">
-                      <select
-                        value={currency}
-                        onChange={(e) => setCurrency(e.target.value as "USD" | "INR")}
-                        className="h-10 px-2.5 text-xs font-bold bg-slate-100 border-r border-slate-300 text-slate-700 focus:outline-none cursor-pointer"
-                      >
-                        <option value="USD">USD ($)</option>
-                        <option value="INR">INR (₹)</option>
-                      </select>
+                      <span className="h-9 px-2.5 text-xs font-bold bg-slate-100 border-r border-slate-300 text-slate-700 flex items-center">
+                        {currency === "USD" ? "$" : "₹"}
+                      </span>
                       <input
                         type="number"
                         step="0.01"
@@ -1894,7 +1718,7 @@ export function InternationalBookingForm({
                         value={adminShippingCharge}
                         onChange={(e) => setAdminShippingCharge(e.target.value)}
                         placeholder={currency === "USD" ? "e.g. 45.00" : "e.g. 3750"}
-                        className="w-full h-10 px-3 text-xs text-slate-800 bg-transparent focus:outline-none font-mono"
+                        className="w-full h-9 px-2.5 text-xs text-slate-800 bg-transparent focus:outline-none font-mono"
                       />
                     </div>
                   </div>
@@ -1903,24 +1727,23 @@ export function InternationalBookingForm({
             )}
 
             {/* International Customs Notice Banner */}
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-[#2563EB] shrink-0 mt-0.5" />
+            <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" />
               <div>
-                <div className="font-bold text-[#030164]">International Customs & Freight Notice:</div>
-                <p className="mt-0.5 leading-relaxed">
-                  Final freight charges and customs export clearances will be confirmed upon package physical intake & weighing.
-                  Destination customs duties (if assessed) are subject to destination country import tariffs.
-                </p>
+                <span className="font-bold text-[#030164]">Customs &amp; Freight Notice: </span>
+                <span className="leading-relaxed">
+                  Final freight charges and customs export clearances will be verified upon package intake. Destination import tariffs (if applicable) are assessed by destination country customs.
+                </span>
               </div>
             </div>
 
             {/* Global Validation & Submission Error Alert */}
             {Object.keys(errors).length > 0 && (
-              <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-3 animate-in fade-in">
-                <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2.5 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                 <div>
                   <div className="font-bold text-rose-900">Please complete all required fields:</div>
-                  <ul className="list-disc list-inside mt-1 space-y-0.5 text-rose-700">
+                  <ul className="list-disc list-inside mt-1 space-y-0.5 text-rose-700 text-[11px]">
                     {Object.entries(errors).slice(0, 4).map(([field, msg]) => (
                       <li key={field}>{msg}</li>
                     ))}
@@ -1933,8 +1756,8 @@ export function InternationalBookingForm({
             )}
 
             {apiError && (
-              <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-3 animate-in fade-in">
-                <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2.5 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                 <div>
                   <div className="font-bold text-rose-900">Submission Error</div>
                   <p className="mt-0.5">{apiError}</p>
@@ -1942,14 +1765,14 @@ export function InternationalBookingForm({
               </div>
             )}
 
-            {/* Final Action Button */}
-            <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-xs text-slate-500">
+            {/* Final Action Button & Terms */}
+            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="text-[11px] text-slate-500 text-center sm:text-left">
                 <span>By submitting, you agree to our </span>
                 <Link href="/terms" target="_blank" className="text-[#2563EB] hover:underline font-semibold">
-                  International Carriage Terms
+                  Carriage Terms
                 </Link>
-                <span> and Customs Regulations.</span>
+                <span> &amp; Customs Regulations.</span>
               </div>
 
               <Button
@@ -1957,7 +1780,7 @@ export function InternationalBookingForm({
                 variant="accent"
                 size="lg"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#030164] to-[#2563EB] hover:from-[#02004a] hover:to-[#1d4ed8] text-white font-extrabold text-sm rounded-xl shadow-lg shadow-[#030164]/20 hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-[#030164] to-[#2563EB] hover:from-[#02004a] hover:to-[#1d4ed8] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-[#030164]/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
