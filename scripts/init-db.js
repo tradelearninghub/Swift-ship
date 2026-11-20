@@ -5,7 +5,7 @@
  */
 const fs = require("fs");
 const path = require("path");
-const { seedAdmin, ensureEnvFile } = require("./seed-admin");
+const { seedAdmin, ensureEnvFile, getDatabaseUrl } = require("./seed-admin");
 
 // Ensure environment variables and .env exist
 ensureEnvFile();
@@ -14,7 +14,7 @@ const DEFAULT_DATABASE_URL =
   "mysql://u905414804_sscouriers:SS%40Couriers26@127.0.0.1:3306/u905414804_sscouriers?connection_limit=5";
 
 async function initDatabase() {
-  const dbUrl = process.env.DATABASE_URL || DEFAULT_DATABASE_URL;
+  const dbUrl = getDatabaseUrl();
 
   console.log("[DB-INIT] Checking database connectivity...");
 
@@ -150,6 +150,25 @@ async function runSchemaSelfHealing(prisma) {
       INDEX \`idx_notif_logs_event\` (\`event_key\`),
       INDEX \`idx_notif_logs_booking\` (\`booking_id\`),
       INDEX \`idx_notif_logs_shipment\` (\`shipment_id\`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
+
+    `CREATE TABLE IF NOT EXISTS \`rate_cards\` (
+      \`id\` VARCHAR(191) NOT NULL PRIMARY KEY,
+      \`courier_code\` VARCHAR(50) NOT NULL,
+      \`courier_name\` VARCHAR(100) NOT NULL,
+      \`service_type\` VARCHAR(20) NOT NULL,
+      \`zone\` VARCHAR(50) NOT NULL,
+      \`zone_title\` VARCHAR(100) NOT NULL,
+      \`base_weight_grams\` INT NOT NULL,
+      \`base_rate_paise\` INT NOT NULL,
+      \`additional_weight_grams\` INT NOT NULL,
+      \`additional_rate_paise\` INT NOT NULL,
+      \`min_transit_days\` INT NOT NULL DEFAULT 1,
+      \`max_transit_days\` INT NOT NULL DEFAULT 3,
+      \`is_active\` TINYINT(1) NOT NULL DEFAULT 1,
+      \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+      \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+      INDEX \`idx_rate_cards_courier_zone\` (\`courier_code\`, \`zone\`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`
   ];
 
@@ -261,6 +280,79 @@ async function runSchemaSelfHealing(prisma) {
     }
   } catch (seedErr) {
     console.warn("[DB-INIT] Template seed notice:", seedErr.message);
+  }
+
+  // 4. Ensure default rate cards exist
+  try {
+    const rcCount = await prisma.rateCard.count();
+    if (rcCount === 0) {
+      console.log("[DB-INIT] Seeding initial rate cards...");
+      const DEFAULT_RATE_CARDS = [
+        { id: "rc-del-zone-a", courier_code: "DELHIVERY", courier_name: "Delhivery Express Air", service_type: "EXPRESS", zone: "ZONE_A", zone_title: "Zone A — Intra-City Jaipur", base_weight_grams: 500, base_rate_paise: 5000, additional_weight_grams: 500, additional_rate_paise: 3000, min_transit_days: 1, max_transit_days: 1, is_active: true },
+        { id: "rc-del-zone-b", courier_code: "DELHIVERY", courier_name: "Delhivery Express Air", service_type: "EXPRESS", zone: "ZONE_B", zone_title: "Zone B — Intra-State (Rajasthan)", base_weight_grams: 500, base_rate_paise: 7500, additional_weight_grams: 500, additional_rate_paise: 4000, min_transit_days: 1, max_transit_days: 2, is_active: true },
+        { id: "rc-del-zone-c", courier_code: "DELHIVERY", courier_name: "Delhivery Express Air", service_type: "EXPRESS", zone: "ZONE_C", zone_title: "Zone C — Metro Corridors", base_weight_grams: 500, base_rate_paise: 11000, additional_weight_grams: 500, additional_rate_paise: 6000, min_transit_days: 2, max_transit_days: 3, is_active: true },
+        { id: "rc-del-zone-d", courier_code: "DELHIVERY", courier_name: "Delhivery Express Air", service_type: "EXPRESS", zone: "ZONE_D", zone_title: "Zone D — Rest of India", base_weight_grams: 500, base_rate_paise: 13500, additional_weight_grams: 500, additional_rate_paise: 7500, min_transit_days: 3, max_transit_days: 4, is_active: true },
+        { id: "rc-del-zone-e", courier_code: "DELHIVERY", courier_name: "Delhivery Express Air", service_type: "EXPRESS", zone: "ZONE_E", zone_title: "Zone E — Special Remote Zones", base_weight_grams: 500, base_rate_paise: 17500, additional_weight_grams: 500, additional_rate_paise: 9500, min_transit_days: 4, max_transit_days: 6, is_active: true },
+        { id: "rc-dtdc-zone-a", courier_code: "DTDC", courier_name: "DTDC Standard Surface", service_type: "SURFACE", zone: "ZONE_A", zone_title: "Zone A — Intra-City Jaipur", base_weight_grams: 500, base_rate_paise: 4000, additional_weight_grams: 1000, additional_rate_paise: 2500, min_transit_days: 1, max_transit_days: 2, is_active: true },
+        { id: "rc-dtdc-zone-b", courier_code: "DTDC", courier_name: "DTDC Standard Surface", service_type: "SURFACE", zone: "ZONE_B", zone_title: "Zone B — Intra-State (Rajasthan)", base_weight_grams: 500, base_rate_paise: 6000, additional_weight_grams: 1000, additional_rate_paise: 3500, min_transit_days: 2, max_transit_days: 3, is_active: true },
+        { id: "rc-dtdc-zone-c", courier_code: "DTDC", courier_name: "DTDC Standard Surface", service_type: "SURFACE", zone: "ZONE_C", zone_title: "Zone C — Metro Corridors", base_weight_grams: 500, base_rate_paise: 8500, additional_weight_grams: 1000, additional_rate_paise: 4500, min_transit_days: 3, max_transit_days: 5, is_active: true },
+        { id: "rc-dtdc-zone-d", courier_code: "DTDC", courier_name: "DTDC Standard Surface", service_type: "SURFACE", zone: "ZONE_D", zone_title: "Zone D — Rest of India", base_weight_grams: 500, base_rate_paise: 10500, additional_weight_grams: 1000, additional_rate_paise: 5500, min_transit_days: 4, max_transit_days: 6, is_active: true },
+        { id: "rc-dtdc-zone-e", courier_code: "DTDC", courier_name: "DTDC Standard Surface", service_type: "SURFACE", zone: "ZONE_E", zone_title: "Zone E — Special Remote Zones", base_weight_grams: 500, base_rate_paise: 14000, additional_weight_grams: 1000, additional_rate_paise: 7500, min_transit_days: 5, max_transit_days: 7, is_active: true },
+      ];
+      for (const rc of DEFAULT_RATE_CARDS) {
+        await prisma.rateCard.upsert({
+          where: { id: rc.id },
+          update: {},
+          create: rc,
+        });
+      }
+      console.log("[DB-INIT] ✅ Initial rate cards seeded.");
+    }
+  } catch (rcErr) {
+    console.warn("[DB-INIT] Rate card seed notice:", rcErr.message);
+  }
+
+  // 5. Ensure default notification rules exist
+  try {
+    const ruleCount = await prisma.notificationRule.count();
+    if (ruleCount === 0) {
+      console.log("[DB-INIT] Seeding initial notification rules...");
+      const DEFAULT_RULES = [
+        "customer.welcome",
+        "booking.created",
+        "booking.approved",
+        "booking.rejected",
+        "shipment.created",
+        "shipment.awb_generated",
+        "pickup.scheduled",
+        "shipment.in_transit",
+        "shipment.out_for_delivery",
+        "shipment.delivered",
+        "shipment.rto",
+        "cod.collected",
+        "cod.remitted",
+      ];
+      for (const event_key of DEFAULT_RULES) {
+        await prisma.notificationRule.upsert({
+          where: {
+            event_key_channel: {
+              event_key,
+              channel: "EMAIL",
+            },
+          },
+          update: {},
+          create: {
+            id: `rule-${event_key}-email`,
+            event_key,
+            channel: "EMAIL",
+            enabled: true,
+          },
+        });
+      }
+      console.log("[DB-INIT] ✅ Default notification rules seeded.");
+    }
+  } catch (ruleErr) {
+    console.warn("[DB-INIT] Rule seed notice:", ruleErr.message);
   }
 }
 

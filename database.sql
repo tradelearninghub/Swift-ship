@@ -187,7 +187,9 @@ CREATE TABLE IF NOT EXISTS `booking_parcels` (
   `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   INDEX `idx_parcels_booking` (`booking_id`),
-  CONSTRAINT `fk_parcels_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  INDEX `idx_parcels_verifier` (`verified_by`),
+  CONSTRAINT `fk_parcels_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_parcels_verifier` FOREIGN KEY (`verified_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 10. Booking Charges
@@ -560,31 +562,98 @@ INSERT INTO `courier_partners` (`id`, `name`, `code`, `website`, `support_contac
 ('cp-delhivery', 'Delhivery', 'DELHIVERY', 'https://www.delhivery.com', '+91 124 6719500', 'ACTIVE', 1, 1, 1, 1, 1, NOW(3), NOW(3)),
 ('cp-bluedart', 'Blue Dart', 'BLUEDART', 'https://www.bluedart.com', '1860 233 1234', 'ACTIVE', 1, 1, 1, 1, 1, NOW(3), NOW(3)),
 ('cp-dtdc', 'DTDC Express', 'DTDC', 'https://www.dtdc.in', '+91 80 2536 5032', 'ACTIVE', 1, 1, 0, 1, 0, NOW(3), NOW(3)),
-('cp-xpressbees', 'XpressBees', 'XPRESSBEES', 'https://www.xpressbees.com', '+91 20 4911 1900', 'ACTIVE', 0, 1, 0, 0, 0, NOW(3), NOW(3))
-ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `website` = VALUES(`website`);
+('cp-xpressbees', 'XpressBees', 'XPRESSBEES', 'https://www.xpressbees.com', '+91 20 4911 1900', 'ACTIVE', 0, 1, 0, 0, 0, NOW(3), NOW(3)),
+('partner-in-house', 'SS International Courier In-House Delivery (Self Fleet)', 'IN_HOUSE', 'https://ssinternationalcourier.com', '+91 8000151117', 'ACTIVE', 1, 1, 1, 0, 0, NOW(3), NOW(3))
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `code` = VALUES(`code`), `website` = VALUES(`website`);
 
--- Seed Default Company Profile Setting (SAFEGUARD: INSERT IGNORE to never overwrite admin configurations)
+-- Seed Default Settings (SAFEGUARD: INSERT IGNORE to never overwrite existing admin configurations)
 INSERT IGNORE INTO `settings` (`id`, `group`, `key`, `value`, `updated_at`) VALUES
 (
   'setting-company-profile',
   'company_profile',
   'company_profile',
   JSON_OBJECT(
-    'company_name', 'SS International Courier Pvt. Ltd.',
+    'company_name', 'SS International Courier',
     'tagline', 'Fast, Safe & Multi-Carrier Courier Logistics',
     'support_email', 'support@sscourierservice.in',
     'support_phones', JSON_ARRAY('8000151117', '7689987368'),
-    'support_phone', '8000151117, 7689987368',
     'whatsapp', '8000151117',
-    'address', 'Shop No 4, 5th Crossing, Padmavati School, Ghee Walo Ka Rasta, Johri Bazar',
+    'operating_hours', 'Mon - Sat: 08:00 AM - 09:00 PM IST',
+    'address', 'Shop No 4, 5th Crossing, Near Padmavati School, Ghee Walo Ka Rasta, Johri Bazar',
+    'landmark', 'Near Padmavati School',
     'city', 'Jaipur',
+    'district', 'Jaipur',
     'state', 'Rajasthan',
     'pincode', '302003',
-    'operating_hours', 'Mon - Sat: 08:00 AM - 09:00 PM IST',
-    'google_maps_embed_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3557.484920272099!2d75.82412537611685!3d26.921104759799295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db14b1a473b11%3A0xb35a0f5a11c1e5cb!2sJohri%20Bazar%2C%20Jaipur%2C%20Rajasthan%20302003!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin',
     'latitude', 26.9211,
-    'longitude', 75.8267
+    'longitude', 75.8267,
+    'map_zoom', 16,
+    'facebook_url', 'https://facebook.com/sscourierjaipur',
+    'instagram_url', 'https://instagram.com/sscourier_official',
+    'twitter_url', 'https://x.com/',
+    'x_url', 'https://x.com/',
+    'linkedin_url', 'https://in.linkedin.com/',
+    'youtube_url', '',
+    'whatsapp_url', ''
   ),
+  NOW(3)
+),
+(
+  'c3444be1-643c-496a-ae4b-42794dc3253a',
+  'smtp',
+  'smtp_config',
+  '{"host":"smtp.hostinger.com","port":465,"user":"support@ssinternationalcourier.com","from_email":"support@ssinternationalcourier.com","from_name":"SS International Courier","pass":"Sscourier@2026"}',
+  NOW(3)
+),
+(
+  'e87f31bb-4b32-406d-96f1-f6e506c6547b',
+  'whatsapp',
+  'whatsapp_config',
+  '{"api_url":"","phone_number_id":"","business_account_id":""}',
+  NOW(3)
+),
+(
+  '86855afe-50f8-4f76-adcd-c8752e952d04',
+  'sms',
+  'sms_config',
+  '{"gateway_url":"","sender_id":"","entity_id":""}',
+  NOW(3)
+),
+(
+  '0a09929d-6782-41b6-8366-94db5e6c2bc4',
+  'cms',
+  'testimonials',
+  '[{"id":"testi-1","client_name":"Vikram Singhania","client_role":"Managing Director","company_name":"Singhania Gemstone & Exports, Jaipur","avatar_url":"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80","rating":5,"review":"We export fine handcrafted jewellery and precious gemstones to the USA and Europe on strict delivery schedules. SS International Courier handles customs clearance effortlessly with 100% on-time air delivery. Live tracking gives both us and our overseas buyers complete peace of mind.","destination_route":"Jaipur → New York, USA","tag":"Verified Air Cargo Exporter","is_active":true,"created_at":"2024-09-15T10:00:00.000Z"},{"id":"testi-2","client_name":"Pooja Deshmukh","client_role":"Head of International Logistics","company_name":"Aura Apparel & Handloom Exports","avatar_url":"https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80","rating":5,"review":"Switching to SS International was the best operational decision for our UK fashion consignments. Doorstep pickup in Jaipur was seamless, export commercial invoices were vetted accurately, and our samples reached our London buyers in 4 days without a single customs delay.","destination_route":"Delhi / Jaipur → London, UK","tag":"Regular Export Consignee","is_active":true,"created_at":"2024-09-28T14:30:00.000Z"},{"id":"testi-3","client_name":"Dr. Arvind K. Mehta","client_role":"Senior Professor & Parent","company_name":"University Transcripts & Legal Documents","avatar_url":"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80","rating":5,"review":"Needed to send my son\'s original university transcripts and urgent visa certificates to University of Toronto. The team packed everything in tamper-evident security flyers and tracked the consignment milestone-by-milestone. Delivered in Canada in under 72 hours!","destination_route":"Mumbai → Toronto, Canada","tag":"Express Document Client","is_active":true,"created_at":"2024-10-04T09:15:00.000Z"},{"id":"testi-4","client_name":"Farhan Qureshi","client_role":"Co-Founder & Operations Lead","company_name":"Zesture Handcrafted Goods","avatar_url":"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80","rating":5,"review":"Our handmade brass and leather artisanal goods are dispatched weekly to Dubai and Riyadh. SS International offers the most transparent cross-border rates, zero hidden fuel surcharges, and instant WhatsApp support whenever we need customs documentation guidance.","destination_route":"Jaipur → Dubai, UAE","tag":"Cross-Border E-Commerce","is_active":true,"created_at":"2024-10-10T16:45:00.000Z"}]',
+  NOW(3)
+),
+(
+  'setting-seo-global',
+  'seo',
+  'seo_global',
+  JSON_OBJECT(
+    'site_name', 'SS International Courier',
+    'title_template', '%s | SS International Courier',
+    'default_meta_description', 'Fast, customs-cleared global parcel dispatch across 220+ countries with automated commercial invoices, live tracking, and door-to-door transit.',
+    'default_share_image', '/images/ss-logo.jpg',
+    'canonical_base_url', 'https://ssinternationalcourier.com',
+    'favicon', '/favicon.ico'
+  ),
+  NOW(3)
+),
+(
+  'setting-seo-robots',
+  'seo',
+  'seo_robots',
+  JSON_OBJECT(
+    'content', '# SS International Courier - Robots Exclusion Protocol\nUser-agent: *\nAllow: /\n\n# Protected Admin, Internal API & Authenticated Customer Portals\nDisallow: /admin\nDisallow: /admin/\nDisallow: /api\nDisallow: /api/\nDisallow: /customer\nDisallow: /customer/\nDisallow: /login\nDisallow: /register\nDisallow: /forgot-password\nDisallow: /track/*\n\n# Sitemap Index\nSitemap: https://ssinternationalcourier.com/sitemap.xml\n'
+  ),
+  NOW(3)
+),
+(
+  'setting-usd-to-inr',
+  'pricing',
+  'usd_to_inr_rate',
+  '84.0',
   NOW(3)
 );
 
@@ -618,8 +687,21 @@ INSERT INTO `notification_templates` (`id`, `event_key`, `channel`, `subject`, `
 ('template-cod.remitted', 'cod.remitted', 'EMAIL', 'COD Remittance Settled — UTR {{utr}}', 'Hello {{customerName}},\n\nYour COD remittance of {{amount}} has been transferred to your registered bank account.\nBank Reference / UTR: {{utr}}\n\nThank you for shipping with {{companyName}}.\nTeam {{companyName}}', 'support@sscourierservice.in', 1, NOW(3), NOW(3))
 ON DUPLICATE KEY UPDATE `subject` = VALUES(`subject`), `body` = VALUES(`body`);
 
--- Seed Default USD to INR Pricing Setting
-INSERT IGNORE INTO `settings` (`id`, `group`, `key`, `value`, `updated_at`) VALUES
-('setting-usd-to-inr', 'pricing', 'usd_to_inr_rate', '84.0', NOW(3));
+-- Seed Default Notification Rules (Idempotent ON DUPLICATE KEY UPDATE)
+INSERT INTO `notification_rules` (`id`, `event_key`, `channel`, `enabled`, `created_at`, `updated_at`) VALUES
+('rule-customer.welcome-email', 'customer.welcome', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-booking.created-email', 'booking.created', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-booking.approved-email', 'booking.approved', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-booking.rejected-email', 'booking.rejected', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-shipment.created-email', 'shipment.created', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-shipment.awb_generated-email', 'shipment.awb_generated', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-pickup.scheduled-email', 'pickup.scheduled', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-shipment.in_transit-email', 'shipment.in_transit', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-shipment.out_for_delivery-email', 'shipment.out_for_delivery', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-shipment.delivered-email', 'shipment.delivered', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-shipment.rto-email', 'shipment.rto', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-cod.collected-email', 'cod.collected', 'EMAIL', 1, NOW(3), NOW(3)),
+('rule-cod.remitted-email', 'cod.remitted', 'EMAIL', 1, NOW(3), NOW(3))
+ON DUPLICATE KEY UPDATE `enabled` = VALUES(`enabled`);
 
 SET FOREIGN_KEY_CHECKS = 1;

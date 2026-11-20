@@ -212,6 +212,17 @@ async function main() {
       capability_pickup_api: false,
       capability_cancellation_api: false,
     },
+    {
+      code: "IN_HOUSE",
+      name: "SS International Courier In-House Delivery (Self Fleet)",
+      website: "https://ssinternationalcourier.com",
+      support_contact: "+91 8000151117",
+      capability_shipment_api: true,
+      capability_tracking_api: true,
+      capability_label_api: true,
+      capability_pickup_api: false,
+      capability_cancellation_api: false,
+    },
   ];
 
   for (const c of couriers) {
@@ -284,6 +295,126 @@ async function main() {
         },
       },
     });
+  }
+
+  // 7. Safe Seed: Hostinger SMTP Config
+  const existingSmtp = await prisma.setting.findFirst({ where: { key: "smtp_config" } });
+  if (!existingSmtp) {
+    await prisma.setting.create({
+      data: {
+        group: "smtp",
+        key: "smtp_config",
+        value: {
+          host: "smtp.hostinger.com",
+          port: 465,
+          user: "support@ssinternationalcourier.com",
+          from_email: "support@ssinternationalcourier.com",
+          from_name: "SS International Courier",
+          pass: "Sscourier@2026",
+        },
+      },
+    });
+  }
+
+  // 8. Safe Seed: Customer Testimonials
+  const existingTestimonials = await prisma.setting.findFirst({ where: { key: "testimonials" } });
+  if (!existingTestimonials) {
+    await prisma.setting.create({
+      data: {
+        group: "cms",
+        key: "testimonials",
+        value: [
+          {
+            id: "testi-1",
+            client_name: "Vikram Singhania",
+            client_role: "Managing Director",
+            company_name: "Singhania Gemstone & Exports, Jaipur",
+            avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+            rating: 5,
+            review: "We export fine handcrafted jewellery and precious gemstones to the USA and Europe on strict delivery schedules. SS International Courier handles customs clearance effortlessly with 100% on-time air delivery. Live tracking gives both us and our overseas buyers complete peace of mind.",
+            destination_route: "Jaipur → New York, USA",
+            tag: "Verified Air Cargo Exporter",
+            is_active: true,
+            created_at: "2024-09-15T10:00:00.000Z",
+          },
+          {
+            id: "testi-2",
+            client_name: "Pooja Deshmukh",
+            client_role: "Head of International Logistics",
+            company_name: "Aura Apparel & Handloom Exports",
+            avatar_url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
+            rating: 5,
+            review: "Switching to SS International was the best operational decision for our UK fashion consignments. Doorstep pickup in Jaipur was seamless, export commercial invoices were vetted accurately, and our samples reached our London buyers in 4 days without a single customs delay.",
+            destination_route: "Delhi / Jaipur → London, UK",
+            tag: "Regular Export Consignee",
+            is_active: true,
+            created_at: "2024-09-28T14:30:00.000Z",
+          },
+          {
+            id: "testi-3",
+            client_name: "Dr. Arvind K. Mehta",
+            client_role: "Senior Professor & Parent",
+            company_name: "University Transcripts & Legal Documents",
+            avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+            rating: 5,
+            review: "Needed to send my son's original university transcripts and urgent visa certificates to University of Toronto. The team packed everything in tamper-evident security flyers and tracked the consignment milestone-by-milestone. Delivered in Canada in under 72 hours!",
+            destination_route: "Mumbai → Toronto, Canada",
+            tag: "Express Document Client",
+            is_active: true,
+            created_at: "2024-10-04T09:15:00.000Z",
+          },
+          {
+            id: "testi-4",
+            client_name: "Farhan Qureshi",
+            client_role: "Co-Founder & Operations Lead",
+            company_name: "Zesture Handcrafted Goods",
+            avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80",
+            rating: 5,
+            review: "Our handmade brass and leather artisanal goods are dispatched weekly to Dubai and Riyadh. SS International offers the most transparent cross-border rates, zero hidden fuel surcharges, and instant WhatsApp support whenever we need customs documentation guidance.",
+            destination_route: "Jaipur → Dubai, UAE",
+            tag: "Cross-Border E-Commerce",
+            is_active: true,
+            created_at: "2024-10-10T16:45:00.000Z",
+          },
+        ],
+      },
+    });
+  }
+
+  // 9. Safe Seed: USD to INR rate
+  const existingUsd = await prisma.setting.findFirst({ where: { key: "usd_to_inr_rate" } });
+  if (!existingUsd) {
+    await prisma.setting.create({
+      data: {
+        group: "pricing",
+        key: "usd_to_inr_rate",
+        value: "84.0",
+      },
+    });
+  }
+
+  // 10. Safe Seed: Indicative Rate Cards
+  const rcCount = await prisma.rateCard.count();
+  if (rcCount === 0) {
+    const rateCards = [
+      { id: "rc-del-zone-a", courier_code: "DELHIVERY", courier_name: "Delhivery Express Air", service_type: "EXPRESS", zone: "ZONE_A", zone_title: "Zone A — Intra-City Jaipur", base_weight_grams: 500, base_rate_paise: 5000, additional_weight_grams: 500, additional_rate_paise: 3000, min_transit_days: 1, max_transit_days: 1, is_active: true },
+      { id: "rc-del-zone-b", courier_code: "DELHIVERY", courier_name: "Delhivery Express Air", service_type: "EXPRESS", zone: "ZONE_B", zone_title: "Zone B — Intra-State (Rajasthan)", base_weight_grams: 500, base_rate_paise: 7500, additional_weight_grams: 500, additional_rate_paise: 4000, min_transit_days: 1, max_transit_days: 2, is_active: true },
+      { id: "rc-del-zone-c", courier_code: "DELHIVERY", courier_name: "Delhivery Express Air", service_type: "EXPRESS", zone: "ZONE_C", zone_title: "Zone C — Metro Corridors", base_weight_grams: 500, base_rate_paise: 11000, additional_weight_grams: 500, additional_rate_paise: 6000, min_transit_days: 2, max_transit_days: 3, is_active: true },
+      { id: "rc-del-zone-d", courier_code: "DELHIVERY", courier_name: "Delhivery Express Air", service_type: "EXPRESS", zone: "ZONE_D", zone_title: "Zone D — Rest of India", base_weight_grams: 500, base_rate_paise: 13500, additional_weight_grams: 500, additional_rate_paise: 7500, min_transit_days: 3, max_transit_days: 4, is_active: true },
+      { id: "rc-del-zone-e", courier_code: "DELHIVERY", courier_name: "Delhivery Express Air", service_type: "EXPRESS", zone: "ZONE_E", zone_title: "Zone E — Special Remote Zones", base_weight_grams: 500, base_rate_paise: 17500, additional_weight_grams: 500, additional_rate_paise: 9500, min_transit_days: 4, max_transit_days: 6, is_active: true },
+      { id: "rc-dtdc-zone-a", courier_code: "DTDC", courier_name: "DTDC Standard Surface", service_type: "SURFACE", zone: "ZONE_A", zone_title: "Zone A — Intra-City Jaipur", base_weight_grams: 500, base_rate_paise: 4000, additional_weight_grams: 1000, additional_rate_paise: 2500, min_transit_days: 1, max_transit_days: 2, is_active: true },
+      { id: "rc-dtdc-zone-b", courier_code: "DTDC", courier_name: "DTDC Standard Surface", service_type: "SURFACE", zone: "ZONE_B", zone_title: "Zone B — Intra-State (Rajasthan)", base_weight_grams: 500, base_rate_paise: 6000, additional_weight_grams: 1000, additional_rate_paise: 3500, min_transit_days: 2, max_transit_days: 3, is_active: true },
+      { id: "rc-dtdc-zone-c", courier_code: "DTDC", courier_name: "DTDC Standard Surface", service_type: "SURFACE", zone: "ZONE_C", zone_title: "Zone C — Metro Corridors", base_weight_grams: 500, base_rate_paise: 8500, additional_weight_grams: 1000, additional_rate_paise: 4500, min_transit_days: 3, max_transit_days: 5, is_active: true },
+      { id: "rc-dtdc-zone-d", courier_code: "DTDC", courier_name: "DTDC Standard Surface", service_type: "SURFACE", zone: "ZONE_D", zone_title: "Zone D — Rest of India", base_weight_grams: 500, base_rate_paise: 10500, additional_weight_grams: 1000, additional_rate_paise: 5500, min_transit_days: 4, max_transit_days: 6, is_active: true },
+      { id: "rc-dtdc-zone-e", courier_code: "DTDC", courier_name: "DTDC Standard Surface", service_type: "SURFACE", zone: "ZONE_E", zone_title: "Zone E — Special Remote Zones", base_weight_grams: 500, base_rate_paise: 14000, additional_weight_grams: 1000, additional_rate_paise: 7500, min_transit_days: 5, max_transit_days: 7, is_active: true },
+    ];
+    for (const rc of rateCards) {
+      await prisma.rateCard.upsert({
+        where: { id: rc.id },
+        update: {},
+        create: rc,
+      });
+    }
   }
 
   console.log("✅ Seed completed successfully!");
