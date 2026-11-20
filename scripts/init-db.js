@@ -66,10 +66,26 @@ async function initDatabase() {
     }
 
     if (!tablesExist) {
-      console.log("[DB-INIT] Tables do not exist yet. Executing initial schema creation from database.sql...");
-      const sqlFilePath = path.resolve(process.cwd(), "database.sql");
-      if (fs.existsSync(sqlFilePath)) {
-        const sqlContent = fs.readFileSync(sqlFilePath, "utf-8");
+      console.log("[DB-INIT] Tables do not exist yet. Executing initial schema creation...");
+      let sqlContent = "";
+      try {
+        const { DATABASE_SCHEMA_SQL } = require("./schema-sql");
+        sqlContent = DATABASE_SCHEMA_SQL;
+      } catch (e) {
+        const candidatePaths = [
+          path.resolve(process.cwd(), "database.sql"),
+          path.resolve(__dirname, "../database.sql"),
+          path.resolve(__dirname, "database.sql"),
+        ];
+        for (const p of candidatePaths) {
+          if (fs.existsSync(p)) {
+            sqlContent = fs.readFileSync(p, "utf-8");
+            break;
+          }
+        }
+      }
+
+      if (sqlContent && sqlContent.length > 0) {
         // Split by semicolon followed by newline
         const rawStatements = sqlContent.split(/;\s*[\r\n]+/);
 
@@ -90,6 +106,8 @@ async function initDatabase() {
           }
         }
         console.log("[DB-INIT] ✅ All tables, constraints, and initial seed data created successfully!");
+      } else {
+        console.warn("[DB-INIT] ⚠️ Could not locate SQL schema content to initialize database.");
       }
     }
 

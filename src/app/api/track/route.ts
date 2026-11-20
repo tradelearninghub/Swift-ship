@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getTrackingMetadata, BookingTrackingMetadata } from "@/lib/trackingMetadata";
 import { getThirdPartyTrackingUrl } from "@/lib/trackingUrls";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
